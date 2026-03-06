@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,24 +14,22 @@
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
-  --pad-gap: clamp(5px, 1.5vw, 10px);
+  --gap: 4px;
 }
 
 html { height: 100%; }
 
+/* ── Mobile-first: full-screen layout ───────────────────── */
 body {
   background: #080604;
   color: #e0d4b8;
   font-family: 'Courier New', monospace;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100dvh;
-  min-height: 100vh;
-  padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bot));
-  overflow-x: hidden;
-  /* prevent text selection on rapid taps */
+  height: 100vh;
+  height: 100dvh;
+  padding: var(--safe-top) var(--gap) var(--safe-bot);
+  overflow: hidden;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -39,38 +37,37 @@ body {
 /* ── Machine shell ──────────────────────────────────────── */
 .machine {
   background: linear-gradient(160deg, #1c1710 0%, #0f0c07 60%, #0a0804 100%);
-  border: 2px solid #2e2314;
-  border-radius: clamp(12px, 3vw, 20px);
-  padding: clamp(14px, 3vw, 28px);
-  box-shadow:
-    0 0 60px rgba(0,0,0,0.9),
-    0 0 120px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,200,80,0.08);
-  width: 100%;
-  max-width: 560px;
+  border-radius: 10px;
+  padding: 8px 8px 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* ── Header ─────────────────────────────────────────────── */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: clamp(10px, 2.5vw, 18px);
+  align-items: center;
   gap: 8px;
+  padding-bottom: 6px;
+  flex-shrink: 0;
 }
 .brand {
-  font-size: clamp(22px, 6vw, 32px);
+  font-size: 20px;
   font-weight: bold;
-  letter-spacing: clamp(4px, 2vw, 10px);
+  letter-spacing: 5px;
   color: #f5a42a;
-  text-shadow: 0 0 24px rgba(245,164,42,0.55), 0 0 50px rgba(245,164,42,0.2);
+  text-shadow: 0 0 20px rgba(245,164,42,0.55);
   line-height: 1;
 }
 .model-line {
-  font-size: clamp(7px, 1.6vw, 9px);
+  font-size: 7px;
   letter-spacing: 2px;
   color: #6a5530;
-  margin-top: 5px;
+  margin-top: 3px;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -80,24 +77,18 @@ body {
   background: #050f05;
   border: 1px solid #0e2a0e;
   border-radius: 4px;
-  padding: 6px 12px;
-  font-size: clamp(10px, 2.5vw, 13px);
+  padding: 4px 8px;
+  font-size: 10px;
   color: #3ddd3d;
   text-shadow: 0 0 10px rgba(61,221,61,0.7);
   font-family: 'Courier New', monospace;
   letter-spacing: 2px;
-  min-width: 120px;
   text-align: center;
   white-space: nowrap;
 }
 
-/* ── LED strip ──────────────────────────────────────────── */
-.led-strip {
-  display: flex;
-  gap: 5px;
-  justify-content: center;
-  margin: clamp(6px, 1.5vw, 12px) 0 clamp(4px, 1vw, 10px);
-}
+/* ── LED strip: hidden on mobile ────────────────────────── */
+.led-strip { display: none; }
 .led {
   width: 6px; height: 6px;
   border-radius: 50%;
@@ -107,28 +98,23 @@ body {
 }
 .led.on { background: #ff5010; box-shadow: 0 0 8px rgba(255,80,16,0.9), 0 0 18px rgba(255,80,16,0.4); }
 
-/* ── Section label ─────────────────────────────────────── */
-.section-label {
-  font-size: clamp(7px, 1.6vw, 8.5px);
-  letter-spacing: 3px;
-  color: #42310e;
-  text-align: center;
-  padding: clamp(5px, 1.2vw, 9px) 0 clamp(3px, 0.8vw, 6px);
-  text-transform: uppercase;
-  grid-column: 1 / -1;
-}
+/* ── Section labels: hidden (don't take grid space) ─────── */
+.section-label { display: none; }
 
-/* ── Pad grid ───────────────────────────────────────────── */
+/* ── Pad grid: fills all remaining height ───────────────── */
 .pad-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--pad-gap);
+  grid-auto-rows: 1fr;
+  gap: var(--gap);
+  flex: 1;
+  min-height: 0;
+  padding-bottom: var(--gap);
 }
 
 /* ── Pad base ───────────────────────────────────────────── */
 .pad {
-  aspect-ratio: 1;
-  border-radius: clamp(5px, 1.5vw, 8px);
+  border-radius: 7px;
   border: 2px solid transparent;
   cursor: pointer;
   display: flex;
@@ -137,10 +123,10 @@ body {
   justify-content: center;
   text-align: center;
   padding: 4px;
+  min-height: 70px;
   transition: transform 0.06s ease, box-shadow 0.08s ease, background 0.08s ease, border-color 0.08s ease;
   position: relative;
   overflow: hidden;
-  /* Prevent double-tap zoom & callout on mobile */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
@@ -157,81 +143,37 @@ body {
 .pad.active { transform: scale(0.92); }
 
 /* Chord pads — green */
-.pad.chord {
-  background: linear-gradient(145deg, #182818 0%, #0f1c0f 100%);
-  border-color: #243824;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
-}
-.pad.chord:hover { border-color: #3a5e3a; }
-.pad.chord.active {
-  background: linear-gradient(145deg, #253e25 0%, #1a2e1a 100%);
-  border-color: #60ff60;
-  box-shadow: 0 0 22px rgba(96,255,96,0.55), 0 0 50px rgba(96,255,96,0.2);
-}
+.pad.chord { background: linear-gradient(145deg, #182818 0%, #0f1c0f 100%); border-color: #243824; box-shadow: inset 0 2px 5px rgba(0,0,0,0.6); }
+.pad.chord.active { background: linear-gradient(145deg, #253e25 0%, #1a2e1a 100%); border-color: #60ff60; box-shadow: 0 0 22px rgba(96,255,96,0.55), 0 0 50px rgba(96,255,96,0.2); }
 
 /* FX pads — purple */
-.pad.fx {
-  background: linear-gradient(145deg, #271527 0%, #1a0d1a 100%);
-  border-color: #3e1e3e;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
-}
-.pad.fx:hover { border-color: #602060; }
-.pad.fx.active {
-  background: linear-gradient(145deg, #3e1e3e 0%, #2c122c 100%);
-  border-color: #ff60ff;
-  box-shadow: 0 0 22px rgba(255,96,255,0.55), 0 0 50px rgba(255,96,255,0.2);
-}
+.pad.fx { background: linear-gradient(145deg, #271527 0%, #1a0d1a 100%); border-color: #3e1e3e; box-shadow: inset 0 2px 5px rgba(0,0,0,0.6); }
+.pad.fx.active { background: linear-gradient(145deg, #3e1e3e 0%, #2c122c 100%); border-color: #ff60ff; box-shadow: 0 0 22px rgba(255,96,255,0.55), 0 0 50px rgba(255,96,255,0.2); }
 
 /* Drum pads — orange */
-.pad.drum {
-  background: linear-gradient(145deg, #28180a 0%, #1c0f05 100%);
-  border-color: #3e2208;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
-}
-.pad.drum:hover { border-color: #6a3a0e; }
-.pad.drum.active {
-  background: linear-gradient(145deg, #3e2208 0%, #2c1604 100%);
-  border-color: #ffa020;
-  box-shadow: 0 0 22px rgba(255,160,32,0.65), 0 0 50px rgba(255,160,32,0.25);
-}
+.pad.drum { background: linear-gradient(145deg, #28180a 0%, #1c0f05 100%); border-color: #3e2208; box-shadow: inset 0 2px 5px rgba(0,0,0,0.6); }
+.pad.drum.active { background: linear-gradient(145deg, #3e2208 0%, #2c1604 100%); border-color: #ffa020; box-shadow: 0 0 22px rgba(255,160,32,0.65), 0 0 50px rgba(255,160,32,0.25); }
 
 /* Pad text */
 .pad-name {
-  font-size: clamp(8px, 2.2vw, 11px);
+  font-size: clamp(9px, 3vw, 13px);
   font-weight: bold;
   letter-spacing: 0.3px;
-  line-height: 1.25;
+  line-height: 1.2;
   pointer-events: none;
 }
-.pad-key {
-  font-size: clamp(7px, 1.6vw, 9px);
-  opacity: 0.38;
-  margin-top: 4px;
-  letter-spacing: 1px;
-  pointer-events: none;
-}
-/* hide keyboard hints on very small screens */
-@media (max-width: 360px) { .pad-key { display: none; } }
+.pad-key { display: none; }
 
 .chord .pad-name { color: #70ff70; }
 .fx    .pad-name { color: #ff70ff; }
 .drum  .pad-name { color: #ffaa30; }
 
-/* ── Controls bar ───────────────────────────────────────── */
-.controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: clamp(10px, 2.5vw, 18px);
-  padding-top: clamp(8px, 2vw, 14px);
-  border-top: 1px solid #1e1608;
-  gap: 8px;
-}
-.knob-row { display: flex; gap: clamp(8px, 2vw, 14px); align-items: center; }
+/* ── Controls & Footer: hidden on mobile ────────────────── */
+.controls { display: none; }
+.knob-row { display: flex; gap: 12px; align-items: center; }
 .knob-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .knob {
-  width: clamp(28px, 7vw, 36px);
-  height: clamp(28px, 7vw, 36px);
+  width: 32px; height: 32px;
   border-radius: 50%;
   background: radial-gradient(circle at 38% 32%, #2e2510, #130f06);
   border: 2px solid #3a2c10;
@@ -246,28 +188,57 @@ body {
   width: 2px; height: 8px;
   background: #f5a42a;
   border-radius: 1px;
-  box-shadow: 0 0 4px rgba(245,164,42,0.6);
 }
-.knob-label { font-size: clamp(6px, 1.5vw, 8px); color: #4a380e; letter-spacing: 1px; text-transform: uppercase; }
+.knob-label { font-size: 7px; color: #4a380e; letter-spacing: 1px; text-transform: uppercase; }
+.key-hint { display: none; }
+.footer { display: none; }
 
-.key-hint {
-  font-size: clamp(7px, 1.6vw, 9px);
-  color: #3a2c10;
-  line-height: 2;
-  text-align: right;
-  letter-spacing: 0.5px;
-}
-/* hide keyboard hint on mobile */
-@media (pointer: coarse) { .key-hint { display: none; } }
-
-/* ── Footer ─────────────────────────────────────────────── */
-.footer {
-  text-align: center;
-  margin-top: clamp(8px, 2vw, 14px);
-  font-size: clamp(7px, 1.5vw, 8px);
-  color: #2e2208;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+/* ── Desktop restore ────────────────────────────────────── */
+@media (hover: hover) and (pointer: fine) and (min-width: 500px) {
+  body {
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 12px;
+    overflow-x: hidden;
+  }
+  .machine {
+    display: block;
+    flex: none;
+    border: 2px solid #2e2314;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 120px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,200,80,0.08);
+    width: 100%;
+    max-width: 560px;
+  }
+  .header { align-items: flex-start; margin-bottom: 16px; padding-bottom: 0; }
+  .brand { font-size: 30px; letter-spacing: 8px; }
+  .model-line { font-size: 8px; margin-top: 5px; }
+  .display { font-size: 12px; padding: 6px 12px; min-width: 120px; }
+  .led-strip { display: flex; gap: 5px; justify-content: center; margin: 10px 0 8px; }
+  .section-label {
+    display: block;
+    font-size: 8px;
+    letter-spacing: 3px;
+    color: #42310e;
+    text-align: center;
+    padding: 7px 0 4px;
+    text-transform: uppercase;
+    grid-column: 1 / -1;
+  }
+  .pad-grid { grid-auto-rows: auto; gap: 8px; flex: none; min-height: auto; padding-bottom: 0; }
+  .pad { aspect-ratio: 1; min-height: auto; border-radius: 8px; }
+  .pad.chord:hover { border-color: #3a5e3a; }
+  .pad.fx:hover    { border-color: #602060; }
+  .pad.drum:hover  { border-color: #6a3a0e; }
+  .pad-name { font-size: 10px; }
+  .pad-key { display: block; font-size: 8px; opacity: 0.38; margin-top: 4px; letter-spacing: 1px; pointer-events: none; }
+  .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid #1e1608; gap: 8px; }
+  .key-hint { display: block; font-size: 8px; color: #3a2c10; line-height: 2; text-align: right; letter-spacing: 0.5px; }
+  .footer { display: block; text-align: center; margin-top: 12px; font-size: 7px; color: #2e2208; letter-spacing: 2px; text-transform: uppercase; }
 }
 </style>
 </head>
@@ -317,9 +288,15 @@ function boot() {
   if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
   ctx = new AC();
 
+  // Master tape saturation — vinyl warmth across all sounds
+  const tapeSat = ctx.createWaveShaper();
+  tapeSat.curve = tapeClip(1.6);
+  tapeSat.oversample = '2x';
+  tapeSat.connect(ctx.destination);
+
   masterOut = ctx.createGain();
-  masterOut.gain.value = 0.85;
-  masterOut.connect(ctx.destination);
+  masterOut.gain.value = 0.80;
+  masterOut.connect(tapeSat);
 
   // Jazz room reverb impulse
   const rate = ctx.sampleRate;
@@ -333,8 +310,8 @@ function boot() {
   reverbNode = ctx.createConvolver();
   reverbNode.buffer = imp;
 
-  dryBus = ctx.createGain(); dryBus.gain.value = 0.62;
-  wetBus = ctx.createGain(); wetBus.gain.value = 0.40;
+  dryBus = ctx.createGain(); dryBus.gain.value = 0.65;
+  wetBus = ctx.createGain(); wetBus.gain.value = 0.38;
   dryBus.connect(masterOut);
   wetBus.connect(reverbNode);
   reverbNode.connect(masterOut);
@@ -349,47 +326,104 @@ function distCurve(k) {
   return c;
 }
 
+// Tape saturation: tanh soft-clip — vinyl warmth
+function tapeClip(drive) {
+  const n = 512, c = new Float32Array(n), norm = Math.tanh(drive);
+  for (let i = 0; i < n; i++) {
+    const x = i * 2 / n - 1;
+    c[i] = Math.tanh(x * drive) / norm;
+  }
+  return c;
+}
+
 // ─── Chord Frequencies ────────────────────────────────────────────────────────
 const semitone = (base, n) => base * Math.pow(2, n / 12);
 const C3 = 130.81;
 const nf = (root, ...intervals) => intervals.map(s => semitone(root, s));
 
 const CHORDS = {
-  'Cmaj7': nf(C3,  0, 16, 19, 23),
-  'Dm7':   nf(C3,  2, 17, 21, 24),
-  'Em7':   nf(C3,  4, 19, 23, 26),
-  'Fmaj7': nf(C3,  5, 21, 24, 28),
-  'G7':    nf(C3,  7, 23, 26, 29),
-  'Am7':   nf(C3,  9, 24, 28, 31),
-  'Bm7b5': nf(C3, 11, 26, 29, 33),
-  'Cmaj9': nf(C3,  0, 16, 19, 23, 26),
+  //              root offsets from C3 (semitones)
+  'Cmaj9':    nf(C3,  0, 16, 19, 23, 26),  // C3 E4 G4 B4 D5  — open, dreamy
+  'Fmaj7#11': nf(C3,  5,  9, 12, 16, 23),  // F3 A3 C4 E4 B4  — Lydian jazz
+  'Am9':      nf(C3, -3,  0,  4,  7, 11),  // A2 C3 E3 G3 B3  — minor 9
+  'Dm9':      nf(C3,  2,  5,  9, 12, 16),  // D3 F3 A3 C4 E4  — smooth ii
+  'G13':      nf(C3, -5, -1,  5,  9, 16),  // G2 B2 F3 A3 E4  — dominant 13
+  'Ebmaj7':   nf(C3,  3,  7, 10, 14),      // Eb3 G3 Bb3 D4   — vintage
+  'Bm7b5':    nf(C3, -1,  2,  5,  9),      // B2 D3 F3 A3     — half-dim
+  'E7#9':     nf(C3,  4,  8, 11, 14, 19),  // E3 G#3 B3 D4 G4 — Hendrix
+};
+
+// Per-chord sound character
+// dur=sustain(s), atk=attack(s), lpf=lowpass Hz, Q=resonance,
+// rev=reverb send multiplier, det=unison detune cents, type=upper osc type
+// dilla=true → tape wobble LFO (Dilla vintage feel)
+const CHORD_CFG = {
+  'Cmaj9':    { dur:3.2, atk:0.030, lpf:1850, Q:0.45, rev:1.40, det:11, type:'triangle' },
+  'Fmaj7#11': { dur:2.4, atk:0.016, lpf:2800, Q:0.70, rev:0.75, det:7,  type:'triangle' },
+  'Am9':      { dur:2.7, atk:0.024, lpf:2200, Q:0.55, rev:1.10, det:9,  type:'triangle' },
+  'Dm9':      { dur:2.5, atk:0.020, lpf:2400, Q:0.60, rev:0.90, det:7,  type:'triangle' },
+  'G13':      { dur:2.0, atk:0.010, lpf:3300, Q:0.85, rev:0.45, det:5,  type:'sawtooth' },
+  'Ebmaj7':   { dur:1.6, atk:0.007, lpf:1500, Q:1.30, rev:0.28, det:15, type:'triangle', dilla:true },
+  'Bm7b5':    { dur:2.9, atk:0.022, lpf:2000, Q:0.55, rev:1.20, det:8,  type:'triangle' },
+  'E7#9':     { dur:2.3, atk:0.009, lpf:3900, Q:1.20, rev:0.18, det:3,  type:'sawtooth' },
 };
 
 function playChord(name) {
   boot();
   const freqs = CHORDS[name];
-  const t = ctx.currentTime, dur = 2.2;
+  const cfg   = CHORD_CFG[name] || {};
+  const t     = ctx.currentTime;
+  const dur   = cfg.dur || 2.2;
+  const atk   = cfg.atk || 0.018;
+  const det   = cfg.det || 6;
+  const btype = cfg.type || 'triangle'; // upper note oscillator type
 
-  const cg = ctx.createGain();
-  cg.gain.setValueAtTime(0, t);
-  cg.gain.linearRampToValueAtTime(0.22 / freqs.length, t + 0.015);
-  cg.gain.setValueAtTime(0.22 / freqs.length, t + dur * 0.35);
-  cg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  // Volume scaled by sqrt(n) for perceptually consistent loudness
+  const vol = 0.22 / Math.sqrt(freqs.length);
+  const env = ctx.createGain();
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(vol, t + atk);
+  env.gain.setValueAtTime(vol, t + dur * 0.42);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
   const lpf = ctx.createBiquadFilter();
-  lpf.type = 'lowpass'; lpf.frequency.value = 2800; lpf.Q.value = 0.7;
-  cg.connect(lpf); lpf.connect(dryBus); lpf.connect(wetBus);
+  lpf.type = 'lowpass';
+  lpf.frequency.value = cfg.lpf || 2800;
+  lpf.Q.value = cfg.Q || 0.7;
+
+  // Per-chord reverb send (multiplies global wetBus gain)
+  const revSend = ctx.createGain();
+  revSend.gain.value = cfg.rev || 0.65;
+
+  env.connect(lpf);
+  lpf.connect(dryBus);
+  lpf.connect(revSend);
+  revSend.connect(wetBus);
+
+  // Dilla tape wobble — slow pitch LFO simulates vintage wow/flutter
+  let lfoAmt = null;
+  if (cfg.dilla) {
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 3.4 + Math.random() * 1.2; // 3.4–4.6 Hz wobble
+    lfoAmt = ctx.createGain();
+    lfoAmt.gain.value = 11; // ±11 cents
+    lfo.connect(lfoAmt);
+    lfo.start(t); lfo.stop(t + dur + 0.1);
+  }
 
   freqs.forEach((freq, i) => {
-    [0, 5 + Math.random() * 4].forEach(detune => {
+    // Unison pair: dry + detuned copy for vintage thickness
+    [0, det + (Math.random() - 0.5) * 3].forEach((d, di) => {
       const o = ctx.createOscillator();
-      o.type = i === 0 ? 'sawtooth' : 'triangle';
+      o.type = i === 0 ? 'sawtooth' : btype;
       o.frequency.value = freq;
-      o.detune.value = detune + (Math.random() - 0.5) * 6;
+      o.detune.value = d + (Math.random() - 0.5) * 3;
+      if (lfoAmt) lfoAmt.connect(o.detune);
       const g = ctx.createGain();
-      g.gain.value = i === 0 ? 0.75 : (detune === 0 ? 0.6 : 0.4);
-      o.connect(g); g.connect(cg);
-      o.start(t); o.stop(t + dur + 0.05);
+      g.gain.value = di === 0 ? (i === 0 ? 0.80 : 0.60) : 0.30;
+      o.connect(g); g.connect(env);
+      o.start(t); o.stop(t + dur + 0.06);
     });
   });
 }
@@ -561,14 +595,14 @@ function playRecordCrackle() {
 
 // ─── Pad definitions ──────────────────────────────────────────────────────────
 const PADS = [
-  { name:'Cmaj7',  type:'chord', key:'q', fn:()=>playChord('Cmaj7') },
-  { name:'Dm7',    type:'chord', key:'w', fn:()=>playChord('Dm7')   },
-  { name:'Em7',    type:'chord', key:'e', fn:()=>playChord('Em7')   },
-  { name:'Fmaj7',  type:'chord', key:'r', fn:()=>playChord('Fmaj7') },
-  { name:'G7',     type:'chord', key:'a', fn:()=>playChord('G7')    },
-  { name:'Am7',    type:'chord', key:'s', fn:()=>playChord('Am7')   },
-  { name:'Bm7b5',  type:'chord', key:'d', fn:()=>playChord('Bm7b5') },
-  { name:'Cmaj9',  type:'chord', key:'f', fn:()=>playChord('Cmaj9') },
+  { name:'Cmaj9',      type:'chord', key:'q', fn:()=>playChord('Cmaj9')    },
+  { name:'Fmaj7\n#11', type:'chord', key:'w', fn:()=>playChord('Fmaj7#11') },
+  { name:'Am9',        type:'chord', key:'e', fn:()=>playChord('Am9')      },
+  { name:'Dm9',        type:'chord', key:'r', fn:()=>playChord('Dm9')      },
+  { name:'G13',        type:'chord', key:'a', fn:()=>playChord('G13')      },
+  { name:'Ebmaj7',     type:'chord', key:'s', fn:()=>playChord('Ebmaj7')   },
+  { name:'Bm7b5',      type:'chord', key:'d', fn:()=>playChord('Bm7b5')    },
+  { name:'E7\n#9',     type:'chord', key:'f', fn:()=>playChord('E7#9')     },
   { name:'VINYL\nSCRATCH',  type:'fx',   key:'z', fn:playVinylScratch  },
   { name:'TAPE\nSTOP',      type:'fx',   key:'x', fn:playTapeStop      },
   { name:'LOFI\nNOISE',     type:'fx',   key:'c', fn:playLofiNoise     },
