@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080604">
+<title>SP-404 Jazz Hip-Hop</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --pad-gap: clamp(5px, 1.5vw, 10px);
+}
+
+html { height: 100%; }
+
+body {
+  background: #080604;
+  color: #e0d4b8;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  min-height: 100vh;
+  padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bot));
+  overflow-x: hidden;
+  /* prevent text selection on rapid taps */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── Machine shell ──────────────────────────────────────── */
+.machine {
+  background: linear-gradient(160deg, #1c1710 0%, #0f0c07 60%, #0a0804 100%);
+  border: 2px solid #2e2314;
+  border-radius: clamp(12px, 3vw, 20px);
+  padding: clamp(14px, 3vw, 28px);
+  box-shadow:
+    0 0 60px rgba(0,0,0,0.9),
+    0 0 120px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,200,80,0.08);
+  width: 100%;
+  max-width: 560px;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: clamp(10px, 2.5vw, 18px);
+  gap: 8px;
+}
+.brand {
+  font-size: clamp(22px, 6vw, 32px);
+  font-weight: bold;
+  letter-spacing: clamp(4px, 2vw, 10px);
+  color: #f5a42a;
+  text-shadow: 0 0 24px rgba(245,164,42,0.55), 0 0 50px rgba(245,164,42,0.2);
+  line-height: 1;
+}
+.model-line {
+  font-size: clamp(7px, 1.6vw, 9px);
+  letter-spacing: 2px;
+  color: #6a5530;
+  margin-top: 5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── LCD Display ────────────────────────────────────────── */
+.display {
+  background: #050f05;
+  border: 1px solid #0e2a0e;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: clamp(10px, 2.5vw, 13px);
+  color: #3ddd3d;
+  text-shadow: 0 0 10px rgba(61,221,61,0.7);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+  min-width: 120px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── LED strip ──────────────────────────────────────────── */
+.led-strip {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  margin: clamp(6px, 1.5vw, 12px) 0 clamp(4px, 1vw, 10px);
+}
+.led {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #150a04;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.6);
+  transition: all 0.08s ease;
+}
+.led.on { background: #ff5010; box-shadow: 0 0 8px rgba(255,80,16,0.9), 0 0 18px rgba(255,80,16,0.4); }
+
+/* ── Section label ─────────────────────────────────────── */
+.section-label {
+  font-size: clamp(7px, 1.6vw, 8.5px);
+  letter-spacing: 3px;
+  color: #42310e;
+  text-align: center;
+  padding: clamp(5px, 1.2vw, 9px) 0 clamp(3px, 0.8vw, 6px);
+  text-transform: uppercase;
+  grid-column: 1 / -1;
+}
+
+/* ── Pad grid ───────────────────────────────────────────── */
+.pad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--pad-gap);
+}
+
+/* ── Pad base ───────────────────────────────────────────── */
+.pad {
+  aspect-ratio: 1;
+  border-radius: clamp(5px, 1.5vw, 8px);
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px;
+  transition: transform 0.06s ease, box-shadow 0.08s ease, background 0.08s ease, border-color 0.08s ease;
+  position: relative;
+  overflow: hidden;
+  /* Prevent double-tap zoom & callout on mobile */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.pad::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.2) 0%, transparent 65%);
+  opacity: 0;
+  transition: opacity 0.08s ease;
+  pointer-events: none;
+}
+.pad.active::after { opacity: 1; }
+.pad.active { transform: scale(0.92); }
+
+/* Chord pads — green */
+.pad.chord {
+  background: linear-gradient(145deg, #182818 0%, #0f1c0f 100%);
+  border-color: #243824;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+}
+.pad.chord:hover { border-color: #3a5e3a; }
+.pad.chord.active {
+  background: linear-gradient(145deg, #253e25 0%, #1a2e1a 100%);
+  border-color: #60ff60;
+  box-shadow: 0 0 22px rgba(96,255,96,0.55), 0 0 50px rgba(96,255,96,0.2);
+}
+
+/* FX pads — purple */
+.pad.fx {
+  background: linear-gradient(145deg, #271527 0%, #1a0d1a 100%);
+  border-color: #3e1e3e;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+}
+.pad.fx:hover { border-color: #602060; }
+.pad.fx.active {
+  background: linear-gradient(145deg, #3e1e3e 0%, #2c122c 100%);
+  border-color: #ff60ff;
+  box-shadow: 0 0 22px rgba(255,96,255,0.55), 0 0 50px rgba(255,96,255,0.2);
+}
+
+/* Drum pads — orange */
+.pad.drum {
+  background: linear-gradient(145deg, #28180a 0%, #1c0f05 100%);
+  border-color: #3e2208;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+}
+.pad.drum:hover { border-color: #6a3a0e; }
+.pad.drum.active {
+  background: linear-gradient(145deg, #3e2208 0%, #2c1604 100%);
+  border-color: #ffa020;
+  box-shadow: 0 0 22px rgba(255,160,32,0.65), 0 0 50px rgba(255,160,32,0.25);
+}
+
+/* Pad text */
+.pad-name {
+  font-size: clamp(8px, 2.2vw, 11px);
+  font-weight: bold;
+  letter-spacing: 0.3px;
+  line-height: 1.25;
+  pointer-events: none;
+}
+.pad-key {
+  font-size: clamp(7px, 1.6vw, 9px);
+  opacity: 0.38;
+  margin-top: 4px;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+/* hide keyboard hints on very small screens */
+@media (max-width: 360px) { .pad-key { display: none; } }
+
+.chord .pad-name { color: #70ff70; }
+.fx    .pad-name { color: #ff70ff; }
+.drum  .pad-name { color: #ffaa30; }
+
+/* ── Controls bar ───────────────────────────────────────── */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: clamp(10px, 2.5vw, 18px);
+  padding-top: clamp(8px, 2vw, 14px);
+  border-top: 1px solid #1e1608;
+  gap: 8px;
+}
+.knob-row { display: flex; gap: clamp(8px, 2vw, 14px); align-items: center; }
+.knob-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.knob {
+  width: clamp(28px, 7vw, 36px);
+  height: clamp(28px, 7vw, 36px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #2e2510, #130f06);
+  border: 2px solid #3a2c10;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,200,80,0.1);
+}
+.knob::after {
+  content: '';
+  position: absolute;
+  top: 5px; left: 50%;
+  transform: translateX(-50%);
+  width: 2px; height: 8px;
+  background: #f5a42a;
+  border-radius: 1px;
+  box-shadow: 0 0 4px rgba(245,164,42,0.6);
+}
+.knob-label { font-size: clamp(6px, 1.5vw, 8px); color: #4a380e; letter-spacing: 1px; text-transform: uppercase; }
+
+.key-hint {
+  font-size: clamp(7px, 1.6vw, 9px);
+  color: #3a2c10;
+  line-height: 2;
+  text-align: right;
+  letter-spacing: 0.5px;
+}
+/* hide keyboard hint on mobile */
+@media (pointer: coarse) { .key-hint { display: none; } }
+
+/* ── Footer ─────────────────────────────────────────────── */
+.footer {
+  text-align: center;
+  margin-top: clamp(8px, 2vw, 14px);
+  font-size: clamp(7px, 1.5vw, 8px);
+  color: #2e2208;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+<div class="machine">
+
+  <div class="header">
+    <div>
+      <div class="brand">SP-404</div>
+      <div class="model-line">Jazz Hip-Hop · Web Audio</div>
+    </div>
+    <div class="display" id="display">[ READY ]</div>
+  </div>
+
+  <div class="led-strip">
+    <div class="led" id="l0"></div><div class="led" id="l1"></div>
+    <div class="led" id="l2"></div><div class="led" id="l3"></div>
+    <div class="led" id="l4"></div><div class="led" id="l5"></div>
+    <div class="led" id="l6"></div><div class="led" id="l7"></div>
+  </div>
+
+  <div class="pad-grid" id="padGrid"></div>
+
+  <div class="controls">
+    <div class="knob-row">
+      <div class="knob-wrap"><div class="knob"></div><div class="knob-label">Reverb</div></div>
+      <div class="knob-wrap"><div class="knob"></div><div class="knob-label">Lo-Fi</div></div>
+      <div class="knob-wrap"><div class="knob"></div><div class="knob-label">Drive</div></div>
+    </div>
+    <div class="key-hint">
+      Q W E R — chords 1~4<br>
+      A S D F — chords 5~8<br>
+      Z X C V — fx<br>
+      1 2 3 4 — drums
+    </div>
+  </div>
+
+  <div class="footer">SP-404 Style · Powered by Web Audio API</div>
+</div>
+
+<script>
+// ─── Audio Context ────────────────────────────────────────────────────────────
+const AC = window.AudioContext || window.webkitAudioContext;
+let ctx, masterOut, dryBus, wetBus, reverbNode;
+
+function boot() {
+  if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+  ctx = new AC();
+
+  masterOut = ctx.createGain();
+  masterOut.gain.value = 0.85;
+  masterOut.connect(ctx.destination);
+
+  // Jazz room reverb impulse
+  const rate = ctx.sampleRate;
+  const len  = Math.floor(rate * 2.8);
+  const imp  = ctx.createBuffer(2, len, rate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = imp.getChannelData(ch);
+    for (let i = 0; i < len; i++)
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+  }
+  reverbNode = ctx.createConvolver();
+  reverbNode.buffer = imp;
+
+  dryBus = ctx.createGain(); dryBus.gain.value = 0.62;
+  wetBus = ctx.createGain(); wetBus.gain.value = 0.40;
+  dryBus.connect(masterOut);
+  wetBus.connect(reverbNode);
+  reverbNode.connect(masterOut);
+}
+
+function distCurve(k) {
+  const n = 256, c = new Float32Array(n), deg = Math.PI / 180;
+  for (let i = 0; i < n; i++) {
+    const x = i * 2 / n - 1;
+    c[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+  }
+  return c;
+}
+
+// ─── Chord Frequencies ────────────────────────────────────────────────────────
+const semitone = (base, n) => base * Math.pow(2, n / 12);
+const C3 = 130.81;
+const nf = (root, ...intervals) => intervals.map(s => semitone(root, s));
+
+const CHORDS = {
+  'Cmaj7': nf(C3,  0, 16, 19, 23),
+  'Dm7':   nf(C3,  2, 17, 21, 24),
+  'Em7':   nf(C3,  4, 19, 23, 26),
+  'Fmaj7': nf(C3,  5, 21, 24, 28),
+  'G7':    nf(C3,  7, 23, 26, 29),
+  'Am7':   nf(C3,  9, 24, 28, 31),
+  'Bm7b5': nf(C3, 11, 26, 29, 33),
+  'Cmaj9': nf(C3,  0, 16, 19, 23, 26),
+};
+
+function playChord(name) {
+  boot();
+  const freqs = CHORDS[name];
+  const t = ctx.currentTime, dur = 2.2;
+
+  const cg = ctx.createGain();
+  cg.gain.setValueAtTime(0, t);
+  cg.gain.linearRampToValueAtTime(0.22 / freqs.length, t + 0.015);
+  cg.gain.setValueAtTime(0.22 / freqs.length, t + dur * 0.35);
+  cg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+  const lpf = ctx.createBiquadFilter();
+  lpf.type = 'lowpass'; lpf.frequency.value = 2800; lpf.Q.value = 0.7;
+  cg.connect(lpf); lpf.connect(dryBus); lpf.connect(wetBus);
+
+  freqs.forEach((freq, i) => {
+    [0, 5 + Math.random() * 4].forEach(detune => {
+      const o = ctx.createOscillator();
+      o.type = i === 0 ? 'sawtooth' : 'triangle';
+      o.frequency.value = freq;
+      o.detune.value = detune + (Math.random() - 0.5) * 6;
+      const g = ctx.createGain();
+      g.gain.value = i === 0 ? 0.75 : (detune === 0 ? 0.6 : 0.4);
+      o.connect(g); g.connect(cg);
+      o.start(t); o.stop(t + dur + 0.05);
+    });
+  });
+}
+
+// ─── Drums ────────────────────────────────────────────────────────────────────
+function playKick() {
+  boot();
+  const t = ctx.currentTime;
+  const body = ctx.createOscillator(); body.type = 'sine';
+  body.frequency.setValueAtTime(190, t);
+  body.frequency.exponentialRampToValueAtTime(44, t + 0.07);
+  body.frequency.exponentialRampToValueAtTime(28, t + 0.22);
+
+  const click = ctx.createOscillator(); click.type = 'triangle';
+  click.frequency.setValueAtTime(1400, t);
+  click.frequency.exponentialRampToValueAtTime(80, t + 0.018);
+
+  const bg = ctx.createGain();
+  bg.gain.setValueAtTime(1.4, t);
+  bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+  const cg = ctx.createGain();
+  cg.gain.setValueAtTime(0.65, t);
+  cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+
+  const ws = ctx.createWaveShaper(); ws.curve = distCurve(60);
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -4; comp.ratio.value = 10;
+  comp.attack.value = 0.001; comp.release.value = 0.12;
+
+  body.connect(bg); click.connect(cg);
+  bg.connect(ws); cg.connect(ws);
+  ws.connect(comp); comp.connect(masterOut);
+  body.start(t); body.stop(t + 0.45);
+  click.start(t); click.stop(t + 0.05);
+}
+
+function playSnare() {
+  boot();
+  const t = ctx.currentTime;
+  const nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.25), ctx.sampleRate);
+  const nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const ns = ctx.createBufferSource(); ns.buffer = nb;
+
+  const nf2 = ctx.createBiquadFilter(); nf2.type = 'bandpass'; nf2.frequency.value = 2800; nf2.Q.value = 0.6;
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.9, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+
+  const osc = ctx.createOscillator(); osc.type = 'triangle';
+  osc.frequency.setValueAtTime(230, t); osc.frequency.exponentialRampToValueAtTime(110, t + 0.06);
+  const og = ctx.createGain();
+  og.gain.setValueAtTime(0.5, t); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+
+  const ws = ctx.createWaveShaper(); ws.curve = distCurve(28);
+  ns.connect(nf2); nf2.connect(ng); ng.connect(ws);
+  osc.connect(og); og.connect(ws); ws.connect(masterOut);
+  ns.start(t); osc.start(t); osc.stop(t + 0.2);
+}
+
+function playHHClosed() {
+  boot();
+  const t = ctx.currentTime;
+  const nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.1), ctx.sampleRate);
+  const nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const ns = ctx.createBufferSource(); ns.buffer = nb;
+  const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 9000;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.55, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+  ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t);
+}
+
+function playHHOpen() {
+  boot();
+  const t = ctx.currentTime, dur = 0.55;
+  const nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+  const nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const ns = ctx.createBufferSource(); ns.buffer = nb;
+  const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 6500;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.45, t);
+  g.gain.linearRampToValueAtTime(0.18, t + 0.2);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t);
+}
+
+// ─── FX ───────────────────────────────────────────────────────────────────────
+function playVinylScratch() {
+  boot();
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator(); osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(900, t);
+  osc.frequency.linearRampToValueAtTime(280, t + 0.1);
+  osc.frequency.linearRampToValueAtTime(1300, t + 0.22);
+  osc.frequency.linearRampToValueAtTime(500, t + 0.35);
+  const bpf = ctx.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 1100; bpf.Q.value = 3.5;
+
+  const nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.4), ctx.sampleRate);
+  const nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = (Math.random() * 2 - 1) * 0.25;
+  const ns = ctx.createBufferSource(); ns.buffer = nb;
+
+  const ws = ctx.createWaveShaper(); ws.curve = distCurve(90);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.7, t + 0.02);
+  g.gain.setValueAtTime(0.7, t + 0.33); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+
+  osc.connect(bpf); bpf.connect(ws); ns.connect(ws);
+  ws.connect(g); g.connect(dryBus); g.connect(wetBus);
+  osc.start(t); osc.stop(t + 0.45); ns.start(t);
+}
+
+function playTapeStop() {
+  boot();
+  const t = ctx.currentTime, dur = 0.9;
+  [261.63, 329.63, 392.00, 493.88].forEach(freq => {
+    const osc = ctx.createOscillator(); osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.04, t + dur);
+    const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass';
+    lpf.frequency.setValueAtTime(3500, t); lpf.frequency.exponentialRampToValueAtTime(80, t + dur);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.22, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(lpf); lpf.connect(g); g.connect(dryBus);
+    osc.start(t); osc.stop(t + dur + 0.05);
+  });
+}
+
+function playLofiNoise() {
+  boot();
+  const t = ctx.currentTime, dur = 1.6, rate = ctx.sampleRate;
+  const nb = ctx.createBuffer(1, Math.floor(rate * dur), rate);
+  const nd = nb.getChannelData(0);
+  let v = 0;
+  for (let i = 0; i < nd.length; i++) {
+    v += (Math.random() * 2 - 1) * 0.04;
+    v = Math.max(-1, Math.min(1, v)); nd[i] = v;
+  }
+  const ns = ctx.createBufferSource(); ns.buffer = nb;
+  const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 700; lpf.Q.value = 1.8;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.55, t + 0.12);
+  g.gain.setValueAtTime(0.55, t + dur - 0.22); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  ns.connect(lpf); lpf.connect(g); g.connect(dryBus); g.connect(wetBus); ns.start(t);
+}
+
+function playRecordCrackle() {
+  boot();
+  const t = ctx.currentTime, dur = 2.2, rate = ctx.sampleRate;
+  const nb = ctx.createBuffer(1, Math.floor(rate * dur), rate);
+  const nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) {
+    nd[i] = (Math.random() * 2 - 1) * 0.05;
+    if (Math.random() < 0.0012) {
+      const pl = Math.floor(Math.random() * 90 + 18);
+      const amp = Math.random() * 0.9 + 0.15;
+      for (let j = 0; j < pl && i + j < nd.length; j++)
+        nd[i + j] += Math.sin((j / pl) * Math.PI) * amp * (Math.random() * 2 - 1);
+    }
+  }
+  const ns = ctx.createBufferSource(); ns.buffer = nb;
+  const bpf = ctx.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 3200; bpf.Q.value = 0.45;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.65, t); g.gain.setValueAtTime(0.65, t + dur - 0.15);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  ns.connect(bpf); bpf.connect(g); g.connect(masterOut); ns.start(t);
+}
+
+// ─── Pad definitions ──────────────────────────────────────────────────────────
+const PADS = [
+  { name:'Cmaj7',  type:'chord', key:'q', fn:()=>playChord('Cmaj7') },
+  { name:'Dm7',    type:'chord', key:'w', fn:()=>playChord('Dm7')   },
+  { name:'Em7',    type:'chord', key:'e', fn:()=>playChord('Em7')   },
+  { name:'Fmaj7',  type:'chord', key:'r', fn:()=>playChord('Fmaj7') },
+  { name:'G7',     type:'chord', key:'a', fn:()=>playChord('G7')    },
+  { name:'Am7',    type:'chord', key:'s', fn:()=>playChord('Am7')   },
+  { name:'Bm7b5',  type:'chord', key:'d', fn:()=>playChord('Bm7b5') },
+  { name:'Cmaj9',  type:'chord', key:'f', fn:()=>playChord('Cmaj9') },
+  { name:'VINYL\nSCRATCH',  type:'fx',   key:'z', fn:playVinylScratch  },
+  { name:'TAPE\nSTOP',      type:'fx',   key:'x', fn:playTapeStop      },
+  { name:'LOFI\nNOISE',     type:'fx',   key:'c', fn:playLofiNoise     },
+  { name:'RECORD\nCRACKLE', type:'fx',   key:'v', fn:playRecordCrackle },
+  { name:'KICK',        type:'drum', key:'1', fn:playKick     },
+  { name:'SNARE',       type:'drum', key:'2', fn:playSnare    },
+  { name:'HH\nCLOSED',  type:'drum', key:'3', fn:playHHClosed },
+  { name:'HH\nOPEN',    type:'drum', key:'4', fn:playHHOpen   },
+];
+
+// ─── Build DOM ────────────────────────────────────────────────────────────────
+const grid    = document.getElementById('padGrid');
+const display = document.getElementById('display');
+const leds    = Array.from({length:8}, (_,i) => document.getElementById(`l${i}`));
+const padEls  = [];
+const SECTION = { 0:'— Chords —', 8:'— Effects —', 12:'— Drums —' };
+const DNAMES  = PADS.map(p => p.name.replace('\n',' '));
+
+PADS.forEach((pad, i) => {
+  if (SECTION[i]) {
+    const lbl = document.createElement('div');
+    lbl.className = 'section-label';
+    lbl.textContent = SECTION[i];
+    grid.appendChild(lbl);
+  }
+  const el = document.createElement('div');
+  el.className = `pad ${pad.type}`;
+  el.innerHTML =
+    `<span class="pad-name">${pad.name.replace('\n','<br>')}</span>` +
+    `<span class="pad-key">[${pad.key.toUpperCase()}]</span>`;
+  el.addEventListener('mousedown', e => { e.preventDefault(); trigger(i); });
+  el.addEventListener('touchstart', e => { e.preventDefault(); trigger(i); }, {passive:false});
+  grid.appendChild(el);
+  padEls.push(el);
+});
+
+// ─── Trigger ──────────────────────────────────────────────────────────────────
+function trigger(idx) {
+  boot();
+  PADS[idx].fn();
+  display.textContent = `[ ${DNAMES[idx]} ]`;
+  const led = leds[idx % 8];
+  led.classList.add('on');
+  setTimeout(() => led.classList.remove('on'), 160);
+  padEls[idx].classList.add('active');
+  setTimeout(() => padEls[idx].classList.remove('active'), 160);
+}
+
+// ─── Keyboard ─────────────────────────────────────────────────────────────────
+const keyMap = Object.fromEntries(PADS.map((p,i) => [p.key, i]));
+document.addEventListener('keydown', e => {
+  if (e.repeat || e.ctrlKey || e.metaKey) return;
+  const k = e.key.toLowerCase();
+  if (k in keyMap) { e.preventDefault(); trigger(keyMap[k]); }
+});
+</script>
+</body>
+</html>
