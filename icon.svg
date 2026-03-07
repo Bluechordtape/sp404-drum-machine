@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#ddd5c8"/>
+  <!-- pad grid 2x4 -->
+  <rect x="48"  y="80"  width="96" height="96" rx="14" fill="#e87040"/>
+  <rect x="160" y="80"  width="96" height="96" rx="14" fill="#5080d0"/>
+  <rect x="272" y="80"  width="96" height="96" rx="14" fill="#50b080"/>
+  <rect x="384" y="80"  width="96" height="96" rx="14" fill="#d0a020"/>
+  <rect x="48"  y="192" width="96" height="96" rx="14" fill="#d05080"/>
+  <rect x="160" y="192" width="96" height="96" rx="14" fill="#8060c0"/>
+  <rect x="272" y="192" width="96" height="96" rx="14" fill="#40a0b0"/>
+  <rect x="384" y="192" width="96" height="96" rx="14" fill="#c06030"/>
+  <!-- sheen on pads -->
+  <rect x="48"  y="80"  width="96" height="28" rx="14" fill="rgba(255,255,255,0.22)"/>
+  <rect x="160" y="80"  width="96" height="28" rx="14" fill="rgba(255,255,255,0.22)"/>
+  <rect x="272" y="80"  width="96" height="28" rx="14" fill="rgba(255,255,255,0.22)"/>
+  <rect x="384" y="80"  width="96" height="28" rx="14" fill="rgba(255,255,255,0.22)"/>
+  <rect x="48"  y="192" width="96" height="28" rx="14" fill="rgba(255,255,255,0.22)"/>
+  <rect x="160" y="192" width="96" height="28" rx="14" fill="rgba(255,255,255,0.22)"/>
+  <rect x="272" y="192" width="96" height="28" rx="14" fill="rgba(255,255,255,0.22)"/>
+  <rect x="384" y="192" width="96" height="28" rx="14" fill="rgba(255,255,255,0.22)"/>
+  <!-- label -->
+  <text x="256" y="370" text-anchor="middle" font-family="'Courier New',monospace" font-size="72" font-weight="bold" fill="#4a3010" letter-spacing="2">BCT-404</text>
+  <text x="256" y="440" text-anchor="middle" font-family="'Courier New',monospace" font-size="32" fill="#8a6030" letter-spacing="4">DRUM MACHINE</text>
+</svg>
