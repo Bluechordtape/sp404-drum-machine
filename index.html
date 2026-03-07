@@ -6,8 +6,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#080604">
-<title>SP-404 Jazz Hip-Hop</title>
+<meta name="theme-color" content="#ede7db">
+<title>BCT-404</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -19,10 +19,9 @@
 
 html { height: 100%; }
 
-/* ── Mobile-first: full-screen layout ───────────────────── */
 body {
-  background: #080604;
-  color: #e0d4b8;
+  background: #ede7db;
+  color: #2a1a08;
   font-family: 'Courier New', monospace;
   display: flex;
   flex-direction: column;
@@ -34,19 +33,21 @@ body {
   user-select: none;
 }
 
-/* ── Machine shell ──────────────────────────────────────── */
+/* ── Machine shell ── */
 .machine {
-  background: linear-gradient(160deg, #1c1710 0%, #0f0c07 60%, #0a0804 100%);
-  border-radius: 10px;
+  background: linear-gradient(160deg, #eae2d6 0%, #ddd5c8 100%);
+  border: 2px solid #c4b499;
+  border-radius: 14px;
   padding: 8px 8px 0;
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
 }
 
-/* ── Header ─────────────────────────────────────────────── */
+/* ── Header ── */
 .header {
   display: flex;
   justify-content: space-between;
@@ -56,23 +57,23 @@ body {
   flex-shrink: 0;
 }
 .brand {
-  font-size: 20px;
-  font-weight: bold;
-  letter-spacing: 5px;
-  color: #f5a42a;
-  text-shadow: 0 0 20px rgba(245,164,42,0.55);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: #1a1208;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6), 0 -1px 0 rgba(0,0,0,0.08);
   line-height: 1;
 }
 .model-line {
   font-size: 7px;
   letter-spacing: 2px;
-  color: #6a5530;
+  color: #8a7456;
   margin-top: 3px;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-/* ── LCD Display ────────────────────────────────────────── */
+/* ── LCD Display ── */
 .display {
   background: #050f05;
   border: 1px solid #0e2a0e;
@@ -87,21 +88,19 @@ body {
   white-space: nowrap;
 }
 
-/* ── LED strip: hidden on mobile ────────────────────────── */
+/* ── LED strip ── */
 .led-strip { display: none; }
 .led {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #150a04;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.6);
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #c8b898; box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
   transition: all 0.08s ease;
 }
-.led.on { background: #ff5010; box-shadow: 0 0 8px rgba(255,80,16,0.9), 0 0 18px rgba(255,80,16,0.4); }
+.led.on { background: #ff5010; box-shadow: 0 0 8px rgba(255,80,16,0.9); }
 
-/* ── Section labels: hidden (don't take grid space) ─────── */
+/* ── Section labels ── */
 .section-label { display: none; }
 
-/* ── Pad grid: fills all remaining height ───────────────── */
+/* ── Pad grid ── */
 .pad-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -112,9 +111,9 @@ body {
   padding-bottom: var(--gap);
 }
 
-/* ── Pad base ───────────────────────────────────────────── */
+/* ── Pad base ── */
 .pad {
-  border-radius: 7px;
+  border-radius: 8px;
   border: 2px solid transparent;
   cursor: pointer;
   display: flex;
@@ -124,130 +123,265 @@ body {
   text-align: center;
   padding: 4px;
   min-height: 70px;
-  transition: transform 0.06s ease, box-shadow 0.08s ease, background 0.08s ease, border-color 0.08s ease;
   position: relative;
   overflow: hidden;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
 .pad::after {
   content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.2) 0%, transparent 65%);
-  opacity: 0;
-  transition: opacity 0.08s ease;
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.35) 0%, transparent 60%);
+  opacity: 1;
   pointer-events: none;
 }
-.pad.active::after { opacity: 1; }
-.pad.active { transform: scale(0.92); }
+.pad.active { transform: scale(0.93) translateY(2px); }
 
-/* Chord pads — green */
-.pad.chord { background: linear-gradient(145deg, #182818 0%, #0f1c0f 100%); border-color: #243824; box-shadow: inset 0 2px 5px rgba(0,0,0,0.6); }
-.pad.chord.active { background: linear-gradient(145deg, #253e25 0%, #1a2e1a 100%); border-color: #60ff60; box-shadow: 0 0 22px rgba(96,255,96,0.55), 0 0 50px rgba(96,255,96,0.2); }
+/* Chord pads — mint/sage */
+.pad.chord {
+  background: linear-gradient(155deg, #c4e8c8 0%, #a8d4b0 100%);
+  border-color: #84c090;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  color: #1a5224;
+}
+.pad.chord.active {
+  background: linear-gradient(155deg, #80c888 0%, #64b870 100%);
+  border-color: #38a048;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.1), 0 0 14px rgba(50,170,70,0.35);
+}
 
-/* FX pads — purple */
-.pad.fx { background: linear-gradient(145deg, #271527 0%, #1a0d1a 100%); border-color: #3e1e3e; box-shadow: inset 0 2px 5px rgba(0,0,0,0.6); }
-.pad.fx.active { background: linear-gradient(145deg, #3e1e3e 0%, #2c122c 100%); border-color: #ff60ff; box-shadow: 0 0 22px rgba(255,96,255,0.55), 0 0 50px rgba(255,96,255,0.2); }
+/* FX pads — amber/warm yellow */
+.pad.fx {
+  background: linear-gradient(155deg, #f0d870 0%, #e0c050 100%);
+  border-color: #c4a028;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  color: #4a3000;
+}
+.pad.fx.active {
+  background: linear-gradient(155deg, #d4a820 0%, #c49810 100%);
+  border-color: #a07800;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.1), 0 0 14px rgba(200,150,0,0.35);
+}
 
-/* Drum pads — orange */
-.pad.drum { background: linear-gradient(145deg, #28180a 0%, #1c0f05 100%); border-color: #3e2208; box-shadow: inset 0 2px 5px rgba(0,0,0,0.6); }
-.pad.drum.active { background: linear-gradient(145deg, #3e2208 0%, #2c1604 100%); border-color: #ffa020; box-shadow: 0 0 22px rgba(255,160,32,0.65), 0 0 50px rgba(255,160,32,0.25); }
+/* Drum pads — terracotta/coral */
+.pad.drum {
+  background: linear-gradient(155deg, #e8b490 0%, #d49c74 100%);
+  border-color: #b47858;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  color: #4a1800;
+}
+.pad.drum.active {
+  background: linear-gradient(155deg, #c47050 0%, #b46040 100%);
+  border-color: #904030;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.1), 0 0 14px rgba(180,80,40,0.35);
+}
 
 /* Pad text */
 .pad-name {
-  font-size: clamp(9px, 3vw, 13px);
+  font-size: clamp(9px, 2.8vw, 13px);
   font-weight: bold;
   letter-spacing: 0.3px;
   line-height: 1.2;
   pointer-events: none;
 }
+.pad-hint {
+  font-size: 6px;
+  letter-spacing: 1px;
+  opacity: 0.35;
+  margin-top: 2px;
+  pointer-events: none;
+  text-transform: uppercase;
+}
 .pad-key { display: none; }
 
-.chord .pad-name { color: #70ff70; }
-.fx    .pad-name { color: #ff70ff; }
-.drum  .pad-name { color: #ffaa30; }
-
-/* ── Controls & Footer: hidden on mobile ────────────────── */
+/* ── Controls & Footer ── */
 .controls { display: none; }
 .knob-row { display: flex; gap: 12px; align-items: center; }
 .knob-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .knob {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 38% 32%, #2e2510, #130f06);
-  border: 2px solid #3a2c10;
-  position: relative;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,200,80,0.1);
+  width: 32px; height: 32px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #d4c8b0, #a09070);
+  border: 2px solid #b4a080; position: relative;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 .knob::after {
-  content: '';
-  position: absolute;
-  top: 5px; left: 50%;
-  transform: translateX(-50%);
-  width: 2px; height: 8px;
-  background: #f5a42a;
-  border-radius: 1px;
+  content: ''; position: absolute; top: 5px; left: 50%;
+  transform: translateX(-50%); width: 2px; height: 8px;
+  background: #1a1208; border-radius: 1px;
 }
-.knob-label { font-size: 7px; color: #4a380e; letter-spacing: 1px; text-transform: uppercase; }
+.knob-label { font-size: 7px; color: #8a7456; letter-spacing: 1px; text-transform: uppercase; }
 .key-hint { display: none; }
 .footer { display: none; }
 
-/* ── Desktop restore ────────────────────────────────────── */
+/* ── Picker overlay ── */
+.picker-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,8,4,0.75);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+}
+.picker-overlay.hidden { display: none; }
+
+.picker-modal {
+  background: #18120a;
+  border: 2px solid #f5a42a;
+  border-radius: 14px;
+  padding: 18px 16px 16px;
+  width: min(300px, 88vw);
+  box-shadow: 0 0 40px rgba(245,164,42,0.25), 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.picker-title {
+  color: #f5a42a;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-align: center;
+  margin-bottom: 14px;
+  text-shadow: 0 0 10px rgba(245,164,42,0.5);
+}
+
+/* Drums row: labels + scrollable drums */
+.picker-cols {
+  display: flex;
+  gap: 10px;
+  position: relative;
+}
+
+.picker-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-label {
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: #6a5530;
+  text-align: center;
+  padding-bottom: 6px;
+  flex-shrink: 0;
+  height: 22px;
+}
+
+.picker-drum-wrap {
+  position: relative;
+  height: 176px; /* 4 visible items */
+  overflow: hidden;
+}
+
+/* gradient fades top/bottom */
+.picker-drum-wrap::before,
+.picker-drum-wrap::after {
+  content: '';
+  position: absolute; left: 0; right: 0;
+  height: 55px;
+  pointer-events: none; z-index: 3;
+}
+.picker-drum-wrap::before {
+  top: 0;
+  background: linear-gradient(to bottom, #18120a 10%, transparent 100%);
+}
+.picker-drum-wrap::after {
+  bottom: 0;
+  background: linear-gradient(to top, #18120a 10%, transparent 100%);
+}
+
+.picker-drum {
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.picker-drum::-webkit-scrollbar { display: none; }
+
+.picker-item {
+  height: 44px;
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: rgba(160,120,60,0.35);
+  transform: scale(0.78);
+  transition: color 0.12s, transform 0.12s;
+  cursor: pointer;
+}
+.picker-item.pi-near  { color: rgba(200,155,80,0.65); transform: scale(0.9); }
+.picker-item.pi-sel   { color: #f5e0a0; transform: scale(1.08); }
+.picker-item.picker-pad { pointer-events: none; }
+
+/* selector bar — centered vertically in drum-wrap */
+.picker-sel-bar {
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%; height: 44px;
+  transform: translateY(-50%);
+  border-top: 1px solid rgba(245,164,42,0.45);
+  border-bottom: 1px solid rgba(245,164,42,0.45);
+  pointer-events: none; z-index: 2;
+}
+
+.picker-btns {
+  display: flex; gap: 8px; margin-top: 14px;
+}
+.picker-btn {
+  flex: 1; padding: 10px 0;
+  border-radius: 7px; border: none;
+  font-family: 'Courier New', monospace;
+  font-size: 10px; letter-spacing: 2px; font-weight: bold;
+  cursor: pointer;
+}
+.picker-btn.cancel  { background: #2a1e0e; color: #6a5530; border: 1px solid #3a2a10; }
+.picker-btn.confirm { background: #f5a42a; color: #0a0804; }
+
+/* ── Desktop restore ── */
 @media (hover: hover) and (pointer: fine) and (min-width: 500px) {
   body {
-    align-items: center;
-    justify-content: center;
-    height: auto;
-    min-height: 100vh;
-    min-height: 100dvh;
-    padding: 12px;
-    overflow-x: hidden;
+    align-items: center; justify-content: center;
+    height: auto; min-height: 100vh; min-height: 100dvh;
+    padding: 12px; overflow-x: hidden;
   }
   .machine {
-    display: block;
-    flex: none;
-    border: 2px solid #2e2314;
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 120px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,200,80,0.08);
-    width: 100%;
-    max-width: 560px;
+    display: block; flex: none;
+    border-radius: 20px; padding: 24px;
+    width: 100%; max-width: 560px;
   }
   .header { align-items: flex-start; margin-bottom: 16px; padding-bottom: 0; }
-  .brand { font-size: 30px; letter-spacing: 8px; }
+  .brand { font-size: 28px; letter-spacing: 8px; }
   .model-line { font-size: 8px; margin-top: 5px; }
   .display { font-size: 12px; padding: 6px 12px; min-width: 120px; }
   .led-strip { display: flex; gap: 5px; justify-content: center; margin: 10px 0 8px; }
   .section-label {
-    display: block;
-    font-size: 8px;
-    letter-spacing: 3px;
-    color: #42310e;
-    text-align: center;
-    padding: 7px 0 4px;
-    text-transform: uppercase;
-    grid-column: 1 / -1;
+    display: block; font-size: 8px; letter-spacing: 3px;
+    color: #8a7456; text-align: center;
+    padding: 7px 0 4px; text-transform: uppercase; grid-column: 1 / -1;
   }
   .pad-grid { grid-auto-rows: auto; gap: 8px; flex: none; min-height: auto; padding-bottom: 0; }
-  .pad { aspect-ratio: 1; min-height: auto; border-radius: 8px; }
-  .pad.chord:hover { border-color: #3a5e3a; }
-  .pad.fx:hover    { border-color: #602060; }
-  .pad.drum:hover  { border-color: #6a3a0e; }
+  .pad { aspect-ratio: 1; min-height: auto; }
+  .pad.chord:hover { border-color: #50a860; }
+  .pad.fx:hover    { border-color: #e0a820; }
+  .pad.drum:hover  { border-color: #c07050; }
   .pad-name { font-size: 10px; }
+  .pad-hint { display: none; }
   .pad-key { display: block; font-size: 8px; opacity: 0.38; margin-top: 4px; letter-spacing: 1px; pointer-events: none; }
-  .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid #1e1608; gap: 8px; }
-  .key-hint { display: block; font-size: 8px; color: #3a2c10; line-height: 2; text-align: right; letter-spacing: 0.5px; }
-  .footer { display: block; text-align: center; margin-top: 12px; font-size: 7px; color: #2e2208; letter-spacing: 2px; text-transform: uppercase; }
+  .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid #c8b898; gap: 8px; }
+  .key-hint { display: block; font-size: 8px; color: #8a7456; line-height: 2; text-align: right; letter-spacing: 0.5px; }
+  .footer { display: block; text-align: center; margin-top: 12px; font-size: 7px; color: #a09070; letter-spacing: 2px; text-transform: uppercase; }
 }
 </style>
 </head>
 <body>
 <div class="machine">
-
   <div class="header">
     <div>
-      <div class="brand">SP-404</div>
+      <div class="brand">BCT-404</div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -275,8 +409,34 @@ body {
       1 2 3 4 — drums
     </div>
   </div>
+  <div class="footer">BCT-404 · Jazz Hip-Hop · Web Audio API</div>
+</div>
 
-  <div class="footer">SP-404 Style · Powered by Web Audio API</div>
+<!-- Chord editor picker -->
+<div id="pickerOverlay" class="picker-overlay hidden">
+  <div class="picker-modal">
+    <div class="picker-title" id="pickerTitle">── EDIT PAD ──</div>
+    <div class="picker-cols">
+      <div class="picker-col">
+        <div class="picker-label">ROOT</div>
+        <div class="picker-drum-wrap">
+          <div class="picker-drum" id="rootDrum"></div>
+          <div class="picker-sel-bar"></div>
+        </div>
+      </div>
+      <div class="picker-col">
+        <div class="picker-label">TYPE</div>
+        <div class="picker-drum-wrap">
+          <div class="picker-drum" id="typeDrum"></div>
+          <div class="picker-sel-bar"></div>
+        </div>
+      </div>
+    </div>
+    <div class="picker-btns">
+      <button class="picker-btn cancel" id="pickerCancel">CANCEL</button>
+      <button class="picker-btn confirm" id="pickerConfirm">SAVE</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -288,7 +448,6 @@ function boot() {
   if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
   ctx = new AC();
 
-  // Master tape saturation — vinyl warmth across all sounds
   const tapeSat = ctx.createWaveShaper();
   tapeSat.curve = tapeClip(1.6);
   tapeSat.oversample = '2x';
@@ -298,10 +457,8 @@ function boot() {
   masterOut.gain.value = 0.80;
   masterOut.connect(tapeSat);
 
-  // Jazz room reverb impulse
-  const rate = ctx.sampleRate;
-  const len  = Math.floor(rate * 2.8);
-  const imp  = ctx.createBuffer(2, len, rate);
+  const rate = ctx.sampleRate, len = Math.floor(rate * 2.8);
+  const imp = ctx.createBuffer(2, len, rate);
   for (let ch = 0; ch < 2; ch++) {
     const d = imp.getChannelData(ch);
     for (let i = 0; i < len; i++)
@@ -326,7 +483,6 @@ function distCurve(k) {
   return c;
 }
 
-// Tape saturation: tanh soft-clip — vinyl warmth
 function tapeClip(drive) {
   const n = 512, c = new Float32Array(n), norm = Math.tanh(drive);
   for (let i = 0; i < n; i++) {
@@ -336,27 +492,57 @@ function tapeClip(drive) {
   return c;
 }
 
-// ─── Chord Frequencies ────────────────────────────────────────────────────────
+// ─── Chord System ─────────────────────────────────────────────────────────────
 const semitone = (base, n) => base * Math.pow(2, n / 12);
 const C3 = 130.81;
-const nf = (root, ...intervals) => intervals.map(s => semitone(root, s));
 
-const CHORDS = {
-  //              root offsets from C3 (semitones)
-  'Cmaj9':    nf(C3,  0, 16, 19, 23, 26),  // C3 E4 G4 B4 D5  — open, dreamy
-  'Fmaj7#11': nf(C3,  5,  9, 12, 16, 23),  // F3 A3 C4 E4 B4  — Lydian jazz
-  'Am9':      nf(C3, -3,  0,  4,  7, 11),  // A2 C3 E3 G3 B3  — minor 9
-  'Dm9':      nf(C3,  2,  5,  9, 12, 16),  // D3 F3 A3 C4 E4  — smooth ii
-  'G13':      nf(C3, -5, -1,  5,  9, 16),  // G2 B2 F3 A3 E4  — dominant 13
-  'Ebmaj7':   nf(C3,  3,  7, 10, 14),      // Eb3 G3 Bb3 D4   — vintage
-  'Bm7b5':    nf(C3, -1,  2,  5,  9),      // B2 D3 F3 A3     — half-dim
-  'E7#9':     nf(C3,  4,  8, 11, 14, 19),  // E3 G#3 B3 D4 G4 — Hendrix
+// Root notes (flats for jazz convention)
+const ROOTS = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+
+// Chord types (jazz notation)
+const TYPES = ['maj','m','maj7','m7','maj9','m9','7','m7b5','maj7#11','13','7#9','dim','aug'];
+
+// Intervals from bass root — open jazz voicings
+const CHORD_INTERVALS = {
+  'maj':     [0, 16, 19],
+  'm':       [0, 15, 19],
+  'maj7':    [0, 16, 19, 23],
+  'm7':      [0, 15, 19, 22],
+  'maj9':    [0, 16, 19, 23, 26],
+  'm9':      [0, 15, 19, 22, 26],
+  '7':       [0, 16, 19, 22],
+  'm7b5':    [0, 15, 18, 22],
+  'maj7#11': [0, 16, 19, 23, 30],
+  '13':      [0, 16, 22, 26, 33],
+  '7#9':     [0, 16, 19, 22, 27],
+  'dim':     [0, 15, 18, 21],
+  'aug':     [0, 16, 20],
 };
 
-// Per-chord sound character
-// dur=sustain(s), atk=attack(s), lpf=lowpass Hz, Q=resonance,
-// rev=reverb send multiplier, det=unison detune cents, type=upper osc type
-// dilla=true → tape wobble LFO (Dilla vintage feel)
+function buildFreqs(rootIdx, typeKey) {
+  // Bass in C2-C3 area: roots 0-5 stay in C3 octave, 6-11 shift down
+  const offset = rootIdx <= 5 ? rootIdx : rootIdx - 12;
+  const bass = semitone(C3, offset);
+  return (CHORD_INTERVALS[typeKey] || [0,16,19,23]).map(iv => semitone(bass, iv));
+}
+
+function chordName(rootIdx, typeKey) {
+  return ROOTS[rootIdx] + typeKey;
+}
+
+// Mutable chord state for each of the 8 chord pads
+const padChords = [
+  {r:0,  t:'maj9'},    // Cmaj9
+  {r:5,  t:'maj7#11'}, // Fmaj7#11
+  {r:9,  t:'m9'},      // Am9
+  {r:2,  t:'m9'},      // Dm9
+  {r:7,  t:'13'},      // G13
+  {r:3,  t:'maj7'},    // Ebmaj7
+  {r:11, t:'m7b5'},    // Bm7b5
+  {r:4,  t:'7#9'},     // E7#9
+];
+
+// Per-chord sound configs (keyed by chord name)
 const CHORD_CFG = {
   'Cmaj9':    { dur:3.2, atk:0.030, lpf:1850, Q:0.45, rev:1.40, det:11, type:'triangle' },
   'Fmaj7#11': { dur:2.4, atk:0.016, lpf:2800, Q:0.70, rev:0.75, det:7,  type:'triangle' },
@@ -367,53 +553,68 @@ const CHORD_CFG = {
   'Bm7b5':    { dur:2.9, atk:0.022, lpf:2000, Q:0.55, rev:1.20, det:8,  type:'triangle' },
   'E7#9':     { dur:2.3, atk:0.009, lpf:3900, Q:1.20, rev:0.18, det:3,  type:'sawtooth' },
 };
+const DEFAULT_CFG = { dur:2.5, atk:0.018, lpf:2400, Q:0.65, rev:0.80, det:7, type:'triangle' };
 
-function playChord(name) {
+// ─── Monophonic chord engine ───────────────────────────────────────────────────
+let activeChordEnv = null;
+
+function stopActiveChord(fadeMs = 350) {
+  if (!activeChordEnv || !ctx) return;
+  const t = ctx.currentTime;
+  try {
+    activeChordEnv.gain.cancelScheduledValues(t);
+    activeChordEnv.gain.setValueAtTime(activeChordEnv.gain.value, t);
+    activeChordEnv.gain.exponentialRampToValueAtTime(0.0001, t + fadeMs / 1000);
+  } catch(e) {}
+  activeChordEnv = null;
+}
+
+function playChord(padIdx) {
   boot();
-  const freqs = CHORDS[name];
-  const cfg   = CHORD_CFG[name] || {};
-  const t     = ctx.currentTime;
-  const dur   = cfg.dur || 2.2;
-  const atk   = cfg.atk || 0.018;
-  const det   = cfg.det || 6;
-  const btype = cfg.type || 'triangle'; // upper note oscillator type
+  stopActiveChord();
 
-  // Volume scaled by sqrt(n) for perceptually consistent loudness
+  const pc    = padChords[padIdx];
+  const freqs = buildFreqs(pc.r, pc.t);
+  const name  = chordName(pc.r, pc.t);
+  const cfg   = CHORD_CFG[name] || DEFAULT_CFG;
+  const t     = ctx.currentTime;
+  const dur   = cfg.dur, atk = cfg.atk, det = cfg.det;
+  const btype = cfg.type;
+
   const vol = 0.22 / Math.sqrt(freqs.length);
   const env = ctx.createGain();
   env.gain.setValueAtTime(0, t);
   env.gain.linearRampToValueAtTime(vol, t + atk);
   env.gain.setValueAtTime(vol, t + dur * 0.42);
   env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  activeChordEnv = env;
 
   const lpf = ctx.createBiquadFilter();
   lpf.type = 'lowpass';
-  lpf.frequency.value = cfg.lpf || 2800;
-  lpf.Q.value = cfg.Q || 0.7;
+  lpf.frequency.value = cfg.lpf;
+  lpf.Q.value = cfg.Q;
 
-  // Per-chord reverb send (multiplies global wetBus gain)
   const revSend = ctx.createGain();
-  revSend.gain.value = cfg.rev || 0.65;
+  revSend.gain.value = cfg.rev;
 
   env.connect(lpf);
   lpf.connect(dryBus);
   lpf.connect(revSend);
   revSend.connect(wetBus);
 
-  // Dilla tape wobble — slow pitch LFO simulates vintage wow/flutter
+  // Dilla tape wobble LFO
   let lfoAmt = null;
   if (cfg.dilla) {
     const lfo = ctx.createOscillator();
     lfo.type = 'sine';
-    lfo.frequency.value = 3.4 + Math.random() * 1.2; // 3.4–4.6 Hz wobble
+    lfo.frequency.value = 3.4 + Math.random() * 1.2;
     lfoAmt = ctx.createGain();
-    lfoAmt.gain.value = 11; // ±11 cents
+    lfoAmt.gain.value = 11;
     lfo.connect(lfoAmt);
     lfo.start(t); lfo.stop(t + dur + 0.1);
   }
 
   freqs.forEach((freq, i) => {
-    // Unison pair: dry + detuned copy for vintage thickness
     [0, det + (Math.random() - 0.5) * 3].forEach((d, di) => {
       const o = ctx.createOscillator();
       o.type = i === 0 ? 'sawtooth' : btype;
@@ -579,8 +780,7 @@ function playRecordCrackle() {
   for (let i = 0; i < nd.length; i++) {
     nd[i] = (Math.random() * 2 - 1) * 0.05;
     if (Math.random() < 0.0012) {
-      const pl = Math.floor(Math.random() * 90 + 18);
-      const amp = Math.random() * 0.9 + 0.15;
+      const pl = Math.floor(Math.random() * 90 + 18), amp = Math.random() * 0.9 + 0.15;
       for (let j = 0; j < pl && i + j < nd.length; j++)
         nd[i + j] += Math.sin((j / pl) * Math.PI) * amp * (Math.random() * 2 - 1);
     }
@@ -595,14 +795,14 @@ function playRecordCrackle() {
 
 // ─── Pad definitions ──────────────────────────────────────────────────────────
 const PADS = [
-  { name:'Cmaj9',      type:'chord', key:'q', fn:()=>playChord('Cmaj9')    },
-  { name:'Fmaj7\n#11', type:'chord', key:'w', fn:()=>playChord('Fmaj7#11') },
-  { name:'Am9',        type:'chord', key:'e', fn:()=>playChord('Am9')      },
-  { name:'Dm9',        type:'chord', key:'r', fn:()=>playChord('Dm9')      },
-  { name:'G13',        type:'chord', key:'a', fn:()=>playChord('G13')      },
-  { name:'Ebmaj7',     type:'chord', key:'s', fn:()=>playChord('Ebmaj7')   },
-  { name:'Bm7b5',      type:'chord', key:'d', fn:()=>playChord('Bm7b5')    },
-  { name:'E7\n#9',     type:'chord', key:'f', fn:()=>playChord('E7#9')     },
+  { name:'Cmaj9',    type:'chord', key:'q', fn:()=>playChord(0) },
+  { name:'Fmaj7#11', type:'chord', key:'w', fn:()=>playChord(1) },
+  { name:'Am9',      type:'chord', key:'e', fn:()=>playChord(2) },
+  { name:'Dm9',      type:'chord', key:'r', fn:()=>playChord(3) },
+  { name:'G13',      type:'chord', key:'a', fn:()=>playChord(4) },
+  { name:'Ebmaj7',   type:'chord', key:'s', fn:()=>playChord(5) },
+  { name:'Bm7b5',    type:'chord', key:'d', fn:()=>playChord(6) },
+  { name:'E7#9',     type:'chord', key:'f', fn:()=>playChord(7) },
   { name:'VINYL\nSCRATCH',  type:'fx',   key:'z', fn:playVinylScratch  },
   { name:'TAPE\nSTOP',      type:'fx',   key:'x', fn:playTapeStop      },
   { name:'LOFI\nNOISE',     type:'fx',   key:'c', fn:playLofiNoise     },
@@ -613,13 +813,17 @@ const PADS = [
   { name:'HH\nOPEN',    type:'drum', key:'4', fn:playHHOpen   },
 ];
 
+// Mutable display names (chord names change on edit)
+const DNAMES = PADS.map(p => p.name.replace('\n',' '));
+
 // ─── Build DOM ────────────────────────────────────────────────────────────────
 const grid    = document.getElementById('padGrid');
 const display = document.getElementById('display');
 const leds    = Array.from({length:8}, (_,i) => document.getElementById(`l${i}`));
 const padEls  = [];
 const SECTION = { 0:'— Chords —', 8:'— Effects —', 12:'— Drums —' };
-const DNAMES  = PADS.map(p => p.name.replace('\n',' '));
+
+const LONG_PRESS_MS = 480;
 
 PADS.forEach((pad, i) => {
   if (SECTION[i]) {
@@ -632,11 +836,34 @@ PADS.forEach((pad, i) => {
   el.className = `pad ${pad.type}`;
   el.innerHTML =
     `<span class="pad-name">${pad.name.replace('\n','<br>')}</span>` +
+    (pad.type === 'chord' ? `<span class="pad-hint">hold</span>` : '') +
     `<span class="pad-key">[${pad.key.toUpperCase()}]</span>`;
-  el.addEventListener('mousedown', e => { e.preventDefault(); trigger(i); });
-  el.addEventListener('touchstart', e => { e.preventDefault(); trigger(i); }, {passive:false});
   grid.appendChild(el);
   padEls.push(el);
+
+  if (pad.type === 'chord') {
+    // Long-press → edit; short tap → play
+    let timer = null;
+
+    const startPress = () => {
+      timer = setTimeout(() => { timer = null; openPicker(i); }, LONG_PRESS_MS);
+    };
+    const endPress = (doTrigger) => {
+      if (timer !== null) { clearTimeout(timer); timer = null; if (doTrigger) trigger(i); }
+    };
+    const cancelPress = () => { if (timer !== null) { clearTimeout(timer); timer = null; } };
+
+    el.addEventListener('touchstart',  e => { e.preventDefault(); startPress(); }, {passive:false});
+    el.addEventListener('touchend',    e => { e.preventDefault(); endPress(true); });
+    el.addEventListener('touchcancel', e => { cancelPress(); });
+    el.addEventListener('touchmove',   e => { cancelPress(); });
+    el.addEventListener('mousedown',   e => { e.preventDefault(); startPress(); });
+    el.addEventListener('mouseup',     () => { endPress(true); });
+    el.addEventListener('mouseleave',  () => { cancelPress(); });
+  } else {
+    el.addEventListener('mousedown',  e => { e.preventDefault(); trigger(i); });
+    el.addEventListener('touchstart', e => { e.preventDefault(); trigger(i); }, {passive:false});
+  }
 });
 
 // ─── Trigger ──────────────────────────────────────────────────────────────────
@@ -658,6 +885,104 @@ document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (k in keyMap) { e.preventDefault(); trigger(keyMap[k]); }
 });
+
+// ─── Drum roll picker ─────────────────────────────────────────────────────────
+const ITEM_H = 44;
+const PAD_COUNT = 2; // empty padding items each side
+
+let pickerIdx = -1; // which chord pad is being edited
+const rootDrum = document.getElementById('rootDrum');
+const typeDrum = document.getElementById('typeDrum');
+const overlay  = document.getElementById('pickerOverlay');
+const pickerTitle = document.getElementById('pickerTitle');
+
+function buildDrum(drumEl, items) {
+  drumEl.innerHTML = '';
+  for (let i = 0; i < PAD_COUNT; i++) {
+    const d = document.createElement('div');
+    d.className = 'picker-item picker-pad';
+    drumEl.appendChild(d);
+  }
+  items.forEach(text => {
+    const d = document.createElement('div');
+    d.className = 'picker-item';
+    d.textContent = text;
+    drumEl.appendChild(d);
+  });
+  for (let i = 0; i < PAD_COUNT; i++) {
+    const d = document.createElement('div');
+    d.className = 'picker-item picker-pad';
+    drumEl.appendChild(d);
+  }
+}
+
+function scrollTo(drumEl, idx) {
+  drumEl.scrollTop = idx * ITEM_H;
+}
+
+function getIdx(drumEl) {
+  return Math.max(0, Math.round(drumEl.scrollTop / ITEM_H));
+}
+
+function updateHighlights(drumEl) {
+  const sel = getIdx(drumEl);
+  Array.from(drumEl.children).forEach((child, ci) => {
+    const realIdx = ci - PAD_COUNT;
+    child.classList.remove('pi-sel', 'pi-near');
+    if (realIdx === sel)             child.classList.add('pi-sel');
+    else if (Math.abs(realIdx-sel) === 1) child.classList.add('pi-near');
+  });
+}
+
+function openPicker(padId) {
+  pickerIdx = padId;
+  const pc = padChords[padId];
+  pickerTitle.textContent = `── EDIT: ${chordName(pc.r, pc.t)} ──`;
+
+  buildDrum(rootDrum, ROOTS);
+  buildDrum(typeDrum, TYPES);
+
+  rootDrum.addEventListener('scroll', () => updateHighlights(rootDrum), {passive:true});
+  typeDrum.addEventListener('scroll', () => updateHighlights(typeDrum), {passive:true});
+
+  overlay.classList.remove('hidden');
+
+  // Set scroll after render
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    scrollTo(rootDrum, pc.r);
+    scrollTo(typeDrum, TYPES.indexOf(pc.t));
+    updateHighlights(rootDrum);
+    updateHighlights(typeDrum);
+  }));
+}
+
+function closePicker() {
+  overlay.classList.add('hidden');
+  pickerIdx = -1;
+}
+
+function savePicker() {
+  if (pickerIdx < 0) return;
+  const ri = getIdx(rootDrum);
+  const ti = getIdx(typeDrum);
+  const pc = padChords[pickerIdx];
+  pc.r = ri;
+  pc.t = TYPES[ti];
+
+  const name = chordName(ri, TYPES[ti]);
+  PADS[pickerIdx].name = name;
+  DNAMES[pickerIdx] = name;
+  padEls[pickerIdx].querySelector('.pad-name').textContent = name;
+
+  closePicker();
+}
+
+document.getElementById('pickerCancel').addEventListener('click', closePicker);
+document.getElementById('pickerConfirm').addEventListener('click', savePicker);
+overlay.addEventListener('click', e => { if (e.target === overlay) closePicker(); });
+overlay.addEventListener('touchstart', e => {
+  if (e.target === overlay) { e.preventDefault(); closePicker(); }
+}, {passive:false});
 </script>
 </body>
 </html>
