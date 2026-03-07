@@ -317,6 +317,12 @@ body {
 .picker-item.pi-sel   { color: #f5e0a0; transform: scale(1.08); }
 .picker-item.picker-pad { pointer-events: none; }
 
+/* FX picker mode: hide chord columns, show fx column */
+.chord-only { display: flex; }
+.fx-only    { display: none; }
+.picker-cols.fx-mode .chord-only { display: none; }
+.picker-cols.fx-mode .fx-only    { display: flex; }
+
 /* selector bar — centered vertically in drum-wrap */
 .picker-sel-bar {
   position: absolute;
@@ -417,17 +423,24 @@ body {
   <div class="picker-modal">
     <div class="picker-title" id="pickerTitle">── EDIT PAD ──</div>
     <div class="picker-cols">
-      <div class="picker-col">
+      <div class="picker-col chord-only">
         <div class="picker-label">ROOT</div>
         <div class="picker-drum-wrap">
           <div class="picker-drum" id="rootDrum"></div>
           <div class="picker-sel-bar"></div>
         </div>
       </div>
-      <div class="picker-col">
+      <div class="picker-col chord-only">
         <div class="picker-label">TYPE</div>
         <div class="picker-drum-wrap">
           <div class="picker-drum" id="typeDrum"></div>
+          <div class="picker-sel-bar"></div>
+        </div>
+      </div>
+      <div class="picker-col fx-only">
+        <div class="picker-label">SOUND</div>
+        <div class="picker-drum-wrap">
+          <div class="picker-drum" id="fxDrum"></div>
           <div class="picker-sel-bar"></div>
         </div>
       </div>
@@ -554,6 +567,38 @@ const CHORD_CFG = {
   'E7#9':     { dur:2.3, atk:0.009, lpf:3900, Q:1.20, rev:0.18, det:3,  type:'sawtooth' },
 };
 const DEFAULT_CFG = { dur:2.5, atk:0.018, lpf:2400, Q:0.65, rev:0.80, det:7, type:'triangle' };
+
+// ─── FX Sound Library ─────────────────────────────────────────────────────────
+const FX_SOUNDS = [
+  { name:'VINYL SCRATCH',  padName:'VINYL\nSCRATCH',  fn: playVinylScratch  },
+  { name:'TAPE STOP',      padName:'TAPE\nSTOP',      fn: playTapeStop      },
+  { name:'LOFI NOISE',     padName:'LOFI\nNOISE',     fn: playLofiNoise     },
+  { name:'RECORD CRACKLE', padName:'RECORD\nCRACKLE', fn: playRecordCrackle },
+  { name:'REWIND',         padName:'REWIND',          fn: playRewind        },
+  { name:'CASSETTE CLICK', padName:'CASSETTE\nCLICK', fn: playCassetteClick },
+  { name:'RADIO STATIC',   padName:'RADIO\nSTATIC',   fn: playRadioStatic   },
+  { name:'VINYL DROP',     padName:'VINYL\nDROP',     fn: playVinylDrop     },
+  { name:'TAPE HISS',      padName:'TAPE\nHISS',      fn: playTapeHiss      },
+  { name:'PITCH DOWN',     padName:'PITCH\nDOWN',     fn: playPitchDown     },
+  { name:'AYE',            padName:'AYE',             fn: ()=>speakCool('aye')      },
+  { name:'SKRRT',          padName:'SKRRT',           fn: ()=>speakCool('skrrt')    },
+  { name:'DRIP',           padName:'DRIP',            fn: ()=>speakCool('drip')     },
+  { name:'NO CAP',         padName:'NO\nCAP',         fn: ()=>speakCool('no cap')   },
+  { name:'FACTS',          padName:'FACTS',           fn: ()=>speakCool('facts')    },
+  { name:'SHEESH',         padName:'SHEESH',          fn: ()=>speakCool('sheesh')   },
+  { name:'BUSSIN',         padName:'BUSSIN',          fn: ()=>speakCool('bussin')   },
+  { name:'VIBE',           padName:'VIBE',            fn: ()=>speakCool('vibe')     },
+  { name:'LOWKEY',         padName:'LOWKEY',          fn: ()=>speakCool('lowkey')   },
+  { name:'BIG FACTS',      padName:'BIG\nFACTS',      fn: ()=>speakCool('big facts')},
+];
+
+// Which FX_SOUNDS index each of the 4 FX pads is assigned to
+const padFX = [0, 1, 2, 3];
+
+function playFX(fxPadIdx) {
+  boot();
+  FX_SOUNDS[padFX[fxPadIdx]].fn();
+}
 
 // ─── Monophonic chord engine ───────────────────────────────────────────────────
 let activeChordEnv = null;
@@ -730,8 +775,8 @@ function playVinylScratch() {
 
   const ws = ctx.createWaveShaper(); ws.curve = distCurve(90);
   const g = ctx.createGain();
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.7, t + 0.02);
-  g.gain.setValueAtTime(0.7, t + 0.33); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.35, t + 0.02);
+  g.gain.setValueAtTime(0.35, t + 0.33); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
 
   osc.connect(bpf); bpf.connect(ws); ns.connect(ws);
   ws.connect(g); g.connect(dryBus); g.connect(wetBus);
@@ -748,7 +793,7 @@ function playTapeStop() {
     const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass';
     lpf.frequency.setValueAtTime(3500, t); lpf.frequency.exponentialRampToValueAtTime(80, t + dur);
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.22, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    g.gain.setValueAtTime(0.11, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(lpf); lpf.connect(g); g.connect(dryBus);
     osc.start(t); osc.stop(t + dur + 0.05);
   });
@@ -767,8 +812,8 @@ function playLofiNoise() {
   const ns = ctx.createBufferSource(); ns.buffer = nb;
   const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 700; lpf.Q.value = 1.8;
   const g = ctx.createGain();
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.55, t + 0.12);
-  g.gain.setValueAtTime(0.55, t + dur - 0.22); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.275, t + 0.12);
+  g.gain.setValueAtTime(0.275, t + dur - 0.22); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(lpf); lpf.connect(g); g.connect(dryBus); g.connect(wetBus); ns.start(t);
 }
 
@@ -788,9 +833,141 @@ function playRecordCrackle() {
   const ns = ctx.createBufferSource(); ns.buffer = nb;
   const bpf = ctx.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 3200; bpf.Q.value = 0.45;
   const g = ctx.createGain();
-  g.gain.setValueAtTime(0.65, t); g.gain.setValueAtTime(0.65, t + dur - 0.15);
+  g.gain.setValueAtTime(0.325, t); g.gain.setValueAtTime(0.325, t + dur - 0.15);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(bpf); bpf.connect(g); g.connect(masterOut); ns.start(t);
+}
+
+function playRewind() {
+  boot();
+  const t = ctx.currentTime, dur = 0.65;
+  [180, 270, 380, 540].forEach((freq, i) => {
+    const osc = ctx.createOscillator(); osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq * 0.5, t + i * 0.025);
+    osc.frequency.linearRampToValueAtTime(freq * 3.8, t + dur);
+    const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 350;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.07, t + i * 0.025);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(hpf); hpf.connect(g); g.connect(dryBus);
+    osc.start(t + i * 0.025); osc.stop(t + dur + 0.05);
+  });
+}
+
+function playCassetteClick() {
+  boot();
+  const t = ctx.currentTime;
+  const nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.06), ctx.sampleRate);
+  const nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const ns = ctx.createBufferSource(); ns.buffer = nb;
+  const bpf = ctx.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 2500; bpf.Q.value = 1.5;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  ns.connect(bpf); bpf.connect(g); g.connect(masterOut); ns.start(t);
+}
+
+function playRadioStatic() {
+  boot();
+  const t = ctx.currentTime, dur = 1.0, rate = ctx.sampleRate;
+  const nb = ctx.createBuffer(1, Math.floor(rate * dur), rate);
+  const nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const ns = ctx.createBufferSource(); ns.buffer = nb;
+  const bpf = ctx.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 1800; bpf.Q.value = 0.8;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.28, t + 0.08);
+  g.gain.setValueAtTime(0.28, t + dur - 0.15);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  ns.connect(bpf); bpf.connect(g); g.connect(dryBus); ns.start(t);
+}
+
+function playVinylDrop() {
+  boot();
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator(); osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, t);
+  osc.frequency.exponentialRampToValueAtTime(28, t + 0.38);
+  const bg = ctx.createGain();
+  bg.gain.setValueAtTime(0.85, t); bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+  const nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.3), ctx.sampleRate);
+  const nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const ns = ctx.createBufferSource(); ns.buffer = nb;
+  const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 600;
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.22, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+  const ws = ctx.createWaveShaper(); ws.curve = distCurve(40);
+  osc.connect(bg); bg.connect(ws);
+  ns.connect(lpf); lpf.connect(ng); ng.connect(ws);
+  ws.connect(masterOut);
+  osc.start(t); osc.stop(t + 0.55); ns.start(t);
+}
+
+function playTapeHiss() {
+  boot();
+  const t = ctx.currentTime, dur = 2.4, rate = ctx.sampleRate;
+  const nb = ctx.createBuffer(1, Math.floor(rate * dur), rate);
+  const nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const ns = ctx.createBufferSource(); ns.buffer = nb;
+  const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 4200;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.14, t + 0.35);
+  g.gain.setValueAtTime(0.14, t + dur - 0.55);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t);
+}
+
+function playPitchDown() {
+  boot();
+  const t = ctx.currentTime, dur = 0.65;
+  [440, 554, 659].forEach(freq => {
+    const osc = ctx.createOscillator(); osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.05, t + dur);
+    const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 2200;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.16, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(lpf); lpf.connect(g); g.connect(dryBus);
+    osc.start(t); osc.stop(t + dur + 0.05);
+  });
+}
+
+// ─── Voice FX (Web Speech API + autotune flourish) ────────────────────────────
+let _voices = [];
+function _loadVoices() { _voices = speechSynthesis.getVoices(); }
+if (window.speechSynthesis) {
+  _loadVoices();
+  speechSynthesis.addEventListener('voiceschanged', _loadVoices);
+}
+
+function speakCool(text) {
+  if (!window.speechSynthesis) return;
+  boot();
+  const u = new SpeechSynthesisUtterance(text);
+  u.pitch = 0.55; u.rate = 0.78; u.volume = 0.85;
+  const voices = _voices.length ? _voices : speechSynthesis.getVoices();
+  const enVoice = voices.find(v => v.lang.startsWith('en') && /male/i.test(v.name))
+    || voices.find(v => v.lang.startsWith('en'))
+    || voices[0];
+  if (enVoice) u.voice = enVoice;
+  // Subtle autotune flourish — Am minor 7th arpeggio
+  const t = ctx.currentTime;
+  [220, 261.63, 311.13, 349.23].forEach((freq, i) => {
+    const o = ctx.createOscillator(); o.type = 'sine';
+    o.frequency.value = freq;
+    const g = ctx.createGain();
+    const s = t + i * 0.065;
+    g.gain.setValueAtTime(0, s);
+    g.gain.linearRampToValueAtTime(0.052, s + 0.022);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + 0.24);
+    o.connect(g); g.connect(dryBus);
+    o.start(s); o.stop(s + 0.28);
+  });
+  speechSynthesis.speak(u);
 }
 
 // ─── Pad definitions ──────────────────────────────────────────────────────────
@@ -803,10 +980,10 @@ const PADS = [
   { name:'Ebmaj7',   type:'chord', key:'s', fn:()=>playChord(5) },
   { name:'Bm7b5',    type:'chord', key:'d', fn:()=>playChord(6) },
   { name:'E7#9',     type:'chord', key:'f', fn:()=>playChord(7) },
-  { name:'VINYL\nSCRATCH',  type:'fx',   key:'z', fn:playVinylScratch  },
-  { name:'TAPE\nSTOP',      type:'fx',   key:'x', fn:playTapeStop      },
-  { name:'LOFI\nNOISE',     type:'fx',   key:'c', fn:playLofiNoise     },
-  { name:'RECORD\nCRACKLE', type:'fx',   key:'v', fn:playRecordCrackle },
+  { name: FX_SOUNDS[0].padName, type:'fx', key:'z', fn:()=>playFX(0) },
+  { name: FX_SOUNDS[1].padName, type:'fx', key:'x', fn:()=>playFX(1) },
+  { name: FX_SOUNDS[2].padName, type:'fx', key:'c', fn:()=>playFX(2) },
+  { name: FX_SOUNDS[3].padName, type:'fx', key:'v', fn:()=>playFX(3) },
   { name:'KICK',        type:'drum', key:'1', fn:playKick     },
   { name:'SNARE',       type:'drum', key:'2', fn:playSnare    },
   { name:'HH\nCLOSED',  type:'drum', key:'3', fn:playHHClosed },
@@ -836,7 +1013,7 @@ PADS.forEach((pad, i) => {
   el.className = `pad ${pad.type}`;
   el.innerHTML =
     `<span class="pad-name">${pad.name.replace('\n','<br>')}</span>` +
-    (pad.type === 'chord' ? `<span class="pad-hint">hold</span>` : '') +
+    (pad.type === 'chord' || pad.type === 'fx' ? `<span class="pad-hint">hold</span>` : '') +
     `<span class="pad-key">[${pad.key.toUpperCase()}]</span>`;
   grid.appendChild(el);
   padEls.push(el);
@@ -905,8 +1082,66 @@ PADS.forEach((pad, i) => {
     el.addEventListener('mouseup',    () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; trigger(i); } });
     el.addEventListener('mouseleave', () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; } });
 
+  } else if (pad.type === 'fx') {
+    const fxIdx = i - 8; // 0-3 within FX section
+    const timers   = new Map();
+    const startPos = new Map();
+
+    el.addEventListener('touchstart', e => {
+      e.preventDefault();
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        startPos.set(id, {x: touch.clientX, y: touch.clientY});
+        timers.set(id, setTimeout(() => {
+          timers.delete(id); startPos.delete(id);
+          openFXPicker(fxIdx);
+        }, LONG_PRESS_MS));
+      });
+    }, {passive: false});
+
+    el.addEventListener('touchmove', e => {
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        const sp = startPos.get(id);
+        if (!sp) return;
+        const dx = touch.clientX - sp.x, dy = touch.clientY - sp.y;
+        if (Math.sqrt(dx*dx + dy*dy) > 10) {
+          clearTimeout(timers.get(id));
+          timers.delete(id); startPos.delete(id);
+        }
+      });
+    }, {passive: true});
+
+    el.addEventListener('touchend', e => {
+      e.preventDefault();
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        if (timers.has(id)) {
+          clearTimeout(timers.get(id));
+          timers.delete(id); startPos.delete(id);
+          trigger(i);
+        }
+      });
+    }, {passive: false});
+
+    el.addEventListener('touchcancel', e => {
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        clearTimeout(timers.get(id));
+        timers.delete(id); startPos.delete(id);
+      });
+    });
+
+    let mouseTimer = null;
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      mouseTimer = setTimeout(() => { mouseTimer = null; openFXPicker(fxIdx); }, LONG_PRESS_MS);
+    });
+    el.addEventListener('mouseup',    () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; trigger(i); } });
+    el.addEventListener('mouseleave', () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; } });
+
   } else {
-    // Non-chord pads: each new touch triggers independently
+    // Drum pads: each new touch triggers independently
     el.addEventListener('touchstart', e => {
       e.preventDefault();
       Array.from(e.changedTouches).forEach(() => trigger(i));
@@ -939,11 +1174,14 @@ document.addEventListener('keydown', e => {
 const ITEM_H = 44;
 const PAD_COUNT = 2; // empty padding items each side
 
-let pickerIdx = -1; // which chord pad is being edited
-const rootDrum = document.getElementById('rootDrum');
-const typeDrum = document.getElementById('typeDrum');
-const overlay  = document.getElementById('pickerOverlay');
+let pickerIdx  = -1;    // pad index being edited
+let pickerMode = 'chord'; // 'chord' | 'fx'
+const rootDrum    = document.getElementById('rootDrum');
+const typeDrum    = document.getElementById('typeDrum');
+const fxDrum      = document.getElementById('fxDrum');
+const overlay     = document.getElementById('pickerOverlay');
 const pickerTitle = document.getElementById('pickerTitle');
+const pickerCols  = document.querySelector('.picker-cols');
 
 function buildDrum(drumEl, items) {
   drumEl.innerHTML = '';
@@ -983,7 +1221,23 @@ function updateHighlights(drumEl) {
   });
 }
 
+function openFXPicker(fxIdx) {
+  pickerMode = 'fx';
+  pickerCols.classList.add('fx-mode');
+  pickerIdx = fxIdx;
+  pickerTitle.textContent = `── FX PAD ${fxIdx + 1} ──`;
+  buildDrum(fxDrum, FX_SOUNDS.map(s => s.name));
+  fxDrum.addEventListener('scroll', () => updateHighlights(fxDrum), {passive: true});
+  overlay.classList.remove('hidden');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    scrollTo(fxDrum, padFX[fxIdx]);
+    updateHighlights(fxDrum);
+  }));
+}
+
 function openPicker(padId) {
+  pickerMode = 'chord';
+  pickerCols.classList.remove('fx-mode');
   pickerIdx = padId;
   const pc = padChords[padId];
   pickerTitle.textContent = `── EDIT: ${chordName(pc.r, pc.t)} ──`;
@@ -1010,7 +1264,20 @@ function closePicker() {
   pickerIdx = -1;
 }
 
+function saveFXPicker() {
+  if (pickerIdx < 0) return;
+  const fi = getIdx(fxDrum);
+  padFX[pickerIdx] = fi;
+  const fxPadGlobal = 8 + pickerIdx;
+  const sound = FX_SOUNDS[fi];
+  PADS[fxPadGlobal].name = sound.padName;
+  DNAMES[fxPadGlobal] = sound.name;
+  padEls[fxPadGlobal].querySelector('.pad-name').innerHTML = sound.padName.replace('\n', '<br>');
+  closePicker();
+}
+
 function savePicker() {
+  if (pickerMode === 'fx') { saveFXPicker(); return; }
   if (pickerIdx < 0) return;
   const ri = getIdx(rootDrum);
   const ti = getIdx(typeDrum);
