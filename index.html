@@ -125,7 +125,7 @@ body {
   min-height: 70px;
   position: relative;
   overflow: hidden;
-  touch-action: manipulation;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
@@ -842,27 +842,76 @@ PADS.forEach((pad, i) => {
   padEls.push(el);
 
   if (pad.type === 'chord') {
-    // Long-press → edit; short tap → play
-    let timer = null;
+    // Per-touch-point tracking for independent multi-touch long-press
+    const timers   = new Map(); // identifier → timeoutId
+    const startPos = new Map(); // identifier → {x, y}
 
-    const startPress = () => {
-      timer = setTimeout(() => { timer = null; openPicker(i); }, LONG_PRESS_MS);
-    };
-    const endPress = (doTrigger) => {
-      if (timer !== null) { clearTimeout(timer); timer = null; if (doTrigger) trigger(i); }
-    };
-    const cancelPress = () => { if (timer !== null) { clearTimeout(timer); timer = null; } };
+    el.addEventListener('touchstart', e => {
+      e.preventDefault();
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        startPos.set(id, {x: touch.clientX, y: touch.clientY});
+        timers.set(id, setTimeout(() => {
+          timers.delete(id);
+          startPos.delete(id);
+          openPicker(i);
+        }, LONG_PRESS_MS));
+      });
+    }, {passive: false});
 
-    el.addEventListener('touchstart',  e => { e.preventDefault(); startPress(); }, {passive:false});
-    el.addEventListener('touchend',    e => { e.preventDefault(); endPress(true); });
-    el.addEventListener('touchcancel', e => { cancelPress(); });
-    el.addEventListener('touchmove',   e => { cancelPress(); });
-    el.addEventListener('mousedown',   e => { e.preventDefault(); startPress(); });
-    el.addEventListener('mouseup',     () => { endPress(true); });
-    el.addEventListener('mouseleave',  () => { cancelPress(); });
+    el.addEventListener('touchmove', e => {
+      // Only cancel if this specific touch moved > 10px
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        const sp = startPos.get(id);
+        if (!sp) return;
+        const dx = touch.clientX - sp.x, dy = touch.clientY - sp.y;
+        if (Math.sqrt(dx*dx + dy*dy) > 10) {
+          clearTimeout(timers.get(id));
+          timers.delete(id);
+          startPos.delete(id);
+        }
+      });
+    }, {passive: true});
+
+    el.addEventListener('touchend', e => {
+      e.preventDefault();
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        if (timers.has(id)) {
+          clearTimeout(timers.get(id));
+          timers.delete(id);
+          startPos.delete(id);
+          trigger(i);
+        }
+      });
+    }, {passive: false});
+
+    el.addEventListener('touchcancel', e => {
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        clearTimeout(timers.get(id));
+        timers.delete(id);
+        startPos.delete(id);
+      });
+    });
+
+    // Desktop mouse
+    let mouseTimer = null;
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      mouseTimer = setTimeout(() => { mouseTimer = null; openPicker(i); }, LONG_PRESS_MS);
+    });
+    el.addEventListener('mouseup',    () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; trigger(i); } });
+    el.addEventListener('mouseleave', () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; } });
+
   } else {
-    el.addEventListener('mousedown',  e => { e.preventDefault(); trigger(i); });
-    el.addEventListener('touchstart', e => { e.preventDefault(); trigger(i); }, {passive:false});
+    // Non-chord pads: each new touch triggers independently
+    el.addEventListener('touchstart', e => {
+      e.preventDefault();
+      Array.from(e.changedTouches).forEach(() => trigger(i));
+    }, {passive: false});
+    el.addEventListener('mousedown', e => { e.preventDefault(); trigger(i); });
   }
 });
 
