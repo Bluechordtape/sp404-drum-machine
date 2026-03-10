@@ -6,9 +6,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#ede7db">
+<meta name="theme-color" content="#F9F7F4">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
 <title>BCT-404</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,7 +23,7 @@
 html { height: 100%; }
 
 body {
-  background: #ede7db;
+  background: #F9F7F4;
   color: #2a1a08;
   font-family: 'Courier New', monospace;
   display: flex;
@@ -34,6 +35,40 @@ body {
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* ── BCT Navigation Header ── */
+.bct-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 6px;
+  flex-shrink: 0;
+  width: 100%;
+}
+.bct-back {
+  font-family: 'Public Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #1a3aff;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.bct-reel-logo { display: flex; align-items: center; gap: 4px; }
+.bct-reel-c {
+  width: 11px; height: 11px;
+  border: 1.5px solid #1a3aff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.bct-reel-c::after {
+  content: '';
+  width: 3px; height: 3px;
+  background: #1a3aff;
+  border-radius: 50%;
+}
+.bct-reel-bar { width: 8px; height: 1.5px; background: #1a3aff; }
 
 /* ── Machine shell ── */
 .machine {
@@ -269,7 +304,7 @@ body {
 
 .picker-drum-wrap {
   position: relative;
-  height: 176px; /* 4 visible items */
+  height: 132px; /* 3 visible items */
   overflow: hidden;
 }
 
@@ -356,6 +391,8 @@ body {
     height: auto; min-height: 100vh; min-height: 100dvh;
     padding: 12px; overflow-x: hidden;
   }
+  .bct-nav { max-width: 560px; padding: 12px 0 8px; }
+  .bct-back { font-size: 11px; }
   .machine {
     display: block; flex: none;
     border-radius: 20px; padding: 24px;
@@ -386,6 +423,14 @@ body {
 </style>
 </head>
 <body>
+<header class="bct-nav">
+  <a class="bct-back" href="https://bluechordtape-hub.vercel.app">← BLUE CHORD TAPE</a>
+  <div class="bct-reel-logo">
+    <div class="bct-reel-c"></div>
+    <div class="bct-reel-bar"></div>
+    <div class="bct-reel-c"></div>
+  </div>
+</header>
 <div class="machine">
   <div class="header">
     <div>
@@ -547,26 +592,26 @@ function chordName(rootIdx, typeKey) {
 
 // Mutable chord state for each of the 8 chord pads
 const padChords = [
-  {r:0,  t:'maj9'},    // Cmaj9
-  {r:5,  t:'maj7#11'}, // Fmaj7#11
-  {r:9,  t:'m9'},      // Am9
-  {r:2,  t:'m9'},      // Dm9
-  {r:7,  t:'13'},      // G13
-  {r:3,  t:'maj7'},    // Ebmaj7
-  {r:11, t:'m7b5'},    // Bm7b5
-  {r:4,  t:'7#9'},     // E7#9
+  {r:2,  t:'maj7'},  // Dmaj7
+  {r:9,  t:'m7'},    // Am7
+  {r:7,  t:'maj7'},  // Gmaj7
+  {r:10, t:'maj7'},  // Bbmaj7
+  {r:4,  t:'m9'},    // Em9
+  {r:11, t:'m7'},    // Bm7
+  {r:9,  t:'13'},    // A13
+  {r:0,  t:'maj7'},  // Cmaj7
 ];
 
 // Per-chord sound configs (keyed by chord name)
 const CHORD_CFG = {
-  'Cmaj9':    { dur:3.2, atk:0.030, lpf:1850, Q:0.45, rev:1.40, det:11, type:'triangle' },
-  'Fmaj7#11': { dur:2.4, atk:0.016, lpf:2800, Q:0.70, rev:0.75, det:7,  type:'triangle' },
-  'Am9':      { dur:2.7, atk:0.024, lpf:2200, Q:0.55, rev:1.10, det:9,  type:'triangle' },
-  'Dm9':      { dur:2.5, atk:0.020, lpf:2400, Q:0.60, rev:0.90, det:7,  type:'triangle' },
-  'G13':      { dur:2.0, atk:0.010, lpf:3300, Q:0.85, rev:0.45, det:5,  type:'sawtooth' },
-  'Ebmaj7':   { dur:1.6, atk:0.007, lpf:1500, Q:1.30, rev:0.28, det:15, type:'triangle', dilla:true },
-  'Bm7b5':    { dur:2.9, atk:0.022, lpf:2000, Q:0.55, rev:1.20, det:8,  type:'triangle' },
-  'E7#9':     { dur:2.3, atk:0.009, lpf:3900, Q:1.20, rev:0.18, det:3,  type:'sawtooth' },
+  'Dmaj7':  { dur:2.4, atk:0.018, lpf:2400, Q:0.55, rev:0.90, det:8,  type:'triangle' },
+  'Am7':    { dur:2.8, atk:0.025, lpf:2000, Q:0.50, rev:1.20, det:10, type:'triangle' },
+  'Gmaj7':  { dur:2.6, atk:0.020, lpf:2600, Q:0.60, rev:1.00, det:9,  type:'triangle' },
+  'Bbmaj7': { dur:2.2, atk:0.015, lpf:1800, Q:0.65, rev:0.80, det:12, type:'triangle' },
+  'Em9':    { dur:3.0, atk:0.028, lpf:2100, Q:0.50, rev:1.30, det:11, type:'triangle' },
+  'Bm7':    { dur:2.7, atk:0.022, lpf:1900, Q:0.55, rev:1.10, det:9,  type:'triangle' },
+  'A13':    { dur:1.8, atk:0.010, lpf:3200, Q:0.90, rev:0.40, det:5,  type:'sawtooth' },
+  'Cmaj7':  { dur:2.5, atk:0.020, lpf:2300, Q:0.60, rev:0.85, det:8,  type:'triangle' },
 };
 const DEFAULT_CFG = { dur:2.5, atk:0.018, lpf:2400, Q:0.65, rev:0.80, det:7, type:'triangle' };
 
@@ -587,6 +632,8 @@ const FX_SOUNDS = [
   { name:'DRIP',           padName:'DRIP',            fn: ()=>speakCool('drip')     },
   { name:'NO CAP',         padName:'NO\nCAP',         fn: ()=>speakCool('no cap')   },
   { name:'FACTS',          padName:'FACTS',           fn: ()=>speakCool('facts')    },
+  { name:'기주',           padName:'기주',             fn: ()=>speakBaby('기주')     },
+  { name:'비쥬',           padName:'비쥬',             fn: ()=>speakFr('Biju')       },
   { name:'SHEESH',         padName:'SHEESH',          fn: ()=>speakCool('sheesh')   },
   { name:'BUSSIN',         padName:'BUSSIN',          fn: ()=>speakCool('bussin')   },
   { name:'VIBE',           padName:'VIBE',            fn: ()=>speakCool('vibe')     },
@@ -956,40 +1003,54 @@ function speakCool(text) {
     || voices.find(v => v.lang.startsWith('en'))
     || voices[0];
   if (enVoice) u.voice = enVoice;
-  // Subtle autotune flourish — Am minor 7th arpeggio
-  const t = ctx.currentTime;
-  [220, 261.63, 311.13, 349.23].forEach((freq, i) => {
-    const o = ctx.createOscillator(); o.type = 'sine';
-    o.frequency.value = freq;
-    const g = ctx.createGain();
-    const s = t + i * 0.065;
-    g.gain.setValueAtTime(0, s);
-    g.gain.linearRampToValueAtTime(0.052, s + 0.022);
-    g.gain.exponentialRampToValueAtTime(0.0001, s + 0.24);
-    o.connect(g); g.connect(dryBus);
-    o.start(s); o.stop(s + 0.28);
-  });
+  speechSynthesis.speak(u);
+}
+
+function speakBaby(text) {
+  if (!window.speechSynthesis) return;
+  boot();
+  const u = new SpeechSynthesisUtterance(text);
+  u.pitch = 2.0; u.rate = 1.1; u.volume = 1.0;
+  const voices = _voices.length ? _voices : speechSynthesis.getVoices();
+  const koVoice = voices.find(v => v.lang.startsWith('ko'))
+    || voices.find(v => v.lang.startsWith('en'))
+    || voices[0];
+  if (koVoice) u.voice = koVoice;
+  speechSynthesis.speak(u);
+}
+
+function speakFr(text) {
+  if (!window.speechSynthesis) return;
+  boot();
+  const u = new SpeechSynthesisUtterance(text);
+  u.pitch = 1.15; u.rate = 0.82; u.volume = 1.0;
+  const voices = _voices.length ? _voices : speechSynthesis.getVoices();
+  const frVoice = voices.find(v => v.lang.startsWith('fr') && /female|woman|fiona|amelie|alice|thomas/i.test(v.name))
+    || voices.find(v => v.lang.startsWith('fr'))
+    || voices.find(v => /female|woman/i.test(v.name))
+    || voices[0];
+  if (frVoice) u.voice = frVoice;
   speechSynthesis.speak(u);
 }
 
 // ─── Pad definitions ──────────────────────────────────────────────────────────
 const PADS = [
-  { name:'Cmaj9',    type:'chord', key:'q', fn:()=>playChord(0) },
-  { name:'Fmaj7#11', type:'chord', key:'w', fn:()=>playChord(1) },
-  { name:'Am9',      type:'chord', key:'e', fn:()=>playChord(2) },
-  { name:'Dm9',      type:'chord', key:'r', fn:()=>playChord(3) },
-  { name:'G13',      type:'chord', key:'a', fn:()=>playChord(4) },
-  { name:'Ebmaj7',   type:'chord', key:'s', fn:()=>playChord(5) },
-  { name:'Bm7b5',    type:'chord', key:'d', fn:()=>playChord(6) },
-  { name:'E7#9',     type:'chord', key:'f', fn:()=>playChord(7) },
-  { name: FX_SOUNDS[0].padName, type:'fx', key:'z', fn:()=>playFX(0) },
-  { name: FX_SOUNDS[1].padName, type:'fx', key:'x', fn:()=>playFX(1) },
-  { name: FX_SOUNDS[2].padName, type:'fx', key:'c', fn:()=>playFX(2) },
-  { name: FX_SOUNDS[3].padName, type:'fx', key:'v', fn:()=>playFX(3) },
-  { name:'KICK',        type:'drum', key:'1', fn:playKick     },
-  { name:'SNARE',       type:'drum', key:'2', fn:playSnare    },
-  { name:'HH\nCLOSED',  type:'drum', key:'3', fn:playHHClosed },
-  { name:'HH\nOPEN',    type:'drum', key:'4', fn:playHHOpen   },
+  { name:'Dmaj7',  type:'chord', key:'1', fn:()=>playChord(0) },
+  { name:'Am7',    type:'chord', key:'2', fn:()=>playChord(1) },
+  { name:'Gmaj7',  type:'chord', key:'3', fn:()=>playChord(2) },
+  { name:'Bbmaj7', type:'chord', key:'4', fn:()=>playChord(3) },
+  { name:'Em9',    type:'chord', key:'q', fn:()=>playChord(4) },
+  { name:'Bm7',    type:'chord', key:'w', fn:()=>playChord(5) },
+  { name:'A13',    type:'chord', key:'e', fn:()=>playChord(6) },
+  { name:'Cmaj7',  type:'chord', key:'r', fn:()=>playChord(7) },
+  { name: FX_SOUNDS[0].padName, type:'fx', key:'a', fn:()=>playFX(0) },
+  { name: FX_SOUNDS[1].padName, type:'fx', key:'s', fn:()=>playFX(1) },
+  { name: FX_SOUNDS[2].padName, type:'fx', key:'d', fn:()=>playFX(2) },
+  { name: FX_SOUNDS[3].padName, type:'fx', key:'f', fn:()=>playFX(3) },
+  { name:'KICK',        type:'drum', key:'z', fn:playKick     },
+  { name:'SNARE',       type:'drum', key:'x', fn:playSnare    },
+  { name:'HH\nCLOSED',  type:'drum', key:'c', fn:playHHClosed },
+  { name:'HH\nOPEN',    type:'drum', key:'v', fn:playHHOpen   },
 ];
 
 // Mutable display names (chord names change on edit)
@@ -1174,7 +1235,7 @@ document.addEventListener('keydown', e => {
 
 // ─── Drum roll picker ─────────────────────────────────────────────────────────
 const ITEM_H = 44;
-const PAD_COUNT = 2; // empty padding items each side
+const PAD_COUNT = 1; // empty padding items each side
 
 let pickerIdx  = -1;    // pad index being edited
 let pickerMode = 'chord'; // 'chord' | 'fx'
