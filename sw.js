@@ -1,4 +1,4 @@
-const CACHE = 'bct-404-v1';
+const CACHE = 'bct-404-v2';
 const ASSETS = ['./index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
