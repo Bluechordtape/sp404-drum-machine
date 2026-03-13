@@ -426,6 +426,123 @@ body {
   .key-hint { display: block; font-size: 8px; color: var(--muted); line-height: 2; text-align: right; letter-spacing: 0.03em; }
   .footer { display: block; text-align: center; margin-top: 12px; font-size: 7px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
 }
+
+/* ── Metro / Rec toolbar ── */
+.metro-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 5px; flex-shrink: 0; gap: 6px; flex-wrap: wrap;
+}
+.metro-left, .metro-right { display: flex; align-items: center; gap: 5px; }
+.metro-btn {
+  font-family: 'Public Sans', sans-serif; font-size: 9px;
+  letter-spacing: 0.1em; font-weight: 500; text-transform: uppercase;
+  color: var(--muted); background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: 4px 8px; cursor: pointer; transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.metro-btn.active { color: var(--primary); border-color: var(--primary); background: rgba(26,58,255,0.1); }
+.bpm-row { display: flex; align-items: center; gap: 3px; }
+.bpm-adj {
+  font-family: 'Public Sans', sans-serif; font-size: 12px; color: var(--muted);
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 3px;
+  width: 20px; height: 20px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.bpm-adj:active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.bpm-val { font-size: 11px; font-weight: 500; color: var(--text); min-width: 28px; text-align: center; }
+.metro-vol-wrap { display: flex; align-items: center; gap: 3px; }
+.metro-vol-label { font-size: 8px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.metro-vol {
+  -webkit-appearance: none; appearance: none;
+  width: 50px; height: 3px; border-radius: 2px; background: var(--surface2);
+  outline: none; cursor: pointer;
+}
+.metro-vol::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--muted); cursor: pointer;
+}
+.bar-sel { display: flex; gap: 3px; }
+.bar-sel-item {
+  font-family: 'Public Sans', sans-serif; font-size: 9px;
+  letter-spacing: 0.06em; font-weight: 500; color: var(--muted);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 3px; padding: 3px 6px; cursor: pointer; transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.bar-sel-item.active { color: var(--primary); border-color: var(--primary); background: rgba(26,58,255,0.1); }
+.rec-btn {
+  font-family: 'Public Sans', sans-serif; font-size: 9px;
+  letter-spacing: 0.1em; font-weight: 500; text-transform: uppercase;
+  color: #e05050; background: var(--surface2);
+  border: 1px solid rgba(224,80,80,0.35); border-radius: 3px;
+  padding: 4px 10px; cursor: pointer; transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.rec-btn.countin { color: #ffaa00; border-color: #ffaa00; background: rgba(255,170,0,0.08); }
+.rec-btn.recording { color: #fff; background: #c02020; border-color: #c02020; animation: recPulse 0.7s ease infinite; }
+@keyframes recPulse { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
+
+/* ── MIDI Grid Overlay ── */
+.midi-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+  z-index: 200; display: flex; flex-direction: column;
+  backdrop-filter: blur(6px);
+  padding: max(env(safe-area-inset-top),14px) 12px max(env(safe-area-inset-bottom),12px);
+}
+.midi-overlay.hidden { display: none; }
+.midi-modal { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.midi-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 10px; flex-shrink: 0;
+}
+.midi-title { font-size: 10px; letter-spacing: 0.22em; color: var(--primary); text-transform: uppercase; }
+.midi-close {
+  font-size: 14px; color: var(--muted); background: none; border: none;
+  cursor: pointer; padding: 4px 8px; -webkit-tap-highlight-color: transparent;
+}
+.midi-grid-wrap {
+  flex: 1; overflow-x: auto; overflow-y: hidden; min-height: 0;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+}
+#midiCanvas { display: block; touch-action: none; cursor: default; }
+.midi-quant {
+  display: flex; align-items: center; gap: 6px; padding-top: 8px; flex-shrink: 0; flex-wrap: wrap;
+}
+.midi-quant-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+.midi-quant-btn {
+  font-family: 'Public Sans', sans-serif; font-size: 8px; letter-spacing: 0.08em;
+  color: var(--muted); background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 3px; padding: 2px 7px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.midi-quant-btn.active { color: var(--primary); border-color: var(--primary); }
+.midi-actions { display: flex; gap: 8px; padding-top: 10px; flex-shrink: 0; }
+.midi-action-btn {
+  flex: 1; padding: 10px 0; border-radius: 4px; border: none;
+  font-family: 'Public Sans', sans-serif; font-size: 10px;
+  font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.midi-action-btn.play { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.midi-action-btn.play.playing { color: var(--primary); border: 1px solid var(--primary); }
+.midi-action-btn.clear { background: var(--surface2); color: #e05050; border: 1px solid rgba(224,80,80,0.3); }
+.midi-action-btn.wav { background: var(--primary); color: #fff; }
+.midi-action-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* desktop tweaks */
+@media (hover: hover) and (pointer: fine) and (min-width: 500px) {
+  .metro-bar { padding: 8px 0; margin-bottom: 10px; }
+  .metro-btn, .rec-btn { font-size: 10px; padding: 5px 10px; }
+  .bpm-val { font-size: 13px; min-width: 34px; }
+  .bpm-adj { width: 22px; height: 22px; font-size: 13px; }
+  .bar-sel-item { font-size: 10px; padding: 4px 8px; }
+  .metro-vol { width: 70px; }
+}
+
 </style>
 </head>
 <body>
@@ -453,6 +570,30 @@ body {
     <div class="led" id="l6"></div><div class="led" id="l7"></div>
   </div>
 
+
+  <div class="metro-bar" id="metroBar">
+    <div class="metro-left">
+      <button class="metro-btn" id="metroBtn">&#9654; METRO</button>
+      <div class="bpm-row">
+        <button class="bpm-adj" id="bpmDown">&#8722;</button>
+        <span class="bpm-val" id="bpmVal">120</span>
+        <button class="bpm-adj" id="bpmUp">+</button>
+      </div>
+      <div class="metro-vol-wrap">
+        <span class="metro-vol-label">VOL</span>
+        <input type="range" class="metro-vol" id="metroVolSlider" min="0" max="100" value="50">
+      </div>
+    </div>
+    <div class="metro-right">
+      <div class="bar-sel" id="barSel">
+        <div class="bar-sel-item active" data-bars="1">1</div>
+        <div class="bar-sel-item" data-bars="2">2</div>
+        <div class="bar-sel-item" data-bars="4">4</div>
+        <div class="bar-sel-item" data-bars="8">8</div>
+      </div>
+      <button class="rec-btn" id="recBtn">&#9679; REC</button>
+    </div>
+  </div>
   <div class="pad-grid" id="padGrid"></div>
 
   <div class="controls">
@@ -469,6 +610,31 @@ body {
     </div>
   </div>
   <div class="footer">BCT-404 · Jazz Hip-Hop · Web Audio API</div>
+</div>
+
+<!-- MIDI grid modal -->
+<div id="midiOverlay" class="midi-overlay hidden">
+  <div class="midi-modal">
+    <div class="midi-top">
+      <span class="midi-title" id="midiTitle">&#9472;&#9472; TAKE &#9472;&#9472;</span>
+      <button class="midi-close" id="midiClose">&#10005;</button>
+    </div>
+    <div class="midi-grid-wrap" id="midiGridWrap">
+      <canvas id="midiCanvas"></canvas>
+    </div>
+    <div class="midi-quant">
+      <span class="midi-quant-label">Snap</span>
+      <button class="midi-quant-btn active" data-q="16">1/16</button>
+      <button class="midi-quant-btn" data-q="8">1/8</button>
+      <button class="midi-quant-btn" data-q="4">1/4</button>
+      <button class="midi-quant-btn" data-q="0">Off</button>
+    </div>
+    <div class="midi-actions">
+      <button class="midi-action-btn play" id="midiPlay">&#9654; PLAY</button>
+      <button class="midi-action-btn clear" id="midiClear">&#10005; CLEAR</button>
+      <button class="midi-action-btn wav" id="midiWav" disabled>&#8595; WAV</button>
+    </div>
+  </div>
 </div>
 
 <!-- Chord editor picker -->
@@ -1319,6 +1485,7 @@ function trigger(idx) {
   _vol = padVolumes[idx] / 10;
   boot();
   PADS[idx].fn();
+  if (recState === 'recording' && ctx) recordNote(idx);
   display.textContent = `[ ${DNAMES[idx]} ]`;
   const led = leds[idx % 8];
   led.classList.add('on');
@@ -1502,6 +1669,492 @@ overlay.addEventListener('click', e => { if (e.target === overlay) closePicker()
 overlay.addEventListener('touchstart', e => {
   if (e.target === overlay) { e.preventDefault(); closePicker(); }
 }, {passive:false});
+
+
+// ─── Metronome ────────────────────────────────────────────────────────────────
+let metroBPM = 120, metroVol = 0.5, metroOn = false;
+let metroPhase = 0, metroNextTime = 0, metroTimer = null;
+const BEATS_PER_BAR = 4;
+const spb = () => 60 / metroBPM;  // seconds per beat
+
+function metroClick(time, accent) {
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = accent ? 1500 : 1000;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, time);
+  g.gain.linearRampToValueAtTime(metroVol, time + 0.003);
+  g.gain.exponentialRampToValueAtTime(0.0001, time + (accent ? 0.065 : 0.042));
+  osc.connect(g); g.connect(ctx.destination);
+  osc.start(time); osc.stop(time + 0.09);
+}
+
+function scheduleBeats() {
+  const ahead = 0.12;
+  while (metroNextTime < ctx.currentTime + ahead) {
+    const isBar = (metroPhase % BEATS_PER_BAR) === 0;
+    metroClick(metroNextTime, isBar);
+
+    // Flash display on beat 1
+    if (isBar) {
+      const t = Math.max(0, (metroNextTime - ctx.currentTime) * 1000);
+      setTimeout(() => { display.textContent = '[ ● ' + (metroBPM) + ' BPM ]'; }, t);
+      setTimeout(() => { if (recState === 'idle') display.textContent = '[ READY ]'; }, t + 180);
+    }
+
+    // Recorder state machine
+    if (recState === 'countin' && isBar) {
+      recCountInBarsLeft--;
+      if (recCountInBarsLeft <= 0) {
+        recState = 'recording';
+        recBarsLeft = recBars;
+        recStartAudioTime = metroNextTime;
+        recEndAudioTime = metroNextTime + recBars * BEATS_PER_BAR * spb();
+        recBtnEl.className = 'rec-btn recording';
+        recBtnEl.textContent = '\u25A0 STOP';
+        // start MediaRecorder slightly before the bar
+        const delay = Math.max(0, (metroNextTime - ctx.currentTime - 0.03) * 1000);
+        setTimeout(() => {
+          if (mediaRec && mediaRec.state === 'inactive') {
+            mediaRecChunks = [];
+            try { mediaRec.start(); } catch(e) {}
+          }
+        }, delay);
+      }
+    } else if (recState === 'recording' && isBar) {
+      recBarsLeft--;
+      if (recBarsLeft <= 0) {
+        const delay = Math.max(0, (metroNextTime - ctx.currentTime) * 1000);
+        setTimeout(stopRec, delay + 80);
+      }
+    }
+
+    metroPhase++;
+    metroNextTime += spb();
+  }
+}
+
+const metroBtn = document.getElementById('metroBtn');
+const bpmVal   = document.getElementById('bpmVal');
+const bpmUp    = document.getElementById('bpmUp');
+const bpmDown  = document.getElementById('bpmDown');
+const metroVolSlider = document.getElementById('metroVolSlider');
+
+function startMetro() {
+  boot();
+  metroOn = true;
+  metroPhase = 0;
+  metroNextTime = ctx.currentTime + 0.05;
+  metroTimer = setInterval(scheduleBeats, 25);
+  metroBtn.classList.add('active');
+  metroBtn.textContent = '\u25A0 METRO';
+  // init stream dest
+  if (!streamDest) {
+    streamDest = ctx.createMediaStreamDestination();
+    masterOut.connect(streamDest);
+    initMediaRec();
+  }
+}
+
+function stopMetro() {
+  metroOn = false;
+  clearInterval(metroTimer); metroTimer = null;
+  metroPhase = 0;
+  metroBtn.classList.remove('active');
+  metroBtn.textContent = '\u25B6 METRO';
+  if (recState !== 'idle') abortRec();
+  display.textContent = '[ READY ]';
+}
+
+metroBtn.addEventListener('click', () => { boot(); metroOn ? stopMetro() : startMetro(); });
+
+// BPM buttons with long-press acceleration
+function makeBPMBtn(el, delta) {
+  let iv = null, to = null;
+  const step = () => { metroBPM = Math.max(40, Math.min(240, metroBPM + delta)); bpmVal.textContent = metroBPM; };
+  const start = () => { step(); to = setTimeout(() => { iv = setInterval(step, 70); }, 380); };
+  const end   = () => { clearTimeout(to); clearInterval(iv); };
+  el.addEventListener('mousedown', start); el.addEventListener('mouseup', end); el.addEventListener('mouseleave', end);
+  el.addEventListener('touchstart', e => { e.preventDefault(); start(); }, {passive:false});
+  el.addEventListener('touchend',   e => { e.preventDefault(); end(); },   {passive:false});
+  el.addEventListener('touchcancel',e => { e.preventDefault(); end(); },   {passive:false});
+}
+makeBPMBtn(bpmUp, +1); makeBPMBtn(bpmDown, -1);
+
+metroVolSlider.addEventListener('input', e => { metroVol = e.target.value / 100; });
+
+// Bar selector
+let recBars = 1;
+document.querySelectorAll('.bar-sel-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.bar-sel-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    recBars = parseInt(btn.dataset.bars);
+  });
+});
+
+// ─── Recorder ─────────────────────────────────────────────────────────────────
+let recState = 'idle'; // 'idle' | 'countin' | 'recording'
+let recNotes = [];
+let recStartAudioTime = 0, recEndAudioTime = 0;
+let recCountInBarsLeft = 0, recBarsLeft = 0;
+let streamDest = null, mediaRec = null, mediaRecChunks = [];
+let lastWavBlob = null;
+
+const recBtnEl = document.getElementById('recBtn');
+
+function getMime() {
+  const types = ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'];
+  for (const t of types) { if (MediaRecorder.isTypeSupported(t)) return t; }
+  return '';
+}
+
+function initMediaRec() {
+  if (!streamDest) return;
+  if (mediaRec && mediaRec.state !== 'inactive') return;
+  const mime = getMime();
+  mediaRec = new MediaRecorder(streamDest.stream, mime ? {mimeType: mime} : {});
+  mediaRec.ondataavailable = e => { if (e.data.size > 0) mediaRecChunks.push(e.data); };
+  mediaRec.onstop = onMediaRecStop;
+}
+
+function startRec() {
+  if (!metroOn) startMetro();
+  if (recState !== 'idle') return;
+  if (!streamDest) { streamDest = ctx.createMediaStreamDestination(); masterOut.connect(streamDest); }
+  initMediaRec();
+  recNotes = [];
+  recState = 'countin';
+  recCountInBarsLeft = 1;
+  recBtnEl.classList.add('countin');
+  recBtnEl.textContent = '... REC';
+  display.textContent = '[ COUNT IN ]';
+}
+
+function stopRec() {
+  if (recState === 'idle') return;
+  recState = 'idle';
+  if (mediaRec && mediaRec.state === 'recording') { try { mediaRec.stop(); } catch(e) {} }
+  recBtnEl.className = 'rec-btn';
+  recBtnEl.textContent = '\u25CF REC';
+  display.textContent = '[ READY ]';
+}
+
+function abortRec() {
+  recState = 'idle';
+  if (mediaRec && mediaRec.state !== 'inactive') { try { mediaRec.stop(); } catch(e) {} }
+  mediaRecChunks = [];
+  recBtnEl.className = 'rec-btn';
+  recBtnEl.textContent = '\u25CF REC';
+}
+
+recBtnEl.addEventListener('click', () => {
+  boot();
+  if (recState === 'idle') startRec();
+  else stopRec();
+});
+
+function recordNote(idx) {
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  if (t >= recStartAudioTime - 0.05 && t <= recEndAudioTime + 0.05) {
+    recNotes.push({ padIdx: idx, audioTime: t });
+  }
+}
+
+// ─── WAV encoder ──────────────────────────────────────────────────────────────
+function audioBufferToWAV(ab) {
+  const numCh = ab.numberOfChannels, sr = ab.sampleRate, len = ab.length;
+  const pcm = new Int16Array(len * numCh);
+  for (let i = 0; i < len; i++)
+    for (let ch = 0; ch < numCh; ch++) {
+      const s = Math.max(-1, Math.min(1, ab.getChannelData(ch)[i]));
+      pcm[i * numCh + ch] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+  const wav = new ArrayBuffer(44 + pcm.byteLength);
+  const dv = new DataView(wav);
+  const ws = (o, s) => { for (let i=0;i<s.length;i++) dv.setUint8(o+i, s.charCodeAt(i)); };
+  ws(0,'RIFF'); dv.setUint32(4, 36+pcm.byteLength, true);
+  ws(8,'WAVE'); ws(12,'fmt '); dv.setUint32(16,16,true);
+  dv.setUint16(20,1,true); dv.setUint16(22,numCh,true);
+  dv.setUint32(24,sr,true); dv.setUint32(28,sr*numCh*2,true);
+  dv.setUint16(32,numCh*2,true); dv.setUint16(34,16,true);
+  ws(36,'data'); dv.setUint32(40,pcm.byteLength,true);
+  new Int16Array(wav,44).set(pcm);
+  return new Uint8Array(wav);
+}
+
+async function onMediaRecStop() {
+  if (mediaRecChunks.length === 0) { openMidiGrid(); return; }
+  const blob = new Blob(mediaRecChunks, { type: mediaRecChunks[0].type || 'audio/webm' });
+  mediaRecChunks = [];
+  try {
+    const arr = await blob.arrayBuffer();
+    const tmp = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = await tmp.decodeAudioData(arr.slice(0));
+    tmp.close();
+    lastWavBlob = new Blob([audioBufferToWAV(buf)], { type: 'audio/wav' });
+  } catch(e) {
+    console.warn('WAV encode failed, using raw blob:', e);
+    lastWavBlob = blob;
+  }
+  openMidiGrid();
+}
+
+// ─── MIDI Grid ─────────────────────────────────────────────────────────────────
+const midiOverlay   = document.getElementById('midiOverlay');
+const midiCanvas    = document.getElementById('midiCanvas');
+const midiCtx2d     = midiCanvas.getContext('2d');
+const midiGridWrap  = document.getElementById('midiGridWrap');
+const midiCloseBtn  = document.getElementById('midiClose');
+const midiPlayBtn   = document.getElementById('midiPlay');
+const midiClearBtn  = document.getElementById('midiClear');
+const midiWavBtn    = document.getElementById('midiWav');
+
+const LANE_H = 24, LABEL_W = 50, NOTE_W = 8, NOTE_H = 16;
+const PAD_SHORT = [
+  'Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7',
+  'FX 1','FX 2','FX 3','FX 4',
+  'KICK','SNARE','HH-C','HH-O'
+];
+const PAD_COL = [
+  '#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff',
+  '#8e44ad','#8e44ad','#8e44ad','#8e44ad',
+  '#e74c3c','#e74c3c','#27ae60','#27ae60'
+];
+
+let midiNotes = [];
+let midiDur = 1, midiQuantize = 16;
+let midiDragging = null, midiDragTapX = 0;
+let recBarsSnap = 1;
+
+function normToX(norm, W) { return LABEL_W + norm * (W - LABEL_W); }
+function xToNorm(x, W)    { return Math.max(0, Math.min(1, (x - LABEL_W) / (W - LABEL_W))); }
+
+function snapNorm(v) {
+  if (midiQuantize === 0) return v;
+  const subdivs = recBarsSnap * BEATS_PER_BAR * (midiQuantize / 4);
+  const step = 1 / subdivs;
+  return Math.round(v / step) * step;
+}
+
+function drawMidi() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = midiCanvas.width / dpr;
+  const H = midiCanvas.height / dpr;
+  const gW = W - LABEL_W;
+  const g = midiCtx2d;
+  g.clearRect(0, 0, midiCanvas.width, midiCanvas.height);
+  g.save(); g.scale(dpr, dpr);
+
+  // BG
+  g.fillStyle = '#07111e'; g.fillRect(0, 0, W, H);
+
+  // Lane BGs + labels
+  for (let i = 0; i < 16; i++) {
+    const y = i * LANE_H;
+    if (i % 2 === 0) { g.fillStyle = 'rgba(255,255,255,0.018)'; g.fillRect(LABEL_W, y, gW, LANE_H); }
+    g.fillStyle = PAD_COL[i];
+    g.font = '8px "Public Sans", sans-serif';
+    g.textAlign = 'right';
+    // Use dynamic chord names for chord pads
+    const lbl = i < 8 ? DNAMES[i] : PAD_SHORT[i];
+    g.fillText(lbl, LABEL_W - 4, y + LANE_H / 2 + 3);
+    g.beginPath(); g.moveTo(0, y + LANE_H); g.lineTo(W, y + LANE_H);
+    g.strokeStyle = 'rgba(255,255,255,0.05)'; g.lineWidth = 0.5; g.stroke();
+  }
+
+  // Beat grid
+  const totalBeats = recBarsSnap * BEATS_PER_BAR;
+  for (let b = 0; b <= totalBeats; b++) {
+    const x = LABEL_W + (b / totalBeats) * gW;
+    const isBar = b % BEATS_PER_BAR === 0;
+    g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H);
+    g.strokeStyle = isBar ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.05)';
+    g.lineWidth = isBar ? 1.2 : 0.6; g.stroke();
+    if (isBar && b < totalBeats) {
+      g.fillStyle = 'rgba(255,255,255,0.25)';
+      g.font = '8px "Public Sans", sans-serif'; g.textAlign = 'left';
+      g.fillText('B' + (b / BEATS_PER_BAR + 1), x + 3, 9);
+    }
+  }
+
+  // Notes
+  midiNotes.forEach((n, ni) => {
+    const x = normToX(n.t, W) - NOTE_W / 2;
+    const y = n.padIdx * LANE_H + (LANE_H - NOTE_H) / 2;
+    g.globalAlpha = (midiDragging && midiDragging.ni === ni) ? 0.45 : 0.9;
+    g.fillStyle = PAD_COL[n.padIdx];
+    g.beginPath();
+    if (g.roundRect) g.roundRect(x, y, NOTE_W, NOTE_H, 2);
+    else g.rect(x, y, NOTE_W, NOTE_H);
+    g.fill();
+    g.globalAlpha = 1;
+  });
+
+  // Playhead
+  if (playheadNorm >= 0) {
+    const px = normToX(playheadNorm, W);
+    g.beginPath(); g.moveTo(px, 0); g.lineTo(px, H);
+    g.strokeStyle = 'rgba(255,255,255,0.7)'; g.lineWidth = 1.5; g.stroke();
+  }
+
+  g.restore();
+}
+
+function resizeMidi() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = midiGridWrap.clientWidth;
+  const H = 16 * LANE_H;
+  midiCanvas.style.width = W + 'px';
+  midiCanvas.style.height = H + 'px';
+  midiCanvas.width  = W * dpr;
+  midiCanvas.height = H * dpr;
+  drawMidi();
+}
+
+function openMidiGrid() {
+  recBarsSnap = recBars;
+  midiDur = recBarsSnap * BEATS_PER_BAR * spb();
+  midiNotes = recNotes.map(n => ({
+    padIdx: n.padIdx,
+    t: snapNorm(Math.max(0, Math.min(1, (n.audioTime - recStartAudioTime) / midiDur)))
+  }));
+  midiWavBtn.disabled = !lastWavBlob;
+  midiOverlay.classList.remove('hidden');
+  document.getElementById('midiTitle').textContent =
+    '\u2500\u2500 TAKE \u00B7 ' + recBarsSnap + 'BAR \u00B7 ' + metroBPM + 'BPM \u2500\u2500';
+  requestAnimationFrame(resizeMidi);
+}
+
+midiCloseBtn.addEventListener('click', () => { midiOverlay.classList.add('hidden'); stopPlayback(); });
+
+// Quantize selector
+document.querySelectorAll('.midi-quant-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.midi-quant-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    midiQuantize = parseInt(btn.dataset.q);
+    midiNotes = midiNotes.map(n => ({ ...n, t: snapNorm(n.t) }));
+    drawMidi();
+  });
+});
+
+// Clear
+midiClearBtn.addEventListener('click', () => { midiNotes = []; drawMidi(); });
+
+// WAV download
+midiWavBtn.addEventListener('click', () => {
+  if (!lastWavBlob) return;
+  const ext = lastWavBlob.type.includes('wav') ? 'wav' : 'webm';
+  const url = URL.createObjectURL(lastWavBlob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = 'bct-404-take.' + ext; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+});
+
+// ─── Canvas drag/tap ──────────────────────────────────────────────────────────
+function hitNote(cx, cy) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = midiCanvas.width / dpr;
+  const lane = Math.floor(cy / LANE_H);
+  for (let i = midiNotes.length - 1; i >= 0; i--) {
+    const n = midiNotes[i];
+    if (n.padIdx !== lane) continue;
+    const nx = normToX(n.t, W) - NOTE_W / 2;
+    if (cx >= nx - 6 && cx <= nx + NOTE_W + 6) return i;
+  }
+  return -1;
+}
+
+function cpos(e) {
+  const r = midiCanvas.getBoundingClientRect();
+  const s = e.touches ? e.touches[0] : e;
+  return { x: s.clientX - r.left, y: s.clientY - r.top };
+}
+
+midiCanvas.addEventListener('mousedown', e => {
+  const {x,y} = cpos(e); const ni = hitNote(x,y);
+  if (ni >= 0) { midiDragging = {ni, sx:x, ot:midiNotes[ni].t}; midiDragTapX = x; }
+});
+midiCanvas.addEventListener('mousemove', e => {
+  if (!midiDragging) return;
+  const {x} = cpos(e);
+  const dpr = window.devicePixelRatio||1, W = midiCanvas.width/dpr;
+  midiNotes[midiDragging.ni].t = snapNorm(Math.max(0,Math.min(1, midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
+  drawMidi();
+});
+midiCanvas.addEventListener('mouseup', e => {
+  if (!midiDragging) return;
+  if (Math.abs(cpos(e).x - midiDragTapX) < 5) { midiNotes.splice(midiDragging.ni,1); drawMidi(); }
+  midiDragging = null;
+});
+midiCanvas.addEventListener('mouseleave', () => { midiDragging = null; });
+
+midiCanvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const {x,y} = cpos(e); const ni = hitNote(x,y);
+  if (ni >= 0) { midiDragging = {ni, sx:x, ot:midiNotes[ni].t}; midiDragTapX = x; }
+}, {passive:false});
+midiCanvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!midiDragging) return;
+  const {x} = cpos(e);
+  const dpr = window.devicePixelRatio||1, W = midiCanvas.width/dpr;
+  midiNotes[midiDragging.ni].t = snapNorm(Math.max(0,Math.min(1, midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
+  drawMidi();
+}, {passive:false});
+midiCanvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (!midiDragging) return;
+  const r = midiCanvas.getBoundingClientRect();
+  const ch = e.changedTouches[0];
+  if (Math.abs(ch.clientX - r.left - midiDragTapX) < 8) { midiNotes.splice(midiDragging.ni,1); drawMidi(); }
+  midiDragging = null;
+}, {passive:false});
+
+// ─── Playback ──────────────────────────────────────────────────────────────────
+let playbackTs = [], playbackPlaying = false, playheadNorm = -1, playheadRAF = null;
+
+function stopPlayback() {
+  playbackTs.forEach(clearTimeout); playbackTs = [];
+  playbackPlaying = false;
+  if (playheadRAF) cancelAnimationFrame(playheadRAF);
+  playheadNorm = -1;
+  midiPlayBtn.classList.remove('playing');
+  midiPlayBtn.textContent = '\u25B6 PLAY';
+  drawMidi();
+}
+
+midiPlayBtn.addEventListener('click', () => {
+  if (playbackPlaying) { stopPlayback(); return; }
+  if (midiNotes.length === 0) return;
+  boot();
+  playbackPlaying = true;
+  midiPlayBtn.classList.add('playing');
+  midiPlayBtn.textContent = '\u25A0 STOP';
+  const durMs = midiDur * 1000;
+  const t0 = performance.now();
+  midiNotes.forEach(n => {
+    playbackTs.push(setTimeout(() => {
+      _vol = padVolumes[n.padIdx] / 10;
+      PADS[n.padIdx].fn();
+    }, n.t * durMs));
+  });
+  playbackTs.push(setTimeout(stopPlayback, durMs + 300));
+  // Playhead animation
+  function animPH() {
+    playheadNorm = Math.min(1, (performance.now() - t0) / durMs);
+    drawMidi();
+    if (playbackPlaying) playheadRAF = requestAnimationFrame(animPH);
+  }
+  playheadRAF = requestAnimationFrame(animPH);
+});
+
+window.addEventListener('resize', () => {
+  if (!midiOverlay.classList.contains('hidden')) resizeMidi();
+});
 
 // ─── PWA: Service Worker + Silent Mode Audio ──────────────────────────────────
 if ('serviceWorker' in navigator) {
