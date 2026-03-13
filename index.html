@@ -488,13 +488,11 @@ body {
 
 /* ── MIDI Grid Overlay ── */
 .midi-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-  z-index: 200; display: flex; flex-direction: column;
-  backdrop-filter: blur(6px);
-  padding: max(env(safe-area-inset-top),14px) 12px max(env(safe-area-inset-bottom),12px);
+  display: flex; flex-direction: column;
+  flex: 1; min-height: 0; overflow: hidden;
 }
 .midi-overlay.hidden { display: none; }
-.midi-modal { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.midi-modal { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 .midi-top {
   display: flex; align-items: center; justify-content: space-between;
   padding-bottom: 10px; flex-shrink: 0;
@@ -554,35 +552,41 @@ body {
   -webkit-tap-highlight-color: transparent; touch-action: manipulation;
 }
 .sheet-btn:active { background: rgba(26,58,255,0.1); color: var(--primary); border-color: var(--primary); }
-/* ── Sheet metro row ── */
-.sheet-metro-row {
-  display: flex; align-items: center; gap: 8px;
-  padding-top: 8px; padding-bottom: 2px; flex-shrink: 0;
-}
-.sheet-metro-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
-.sheet-metro-btn {
-  font-family: 'Public Sans', sans-serif; font-size: 9px; letter-spacing: 0.1em;
-  font-weight: 500; text-transform: uppercase; color: var(--muted);
-  background: var(--surface2); border: 1px solid var(--border); border-radius: 3px;
-  padding: 4px 10px; cursor: pointer; transition: all 0.12s;
-  -webkit-tap-highlight-color: transparent;
-}
-.sheet-metro-btn.active { color: var(--primary); border-color: var(--primary); background: rgba(26,58,255,0.1); }
 @media (hover: hover) and (pointer: fine) and (min-width: 500px) {
   .sheet-btn { font-size: 10px; padding: 5px 10px; }
+}
+
+/* ── Sheet btn active state & back button ── */
+.sheet-btn.active { color: var(--primary); border-color: var(--primary); background: rgba(26,58,255,0.1); }
+.midi-back-btn {
+  font-family: 'Public Sans', sans-serif; font-size: 9px;
+  letter-spacing: 0.1em; font-weight: 500; text-transform: uppercase;
+  color: var(--primary); background: var(--surface2);
+  border: 1px solid rgba(26,58,255,0.35); border-radius: 3px;
+  padding: 4px 10px; cursor: pointer; transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  flex-shrink: 0;
+}
+.midi-back-btn:hover { background: rgba(26,58,255,0.1); }
+.midi-undo-row { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+@media (hover: hover) and (pointer: fine) and (min-width: 500px) {
+  .midi-back-btn { font-size: 10px; padding: 5px 12px; }
+  .midi-undo-btn { font-size: 10px; padding: 5px 10px; }
 }
 
 
 /* ── Undo/Redo ── */
 .midi-undo-btn {
-  font-family: 'Public Sans', sans-serif; font-size: 13px;
-  color: var(--muted); background: none; border: none;
-  cursor: pointer; padding: 2px 6px; line-height: 1;
-  -webkit-tap-highlight-color: transparent;
-  transition: color 0.12s;
+  font-family: 'Public Sans', sans-serif; font-size: 9px;
+  letter-spacing: 0.08em; font-weight: 500; text-transform: uppercase;
+  color: var(--muted); background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 3px;
+  cursor: pointer; padding: 4px 9px; line-height: 1;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  transition: all 0.12s;
 }
-.midi-undo-btn:hover { color: var(--text); }
-.midi-undo-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+.midi-undo-btn:not(:disabled) { color: var(--text); border-color: rgba(255,255,255,0.14); }
+.midi-undo-btn:disabled { opacity: 0.22; cursor: not-allowed; }
 
 
 /* ── PLAY button ── */
@@ -750,6 +754,35 @@ body {
   </div>
   <div class="pad-grid" id="padGrid"></div>
 
+  <!-- MIDI sheet view (inline, replaces pad-grid area) -->
+  <div id="midiOverlay" class="midi-overlay hidden">
+    <div class="midi-modal">
+      <div class="midi-top">
+        <button class="midi-back-btn" id="midiClose">&#8592; PADS</button>
+        <span class="midi-title" id="midiTitle">&#9472;&#9472; TAKE &#9472;&#9472;</span>
+        <div class="midi-undo-row">
+          <button class="midi-undo-btn" id="midiUndo" title="Undo (&#8984;Z)" disabled>&#8630; UNDO</button>
+          <button class="midi-undo-btn" id="midiRedo" title="Redo (&#8984;&#8679;Z)" disabled>&#8631; REDO</button>
+        </div>
+      </div>
+      <div class="midi-grid-wrap" id="midiGridWrap">
+        <canvas id="midiCanvas"></canvas>
+      </div>
+      <div class="midi-quant">
+        <span class="midi-quant-label">Snap</span>
+        <button class="midi-quant-btn active" data-q="16">1/16</button>
+        <button class="midi-quant-btn" data-q="8">1/8</button>
+        <button class="midi-quant-btn" data-q="4">1/4</button>
+        <button class="midi-quant-btn" data-q="0">Off</button>
+      </div>
+      <div class="midi-actions">
+        <button class="midi-action-btn play" id="midiPlay">&#9654; PLAY</button>
+        <button class="midi-action-btn clear" id="midiClear">&#10005; CLEAR</button>
+        <button class="midi-action-btn wav" id="midiWav" disabled>&#8595; WAV</button>
+      </div>
+    </div>
+  </div>
+
   <div class="controls">
     <div class="knob-row">
       <div class="knob-wrap"><div class="knob"></div><div class="knob-label">Reverb</div></div>
@@ -766,34 +799,7 @@ body {
   <div class="footer">BCT-404 · Jazz Hip-Hop · Web Audio API</div>
 </div>
 
-<!-- MIDI grid modal -->
-<div id="midiOverlay" class="midi-overlay hidden">
-  <div class="midi-modal">
-    <div class="midi-top">
-      <span class="midi-title" id="midiTitle">&#9472;&#9472; TAKE &#9472;&#9472;</span>
-      <div style="display:flex;align-items:center;gap:2px;"><button class="midi-undo-btn" id="midiUndo" title="Undo (⌘Z)" disabled>&#8630;</button><button class="midi-undo-btn" id="midiRedo" title="Redo (⌘⇧Z)" disabled>&#8631;</button><button class="midi-close" id="midiClose">&#10005;</button></div>
-    </div>
-    <div class="midi-grid-wrap" id="midiGridWrap">
-      <canvas id="midiCanvas"></canvas>
-    </div>
-    <div class="midi-quant">
-      <span class="midi-quant-label">Snap</span>
-      <button class="midi-quant-btn active" data-q="16">1/16</button>
-      <button class="midi-quant-btn" data-q="8">1/8</button>
-      <button class="midi-quant-btn" data-q="4">1/4</button>
-      <button class="midi-quant-btn" data-q="0">Off</button>
-    </div>
-    <div class="sheet-metro-row">
-      <button class="sheet-metro-btn" id="sheetMetroBtn">&#9654; METRO</button>
-      <span class="sheet-metro-label">Playback Metro</span>
-    </div>
-    <div class="midi-actions">
-      <button class="midi-action-btn play" id="midiPlay">&#9654; PLAY</button>
-      <button class="midi-action-btn clear" id="midiClear">&#10005; CLEAR</button>
-      <button class="midi-action-btn wav" id="midiWav" disabled>&#8595; WAV</button>
-    </div>
-  </div>
-</div>
+
 
 <!-- Chord editor picker -->
 <div id="pickerOverlay" class="picker-overlay hidden">
@@ -2201,10 +2207,11 @@ async function onMediaRecStop() {
 }
 
 // ─── SHEET button ─────────────────────────────────────────────────────────────
+let sheetOpen = false;
 document.getElementById('sheetBtn').addEventListener('click', () => {
   boot();
-  stopTransport();
-  openMidiGrid();
+  if (!sheetOpen) openMidiGrid();
+  else closeMidiGrid();
 });
 
 // ─── MIDI Grid ─────────────────────────────────────────────────────────────────
@@ -2273,15 +2280,28 @@ function resizeMidi() {
   midiCanvas.width=W*dpr; midiCanvas.height=H*dpr; drawMidi();
 }
 function openMidiGrid() {
-  midiLoopBars=loopBars; midiDur=midiLoopBars*BEATS_PER_BAR*spb();
-  midiNotes=loopNotes.map(n=>({...n,normTime:snapNorm(n.normTime)}));
-  midiWavBtn.disabled=!lastWavBlob;
-  undoStack.length=0; redoStack.length=0; updateUndoButtons();
+  sheetOpen = true;
+  midiLoopBars = loopBars; midiDur = midiLoopBars * BEATS_PER_BAR * spb();
+  midiNotes = loopNotes.map(n => ({...n, normTime: snapNorm(n.normTime)}));
+  midiWavBtn.disabled = !lastWavBlob;
+  undoStack.length = 0; redoStack.length = 0; updateUndoButtons();
+  document.getElementById('padGrid').style.display = 'none';
   midiOverlay.classList.remove('hidden');
-  document.getElementById('midiTitle').textContent='\u2500\u2500 TAKE \u00B7 '+midiLoopBars+'BAR \u00B7 '+metroBPM+'BPM \u2500\u2500';
+  document.getElementById('midiTitle').textContent =
+    '\u2500\u2500 TAKE \u00B7 ' + midiLoopBars + 'BAR \u00B7 ' + metroBPM + 'BPM \u2500\u2500';
+  const sb = document.getElementById('sheetBtn');
+  sb.textContent = '\u2190 PADS'; sb.classList.add('active');
   requestAnimationFrame(resizeMidi);
 }
-midiCloseBtn.addEventListener('click', ()=>{ midiOverlay.classList.add('hidden'); stopPlayback(); stopSheetMetro(); });
+function closeMidiGrid() {
+  sheetOpen = false;
+  stopPlayback();
+  midiOverlay.classList.add('hidden');
+  document.getElementById('padGrid').style.display = '';
+  const sb = document.getElementById('sheetBtn');
+  sb.textContent = 'SHEET'; sb.classList.remove('active');
+}
+midiCloseBtn.addEventListener('click', () => closeMidiGrid());
 
 document.querySelectorAll('.midi-quant-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -2333,25 +2353,7 @@ midiCanvas.addEventListener('touchstart',e=>{ e.preventDefault();const{x,y}=cpos
 midiCanvas.addEventListener('touchmove',e=>{ e.preventDefault();if(!midiDragging)return;const{x}=cpos(e),dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr;midiNotes[midiDragging.ni].normTime=snapNorm(Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));drawMidi();},{passive:false});
 midiCanvas.addEventListener('touchend',e=>{ e.preventDefault();if(!midiDragging)return;const r=midiCanvas.getBoundingClientRect(),ch=e.changedTouches[0];if(Math.abs(ch.clientX-r.left-midiDragTapX)<8){saveState();midiNotes.splice(midiDragging.ni,1);drawMidi();}else saveState();midiDragging=null;},{passive:false});
 
-// ─── Sheet Metro ──────────────────────────────────────────────────────────────
-let sheetMetroOn=false, sheetMetroPhase=0, sheetMetroNextTime=0, sheetMetroTimer=null;
-const sheetMetroBtn=document.getElementById('sheetMetroBtn');
-function scheduleSheetBeats(){
-  if (ctx.currentTime > sheetMetroNextTime + 1.5) {
-    sheetMetroNextTime = ctx.currentTime + 0.05;
-  }
-  while(sheetMetroNextTime<ctx.currentTime+0.12){
-    const accent=(sheetMetroPhase%BEATS_PER_BAR)===0;
-    const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=accent?1500:1000;
-    const g=ctx.createGain(); g.gain.setValueAtTime(0,sheetMetroNextTime); g.gain.linearRampToValueAtTime(metroVol*0.7,sheetMetroNextTime+0.003); g.gain.exponentialRampToValueAtTime(0.0001,sheetMetroNextTime+(accent?0.065:0.042));
-    osc.connect(g); g.connect(ctx.destination); osc.start(sheetMetroNextTime); osc.stop(sheetMetroNextTime+0.09);
-    autoFree(osc, osc, g);
-    sheetMetroPhase++; sheetMetroNextTime+=spb();
-  }
-}
-function startSheetMetro(){ boot(); sheetMetroOn=true; sheetMetroPhase=0; sheetMetroNextTime=ctx.currentTime+0.05; sheetMetroTimer=setInterval(scheduleSheetBeats,25); sheetMetroBtn.classList.add('active'); sheetMetroBtn.textContent='\u25A0 METRO'; }
-function stopSheetMetro(){ clearInterval(sheetMetroTimer); sheetMetroTimer=null; sheetMetroOn=false; sheetMetroBtn.classList.remove('active'); sheetMetroBtn.textContent='\u25B6 METRO'; }
-sheetMetroBtn.addEventListener('click',()=>{ boot(); sheetMetroOn?stopSheetMetro():startSheetMetro(); });
+// ─── Sheet Metro removed — main METRO button controls click sound ───────────────
 
 // ─── Playback ─────────────────────────────────────────────────────────────────
 let playbackTs=[], playbackPlaying=false, playheadNorm=-1, playheadRAF=null;
