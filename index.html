@@ -776,7 +776,6 @@ body {
         <button class="midi-quant-btn" data-q="0">Off</button>
       </div>
       <div class="midi-actions">
-        <button class="midi-action-btn play" id="midiPlay">&#9654; PLAY</button>
         <button class="midi-action-btn clear" id="midiClear">&#10005; CLEAR</button>
         <button class="midi-action-btn wav" id="midiWav" disabled>&#8595; WAV</button>
       </div>
@@ -2220,7 +2219,6 @@ const midiCanvas   = document.getElementById('midiCanvas');
 const midiCtx2d    = midiCanvas.getContext('2d');
 const midiGridWrap = document.getElementById('midiGridWrap');
 const midiCloseBtn = document.getElementById('midiClose');
-const midiPlayBtn  = document.getElementById('midiPlay');
 const midiClearBtn = document.getElementById('midiClear');
 const midiWavBtn   = document.getElementById('midiWav');
 
@@ -2269,8 +2267,11 @@ function drawMidi() {
   });
   if (playheadNorm>=0) {
     const px=normToX(playheadNorm,W);
+    // glow shadow
+    g.shadowColor='rgba(126,200,80,0.7)'; g.shadowBlur=6;
     g.beginPath();g.moveTo(px,0);g.lineTo(px,H);
-    g.strokeStyle='rgba(255,255,255,0.7)';g.lineWidth=1.5;g.stroke();
+    g.strokeStyle='rgba(126,200,80,0.9)';g.lineWidth=1.5;g.stroke();
+    g.shadowBlur=0;
   }
   g.restore();
 }
@@ -2291,11 +2292,11 @@ function openMidiGrid() {
     '\u2500\u2500 TAKE \u00B7 ' + midiLoopBars + 'BAR \u00B7 ' + metroBPM + 'BPM \u2500\u2500';
   const sb = document.getElementById('sheetBtn');
   sb.textContent = '\u2190 PADS'; sb.classList.add('active');
-  requestAnimationFrame(resizeMidi);
+  requestAnimationFrame(() => { resizeMidi(); startTransportPlayhead(); });
 }
 function closeMidiGrid() {
   sheetOpen = false;
-  stopPlayback();
+  stopTransportPlayhead();
   midiOverlay.classList.add('hidden');
   document.getElementById('padGrid').style.display = '';
   const sb = document.getElementById('sheetBtn');
@@ -2355,19 +2356,29 @@ midiCanvas.addEventListener('touchend',e=>{ e.preventDefault();if(!midiDragging)
 
 // ─── Sheet Metro removed — main METRO button controls click sound ───────────────
 
-// ─── Playback ─────────────────────────────────────────────────────────────────
-let playbackTs=[], playbackPlaying=false, playheadNorm=-1, playheadRAF=null;
-function stopPlayback(){ playbackTs.forEach(clearTimeout); playbackTs=[]; playbackPlaying=false; if(playheadRAF)cancelAnimationFrame(playheadRAF); playheadNorm=-1; midiPlayBtn.classList.remove('playing'); midiPlayBtn.textContent='\u25B6 PLAY'; drawMidi(); }
-midiPlayBtn.addEventListener('click',()=>{
-  if(playbackPlaying){stopPlayback();return;}
-  if(midiNotes.length===0)return;
-  boot(); playbackPlaying=true; midiPlayBtn.classList.add('playing'); midiPlayBtn.textContent='\u25A0 STOP';
-  const durMs=midiDur*1000, t0=performance.now();
-  midiNotes.forEach(n=>{ playbackTs.push(setTimeout(()=>{ _vol=padVolumes[n.padIdx]/10; PADS[n.padIdx].fn(); },n.normTime*durMs)); });
-  playbackTs.push(setTimeout(stopPlayback,durMs+300));
-  function animPH(){ playheadNorm=Math.min(1,(performance.now()-t0)/durMs); drawMidi(); if(playbackPlaying)playheadRAF=requestAnimationFrame(animPH); }
-  playheadRAF=requestAnimationFrame(animPH);
-});
+// ─── Transport playhead (DAW-style vertical line) ─────────────────────────────
+let playheadNorm = -1, playheadRAF = null;
+
+function startTransportPlayhead() {
+  if (playheadRAF) return;
+  function tick() {
+    if (!sheetOpen) { playheadRAF = null; playheadNorm = -1; drawMidi(); return; }
+    if (transportOn && ctx && loopDuration > 0) {
+      const elapsed = (ctx.currentTime - loopStartAudioTime) % loopDuration;
+      playheadNorm = Math.max(0, Math.min(0.9999, elapsed / loopDuration));
+    } else {
+      playheadNorm = -1;
+    }
+    drawMidi();
+    playheadRAF = requestAnimationFrame(tick);
+  }
+  playheadRAF = requestAnimationFrame(tick);
+}
+function stopTransportPlayhead() {
+  if (playheadRAF) cancelAnimationFrame(playheadRAF);
+  playheadRAF = null; playheadNorm = -1;
+}
+function stopPlayback() { stopTransportPlayhead(); drawMidi(); }
 window.addEventListener('resize',()=>{ if(!midiOverlay.classList.contains('hidden'))resizeMidi(); });
 
 
