@@ -841,6 +841,11 @@ body {
 const AC = window.AudioContext || window.webkitAudioContext;
 let ctx, masterOut, dryBus, wetBus, reverbNode;
 
+// Disconnect nodes when trigger node ends (prevents node accumulation)
+function autoFree(trigger, ...nodes) {
+  trigger.onended = () => nodes.forEach(n => { try { n.disconnect(); } catch(e){} });
+}
+
 // ─── iOS Silent Mode Bypass ───────────────────────────────────────────────────
 // iOS uses AVAudioSessionCategoryAmbient for Web Audio (muted by silent switch).
 // Fix: play a looping HTMLAudioElement to lock the session into
@@ -1034,7 +1039,8 @@ function stopActiveChord(fadeMs = 350) {
   const t = ctx.currentTime;
   try {
     activeChordEnv.gain.cancelScheduledValues(t);
-    activeChordEnv.gain.setValueAtTime(activeChordEnv.gain.value, t);
+    const cur = Math.max(0.0002, activeChordEnv.gain.value);
+    activeChordEnv.gain.setValueAtTime(cur, t);
     activeChordEnv.gain.exponentialRampToValueAtTime(0.0001, t + fadeMs / 1000);
   } catch(e) {}
   activeChordEnv = null;
@@ -1085,6 +1091,9 @@ function playChord(padIdx) {
     lfo.start(t); lfo.stop(t + dur + 0.1);
   }
 
+  // Disconnect output chain after chord ends
+  setTimeout(() => { try { env.disconnect(); lpf.disconnect(); revSend.disconnect(); } catch(e){} }, (dur + 0.3) * 1000);
+
   freqs.forEach((freq, i) => {
     [0, det + (Math.random() - 0.5) * 3].forEach((d, di) => {
       const o = ctx.createOscillator();
@@ -1096,6 +1105,7 @@ function playChord(padIdx) {
       g.gain.value = di === 0 ? (i === 0 ? 0.80 : 0.60) : 0.30;
       o.connect(g); g.connect(env);
       o.start(t); o.stop(t + dur + 0.06);
+      autoFree(o, o, g);
     });
   });
 }
@@ -1130,6 +1140,8 @@ function playKick() {
   ws.connect(comp); comp.connect(masterOut);
   body.start(t); body.stop(t + 0.45);
   click.start(t); click.stop(t + 0.05);
+  autoFree(body, body, bg, ws, comp);
+  autoFree(click, click, cg);
 }
 
 function playSnare() {
@@ -1153,6 +1165,8 @@ function playSnare() {
   ns.connect(nf2); nf2.connect(ng); ng.connect(ws);
   osc.connect(og); og.connect(ws); ws.connect(masterOut);
   ns.start(t); osc.start(t); osc.stop(t + 0.2);
+  autoFree(ns, ns, nf2, ng, ws);
+  autoFree(osc, osc, og);
 }
 
 function playHHClosed() {
@@ -1166,6 +1180,7 @@ function playHHClosed() {
   const g = ctx.createGain();
   g.gain.setValueAtTime(0.55 * _vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
   ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t);
+  autoFree(ns, ns, hpf, g);
 }
 
 function playHHOpen() {
@@ -1181,6 +1196,7 @@ function playHHOpen() {
   g.gain.linearRampToValueAtTime(0.18 * _vol, t + 0.2);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t);
+  autoFree(ns, ns, hpf, g);
 }
 
 // ─── FX ───────────────────────────────────────────────────────────────────────
@@ -1207,6 +1223,8 @@ function playVinylScratch() {
   osc.connect(bpf); bpf.connect(ws); ns.connect(ws);
   ws.connect(g); g.connect(dryBus); g.connect(wetBus);
   osc.start(t); osc.stop(t + 0.45); ns.start(t);
+  autoFree(osc, osc, bpf, ws, g);
+  autoFree(ns, ns);
 }
 
 function playTapeStop() {
@@ -1222,6 +1240,7 @@ function playTapeStop() {
     g.gain.setValueAtTime(0.11 * _vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(lpf); lpf.connect(g); g.connect(dryBus);
     osc.start(t); osc.stop(t + dur + 0.05);
+    autoFree(osc, osc, lpf, g);
   });
 }
 
@@ -1241,6 +1260,7 @@ function playLofiNoise() {
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.275 * _vol, t + 0.12);
   g.gain.setValueAtTime(0.275 * _vol, t + dur - 0.22); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(lpf); lpf.connect(g); g.connect(dryBus); g.connect(wetBus); ns.start(t);
+  autoFree(ns, ns, lpf, g);
 }
 
 function playRecordCrackle() {
@@ -1262,6 +1282,7 @@ function playRecordCrackle() {
   g.gain.setValueAtTime(0.325 * _vol, t); g.gain.setValueAtTime(0.325 * _vol, t + dur - 0.15);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(bpf); bpf.connect(g); g.connect(masterOut); ns.start(t);
+  autoFree(ns, ns, bpf, g);
 }
 
 function playRewind() {
@@ -1277,6 +1298,7 @@ function playRewind() {
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(hpf); hpf.connect(g); g.connect(dryBus);
     osc.start(t + i * 0.025); osc.stop(t + dur + 0.05);
+    autoFree(osc, osc, hpf, g);
   });
 }
 
@@ -1291,6 +1313,7 @@ function playCassetteClick() {
   const g = ctx.createGain();
   g.gain.setValueAtTime(0.4 * _vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
   ns.connect(bpf); bpf.connect(g); g.connect(masterOut); ns.start(t);
+  autoFree(ns, ns, bpf, g);
 }
 
 function playRadioStatic() {
@@ -1307,6 +1330,7 @@ function playRadioStatic() {
   g.gain.setValueAtTime(0.28 * _vol, t + dur - 0.15);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(bpf); bpf.connect(g); g.connect(dryBus); ns.start(t);
+  autoFree(ns, ns, bpf, g);
 }
 
 function playVinylDrop() {
@@ -1329,6 +1353,8 @@ function playVinylDrop() {
   ns.connect(lpf); lpf.connect(ng); ng.connect(ws);
   ws.connect(masterOut);
   osc.start(t); osc.stop(t + 0.55); ns.start(t);
+  autoFree(osc, osc, bg, ws);
+  autoFree(ns, ns, lpf, ng);
 }
 
 function playTapeHiss() {
@@ -1345,6 +1371,7 @@ function playTapeHiss() {
   g.gain.setValueAtTime(0.14 * _vol, t + dur - 0.55);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t);
+  autoFree(ns, ns, hpf, g);
 }
 
 function playPitchDown() {
@@ -1359,6 +1386,7 @@ function playPitchDown() {
     g.gain.setValueAtTime(0.16 * _vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(lpf); lpf.connect(g); g.connect(dryBus);
     osc.start(t); osc.stop(t + dur + 0.05);
+    autoFree(osc, osc, lpf, g);
   });
 }
 
@@ -1873,9 +1901,14 @@ function metroClick(time, accent) {
   g.gain.exponentialRampToValueAtTime(0.0001, time + (accent ? 0.065 : 0.042));
   osc.connect(g); g.connect(ctx.destination);
   osc.start(time); osc.stop(time + 0.09);
+  autoFree(osc, osc, g);
 }
 
 function scheduleBeats() {
+  // Guard: if tab was backgrounded and scheduler fell far behind, reset to now
+  if (ctx.currentTime > metroNextTime + 1.5) {
+    metroNextTime = ctx.currentTime + 0.05;
+  }
   while (metroNextTime < ctx.currentTime + 0.12) {
     const isBar = (metroPhase % BEATS_PER_BAR) === 0;
     metroClick(metroNextTime, isBar);
@@ -2304,11 +2337,15 @@ midiCanvas.addEventListener('touchend',e=>{ e.preventDefault();if(!midiDragging)
 let sheetMetroOn=false, sheetMetroPhase=0, sheetMetroNextTime=0, sheetMetroTimer=null;
 const sheetMetroBtn=document.getElementById('sheetMetroBtn');
 function scheduleSheetBeats(){
+  if (ctx.currentTime > sheetMetroNextTime + 1.5) {
+    sheetMetroNextTime = ctx.currentTime + 0.05;
+  }
   while(sheetMetroNextTime<ctx.currentTime+0.12){
     const accent=(sheetMetroPhase%BEATS_PER_BAR)===0;
     const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=accent?1500:1000;
     const g=ctx.createGain(); g.gain.setValueAtTime(0,sheetMetroNextTime); g.gain.linearRampToValueAtTime(metroVol*0.7,sheetMetroNextTime+0.003); g.gain.exponentialRampToValueAtTime(0.0001,sheetMetroNextTime+(accent?0.065:0.042));
     osc.connect(g); g.connect(ctx.destination); osc.start(sheetMetroNextTime); osc.stop(sheetMetroNextTime+0.09);
+    autoFree(osc, osc, g);
     sheetMetroPhase++; sheetMetroNextTime+=spb();
   }
 }
