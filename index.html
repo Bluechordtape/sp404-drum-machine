@@ -674,6 +674,21 @@ body {
   .scr-sep { font-size: 36px; }
 }
 
+/* ── MIDI zoom controls ── */
+.midi-quant-sep { flex: 1; }
+.midi-zoom-btn {
+  font-family: 'Public Sans', sans-serif; font-size: 13px; color: var(--muted);
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 3px;
+  width: 20px; height: 20px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; line-height: 1;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; flex-shrink: 0;
+}
+.midi-zoom-btn:active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.midi-zoom-val {
+  font-size: 9px; font-weight: 500; color: var(--text);
+  min-width: 26px; text-align: center; letter-spacing: 0.04em; flex-shrink: 0;
+}
+
 </style>
 </head>
 <body>
@@ -774,6 +789,11 @@ body {
         <button class="midi-quant-btn" data-q="8">1/8</button>
         <button class="midi-quant-btn" data-q="4">1/4</button>
         <button class="midi-quant-btn" data-q="0">Off</button>
+        <span class="midi-quant-sep"></span>
+        <span class="midi-quant-label">Zoom</span>
+        <button class="midi-zoom-btn" id="midiZoomOut">&#8722;</button>
+        <span class="midi-zoom-val" id="midiZoomVal">1&#215;</span>
+        <button class="midi-zoom-btn" id="midiZoomIn">+</button>
       </div>
       <div class="midi-actions">
         <button class="midi-action-btn clear" id="midiClear">&#10005; CLEAR</button>
@@ -2275,8 +2295,26 @@ function drawMidi() {
   }
   g.restore();
 }
+let midiZoom=1.0;
+function setMidiZoom(z){
+  midiZoom=Math.max(0.5,Math.min(8.0,z));
+  const d=midiZoom%1===0?midiZoom:midiZoom.toFixed(1);
+  const el=document.getElementById('midiZoomVal'); if(el) el.textContent=d+'×';
+  resizeMidi();
+  // keep playhead in view
+  if(playheadNorm>=0){
+    const dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr;
+    const px=normToX(playheadNorm,W);
+    const wW=midiGridWrap.clientWidth;
+    if(px<midiGridWrap.scrollLeft+LABEL_W||px>midiGridWrap.scrollLeft+wW-20)
+      midiGridWrap.scrollLeft=Math.max(0,px-wW*0.3);
+  }
+}
 function resizeMidi() {
-  const dpr=window.devicePixelRatio||1, W=midiGridWrap.clientWidth, H=16*LANE_H;
+  const dpr=window.devicePixelRatio||1;
+  const containerW=midiGridWrap.clientWidth;
+  const W=Math.max(containerW, Math.round(containerW*midiZoom));
+  const H=16*LANE_H;
   midiCanvas.style.width=W+'px'; midiCanvas.style.height=H+'px';
   midiCanvas.width=W*dpr; midiCanvas.height=H*dpr; drawMidi();
 }
@@ -2285,6 +2323,7 @@ function openMidiGrid() {
   midiLoopBars = loopBars; midiDur = midiLoopBars * BEATS_PER_BAR * spb();
   midiNotes = loopNotes.map(n => ({...n, normTime: snapNorm(n.normTime)}));
   midiWavBtn.disabled = !lastWavBlob;
+  midiZoom=1.0; const zv=document.getElementById('midiZoomVal'); if(zv) zv.textContent='1×';
   undoStack.length = 0; redoStack.length = 0; updateUndoButtons();
   document.getElementById('padGrid').style.display = 'none';
   midiOverlay.classList.remove('hidden');
@@ -2350,8 +2389,28 @@ midiCanvas.addEventListener('mousedown',e=>{ const{x,y}=cpos(e),ni=hitNote(x,y);
 midiCanvas.addEventListener('mousemove',e=>{ if(!midiDragging)return; const{x}=cpos(e),dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr; midiNotes[midiDragging.ni].normTime=snapNorm(Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W)))); drawMidi(); });
 midiCanvas.addEventListener('mouseup',e=>{ if(!midiDragging)return; if(Math.abs(cpos(e).x-midiDragTapX)<5){saveState();midiNotes.splice(midiDragging.ni,1);drawMidi();}else saveState(); midiDragging=null; });
 midiCanvas.addEventListener('mouseleave',()=>{ midiDragging=null; });
-midiCanvas.addEventListener('touchstart',e=>{ e.preventDefault();const{x,y}=cpos(e),ni=hitNote(x,y);if(ni>=0){midiDragging={ni,sx:x,ot:midiNotes[ni].normTime};midiDragTapX=x;}},{passive:false});
-midiCanvas.addEventListener('touchmove',e=>{ e.preventDefault();if(!midiDragging)return;const{x}=cpos(e),dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr;midiNotes[midiDragging.ni].normTime=snapNorm(Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));drawMidi();},{passive:false});
+let _pinchDist0=0,_pinchZoom0=1;
+midiCanvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  if(e.touches.length===2){
+    const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
+    _pinchDist0=Math.sqrt(dx*dx+dy*dy); _pinchZoom0=midiZoom; midiDragging=null;
+  } else {
+    const{x,y}=cpos(e),ni=hitNote(x,y);
+    if(ni>=0){midiDragging={ni,sx:x,ot:midiNotes[ni].normTime};midiDragTapX=x;}
+  }
+},{passive:false});
+midiCanvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(e.touches.length===2){
+    const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
+    setMidiZoom(_pinchZoom0*(Math.sqrt(dx*dx+dy*dy)/_pinchDist0));
+  } else if(midiDragging){
+    const{x}=cpos(e),dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr;
+    midiNotes[midiDragging.ni].normTime=snapNorm(Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
+    drawMidi();
+  }
+},{passive:false});
 midiCanvas.addEventListener('touchend',e=>{ e.preventDefault();if(!midiDragging)return;const r=midiCanvas.getBoundingClientRect(),ch=e.changedTouches[0];if(Math.abs(ch.clientX-r.left-midiDragTapX)<8){saveState();midiNotes.splice(midiDragging.ni,1);drawMidi();}else saveState();midiDragging=null;},{passive:false});
 
 // ─── Sheet Metro removed — main METRO button controls click sound ───────────────
@@ -2380,6 +2439,14 @@ function stopTransportPlayhead() {
 }
 function stopPlayback() { stopTransportPlayhead(); drawMidi(); }
 window.addEventListener('resize',()=>{ if(!midiOverlay.classList.contains('hidden'))resizeMidi(); });
+
+// ─── MIDI Zoom controls ─────────────────────────────────────────────────────
+document.getElementById('midiZoomIn').addEventListener('click', ()=>setMidiZoom(midiZoom*1.5));
+document.getElementById('midiZoomOut').addEventListener('click', ()=>setMidiZoom(midiZoom/1.5));
+// Ctrl/Cmd + wheel to zoom on desktop
+midiGridWrap.addEventListener('wheel', e=>{
+  if(e.ctrlKey||e.metaKey){ e.preventDefault(); setMidiZoom(midiZoom*(e.deltaY<0?1.25:1/1.25)); }
+},{passive:false});
 
 
 // ─── PWA: Service Worker + Silent Mode Audio ──────────────────────────────────
