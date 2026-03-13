@@ -207,6 +207,7 @@ body {
 }
 .pad.active .pad-hint { color: rgba(255,255,255,0.6); }
 .pad-key { display: none; }
+.pad > * { pointer-events: none; }
 
 /* ── Controls & Footer ── */
 .controls { display: none; }
@@ -336,6 +337,22 @@ body {
   pointer-events: none; z-index: 2;
 }
 
+/* ── Volume column ── */
+.picker-col.vol-col { flex: 0 0 62px; flex-shrink: 0; }
+.picker-cols.drum-mode .chord-only { display: none; }
+
+/* ── Per-pad vol badge ── */
+.pad-vol {
+  position: absolute;
+  bottom: 3px; right: 4px;
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  pointer-events: none;
+  line-height: 1;
+}
+.pad.active .pad-vol { color: rgba(255,255,255,0.55); }
+
 .picker-btns {
   display: flex; gap: 8px; margin-top: 14px;
 }
@@ -454,6 +471,13 @@ body {
           <div class="picker-sel-bar"></div>
         </div>
       </div>
+      <div class="picker-col vol-col">
+        <div class="picker-label">VOL</div>
+        <div class="picker-drum-wrap">
+          <div class="picker-drum" id="volDrum"></div>
+          <div class="picker-sel-bar"></div>
+        </div>
+      </div>
     </div>
     <div class="picker-btns">
       <button class="picker-btn cancel" id="pickerCancel">CANCEL</button>
@@ -467,7 +491,36 @@ body {
 const AC = window.AudioContext || window.webkitAudioContext;
 let ctx, masterOut, dryBus, wetBus, reverbNode;
 
+// ─── iOS Silent Mode Bypass ───────────────────────────────────────────────────
+// iOS routes Web Audio through AVAudioSessionCategoryAmbient by default,
+// which is muted by the hardware silent switch.
+// Playing an HTMLAudioElement during a user gesture switches the session to
+// AVAudioSessionCategoryPlayback, bypassing the silent switch entirely.
+let _silentEl = null, _silentDone = false;
+(function() {
+  try {
+    // Minimal valid WAV: 1 sample, 8-bit, 8 kHz, mono (45 bytes)
+    const wav = new Uint8Array([
+      0x52,0x49,0x46,0x46,0x25,0x00,0x00,0x00,0x57,0x41,0x56,0x45,
+      0x66,0x6D,0x74,0x20,0x10,0x00,0x00,0x00,0x01,0x00,0x01,0x00,
+      0x40,0x1F,0x00,0x00,0x40,0x1F,0x00,0x00,0x01,0x00,0x08,0x00,
+      0x64,0x61,0x74,0x61,0x01,0x00,0x00,0x00,0x80
+    ]);
+    const url = URL.createObjectURL(new Blob([wav], {type:'audio/wav'}));
+    _silentEl = new Audio(url);
+    _silentEl.volume = 0.001;
+    _silentEl.preload = 'auto';
+  } catch(e) {}
+})();
+
+function bypassSilent() {
+  if (_silentDone || !_silentEl) return;
+  _silentDone = true;
+  _silentEl.play().catch(() => { _silentDone = false; });
+}
+
 function boot() {
+  bypassSilent();
   if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
   ctx = new AC();
 
@@ -607,6 +660,13 @@ const FX_SOUNDS = [
 // Which FX_SOUNDS index each of the 4 FX pads is assigned to
 const padFX = [0, 1, 2, 3];
 
+// ─── Per-pad Volume ────────────────────────────────────────────────────────────
+// padVolumes[i] = index into VOL_ITEMS (0–15); 10 = 100% (default)
+const VOL_ITEMS = ['0%','10%','20%','30%','40%','50%','60%','70%','80%','90%','100%','110%','120%','130%','140%','150%'];
+const VOL_DEFAULT_IDX = 10;
+const padVolumes = new Array(16).fill(VOL_DEFAULT_IDX);
+let _vol = 1.0; // set by trigger() before each play call
+
 function playFX(fxPadIdx) {
   boot();
   FX_SOUNDS[padFX[fxPadIdx]].fn();
@@ -638,7 +698,7 @@ function playChord(padIdx) {
   const dur   = cfg.dur, atk = cfg.atk, det = cfg.det;
   const btype = cfg.type;
 
-  const vol = 0.22 / Math.sqrt(freqs.length);
+  const vol = 0.22 * _vol / Math.sqrt(freqs.length);
   const env = ctx.createGain();
   env.gain.setValueAtTime(0, t);
   env.gain.linearRampToValueAtTime(vol, t + atk);
@@ -700,10 +760,10 @@ function playKick() {
   click.frequency.exponentialRampToValueAtTime(80, t + 0.018);
 
   const bg = ctx.createGain();
-  bg.gain.setValueAtTime(1.4, t);
+  bg.gain.setValueAtTime(1.4 * _vol, t);
   bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
   const cg = ctx.createGain();
-  cg.gain.setValueAtTime(0.65, t);
+  cg.gain.setValueAtTime(0.65 * _vol, t);
   cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
 
   const ws = ctx.createWaveShaper(); ws.curve = distCurve(60);
@@ -728,12 +788,12 @@ function playSnare() {
 
   const nf2 = ctx.createBiquadFilter(); nf2.type = 'bandpass'; nf2.frequency.value = 2800; nf2.Q.value = 0.6;
   const ng = ctx.createGain();
-  ng.gain.setValueAtTime(0.9, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  ng.gain.setValueAtTime(0.9 * _vol, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
 
   const osc = ctx.createOscillator(); osc.type = 'triangle';
   osc.frequency.setValueAtTime(230, t); osc.frequency.exponentialRampToValueAtTime(110, t + 0.06);
   const og = ctx.createGain();
-  og.gain.setValueAtTime(0.5, t); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+  og.gain.setValueAtTime(0.5 * _vol, t); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
 
   const ws = ctx.createWaveShaper(); ws.curve = distCurve(28);
   ns.connect(nf2); nf2.connect(ng); ng.connect(ws);
@@ -750,7 +810,7 @@ function playHHClosed() {
   const ns = ctx.createBufferSource(); ns.buffer = nb;
   const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 9000;
   const g = ctx.createGain();
-  g.gain.setValueAtTime(0.55, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+  g.gain.setValueAtTime(0.55 * _vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
   ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t);
 }
 
@@ -763,8 +823,8 @@ function playHHOpen() {
   const ns = ctx.createBufferSource(); ns.buffer = nb;
   const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 6500;
   const g = ctx.createGain();
-  g.gain.setValueAtTime(0.45, t);
-  g.gain.linearRampToValueAtTime(0.18, t + 0.2);
+  g.gain.setValueAtTime(0.45 * _vol, t);
+  g.gain.linearRampToValueAtTime(0.18 * _vol, t + 0.2);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t);
 }
@@ -787,8 +847,8 @@ function playVinylScratch() {
 
   const ws = ctx.createWaveShaper(); ws.curve = distCurve(90);
   const g = ctx.createGain();
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.35, t + 0.02);
-  g.gain.setValueAtTime(0.35, t + 0.33); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.35 * _vol, t + 0.02);
+  g.gain.setValueAtTime(0.35 * _vol, t + 0.33); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
 
   osc.connect(bpf); bpf.connect(ws); ns.connect(ws);
   ws.connect(g); g.connect(dryBus); g.connect(wetBus);
@@ -805,7 +865,7 @@ function playTapeStop() {
     const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass';
     lpf.frequency.setValueAtTime(3500, t); lpf.frequency.exponentialRampToValueAtTime(80, t + dur);
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.11, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    g.gain.setValueAtTime(0.11 * _vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(lpf); lpf.connect(g); g.connect(dryBus);
     osc.start(t); osc.stop(t + dur + 0.05);
   });
@@ -824,8 +884,8 @@ function playLofiNoise() {
   const ns = ctx.createBufferSource(); ns.buffer = nb;
   const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 700; lpf.Q.value = 1.8;
   const g = ctx.createGain();
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.275, t + 0.12);
-  g.gain.setValueAtTime(0.275, t + dur - 0.22); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.275 * _vol, t + 0.12);
+  g.gain.setValueAtTime(0.275 * _vol, t + dur - 0.22); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(lpf); lpf.connect(g); g.connect(dryBus); g.connect(wetBus); ns.start(t);
 }
 
@@ -845,7 +905,7 @@ function playRecordCrackle() {
   const ns = ctx.createBufferSource(); ns.buffer = nb;
   const bpf = ctx.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 3200; bpf.Q.value = 0.45;
   const g = ctx.createGain();
-  g.gain.setValueAtTime(0.325, t); g.gain.setValueAtTime(0.325, t + dur - 0.15);
+  g.gain.setValueAtTime(0.325 * _vol, t); g.gain.setValueAtTime(0.325 * _vol, t + dur - 0.15);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(bpf); bpf.connect(g); g.connect(masterOut); ns.start(t);
 }
@@ -859,7 +919,7 @@ function playRewind() {
     osc.frequency.linearRampToValueAtTime(freq * 3.8, t + dur);
     const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 350;
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.07, t + i * 0.025);
+    g.gain.setValueAtTime(0.07 * _vol, t + i * 0.025);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(hpf); hpf.connect(g); g.connect(dryBus);
     osc.start(t + i * 0.025); osc.stop(t + dur + 0.05);
@@ -875,7 +935,7 @@ function playCassetteClick() {
   const ns = ctx.createBufferSource(); ns.buffer = nb;
   const bpf = ctx.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 2500; bpf.Q.value = 1.5;
   const g = ctx.createGain();
-  g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  g.gain.setValueAtTime(0.4 * _vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
   ns.connect(bpf); bpf.connect(g); g.connect(masterOut); ns.start(t);
 }
 
@@ -889,8 +949,8 @@ function playRadioStatic() {
   const bpf = ctx.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 1800; bpf.Q.value = 0.8;
   const g = ctx.createGain();
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(0.28, t + 0.08);
-  g.gain.setValueAtTime(0.28, t + dur - 0.15);
+  g.gain.linearRampToValueAtTime(0.28 * _vol, t + 0.08);
+  g.gain.setValueAtTime(0.28 * _vol, t + dur - 0.15);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(bpf); bpf.connect(g); g.connect(dryBus); ns.start(t);
 }
@@ -902,14 +962,14 @@ function playVinylDrop() {
   osc.frequency.setValueAtTime(150, t);
   osc.frequency.exponentialRampToValueAtTime(28, t + 0.38);
   const bg = ctx.createGain();
-  bg.gain.setValueAtTime(0.85, t); bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+  bg.gain.setValueAtTime(0.85 * _vol, t); bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
   const nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.3), ctx.sampleRate);
   const nd = nb.getChannelData(0);
   for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
   const ns = ctx.createBufferSource(); ns.buffer = nb;
   const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 600;
   const ng = ctx.createGain();
-  ng.gain.setValueAtTime(0.22, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+  ng.gain.setValueAtTime(0.22 * _vol, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
   const ws = ctx.createWaveShaper(); ws.curve = distCurve(40);
   osc.connect(bg); bg.connect(ws);
   ns.connect(lpf); lpf.connect(ng); ng.connect(ws);
@@ -927,8 +987,8 @@ function playTapeHiss() {
   const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 4200;
   const g = ctx.createGain();
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(0.14, t + 0.35);
-  g.gain.setValueAtTime(0.14, t + dur - 0.55);
+  g.gain.linearRampToValueAtTime(0.14 * _vol, t + 0.35);
+  g.gain.setValueAtTime(0.14 * _vol, t + dur - 0.55);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t);
 }
@@ -942,7 +1002,7 @@ function playPitchDown() {
     osc.frequency.exponentialRampToValueAtTime(freq * 0.05, t + dur);
     const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 2200;
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.16, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    g.gain.setValueAtTime(0.16 * _vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(lpf); lpf.connect(g); g.connect(dryBus);
     osc.start(t); osc.stop(t + dur + 0.05);
   });
@@ -960,7 +1020,7 @@ function speakCool(text) {
   if (!window.speechSynthesis) return;
   boot();
   const u = new SpeechSynthesisUtterance(text);
-  u.pitch = 0.55; u.rate = 0.78; u.volume = 0.85;
+  u.pitch = 0.55; u.rate = 0.78; u.volume = Math.min(1.0, 0.85 * _vol);
   const voices = _voices.length ? _voices : speechSynthesis.getVoices();
   const enVoice = voices.find(v => v.lang.startsWith('en') && /male/i.test(v.name))
     || voices.find(v => v.lang.startsWith('en'))
@@ -973,7 +1033,7 @@ function speakBaby(text) {
   if (!window.speechSynthesis) return;
   boot();
   const u = new SpeechSynthesisUtterance(text);
-  u.pitch = 2.0; u.rate = 1.1; u.volume = 1.0;
+  u.pitch = 2.0; u.rate = 1.1; u.volume = Math.min(1.0, _vol);
   const voices = _voices.length ? _voices : speechSynthesis.getVoices();
   const koVoice = voices.find(v => v.lang.startsWith('ko'))
     || voices.find(v => v.lang.startsWith('en'))
@@ -986,7 +1046,7 @@ function speakFr(text) {
   if (!window.speechSynthesis) return;
   boot();
   const u = new SpeechSynthesisUtterance(text);
-  u.pitch = 1.15; u.rate = 0.82; u.volume = 1.0;
+  u.pitch = 1.15; u.rate = 0.82; u.volume = Math.min(1.0, _vol);
   const voices = _voices.length ? _voices : speechSynthesis.getVoices();
   const frVoice = voices.find(v => v.lang.startsWith('fr') && /female|woman|fiona|amelie|alice|thomas/i.test(v.name))
     || voices.find(v => v.lang.startsWith('fr'))
@@ -1039,8 +1099,9 @@ PADS.forEach((pad, i) => {
   el.className = `pad ${pad.type}`;
   el.innerHTML =
     `<span class="pad-name">${pad.name.replace('\n','<br>')}</span>` +
-    (pad.type === 'chord' || pad.type === 'fx' ? `<span class="pad-hint">hold</span>` : '') +
-    `<span class="pad-key">[${pad.key.toUpperCase()}]</span>`;
+    `<span class="pad-hint">hold</span>` +
+    `<span class="pad-key">[${pad.key.toUpperCase()}]</span>` +
+    `<span class="pad-vol" id="pvol-${i}"></span>`;
   grid.appendChild(el);
   padEls.push(el);
 
@@ -1054,6 +1115,7 @@ PADS.forEach((pad, i) => {
       Array.from(e.changedTouches).forEach(touch => {
         const id = touch.identifier;
         startPos.set(id, {x: touch.clientX, y: touch.clientY});
+        trigger(i); // 터치 순간 즉시 재생
         timers.set(id, setTimeout(() => {
           timers.delete(id);
           startPos.delete(id);
@@ -1063,7 +1125,6 @@ PADS.forEach((pad, i) => {
     }, {passive: false});
 
     el.addEventListener('touchmove', e => {
-      // Only cancel if this specific touch moved > 10px
       Array.from(e.changedTouches).forEach(touch => {
         const id = touch.identifier;
         const sp = startPos.get(id);
@@ -1081,12 +1142,9 @@ PADS.forEach((pad, i) => {
       e.preventDefault();
       Array.from(e.changedTouches).forEach(touch => {
         const id = touch.identifier;
-        if (timers.has(id)) {
-          clearTimeout(timers.get(id));
-          timers.delete(id);
-          startPos.delete(id);
-          trigger(i);
-        }
+        clearTimeout(timers.get(id));
+        timers.delete(id);
+        startPos.delete(id);
       });
     }, {passive: false});
 
@@ -1103,9 +1161,10 @@ PADS.forEach((pad, i) => {
     let mouseTimer = null;
     el.addEventListener('mousedown', e => {
       e.preventDefault();
+      trigger(i); // 클릭 순간 즉시 재생
       mouseTimer = setTimeout(() => { mouseTimer = null; openPicker(i); }, LONG_PRESS_MS);
     });
-    el.addEventListener('mouseup',    () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; trigger(i); } });
+    el.addEventListener('mouseup',    () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; } });
     el.addEventListener('mouseleave', () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; } });
 
   } else if (pad.type === 'fx') {
@@ -1118,6 +1177,7 @@ PADS.forEach((pad, i) => {
       Array.from(e.changedTouches).forEach(touch => {
         const id = touch.identifier;
         startPos.set(id, {x: touch.clientX, y: touch.clientY});
+        trigger(i); // 터치 순간 즉시 재생
         timers.set(id, setTimeout(() => {
           timers.delete(id); startPos.delete(id);
           openFXPicker(fxIdx);
@@ -1142,11 +1202,8 @@ PADS.forEach((pad, i) => {
       e.preventDefault();
       Array.from(e.changedTouches).forEach(touch => {
         const id = touch.identifier;
-        if (timers.has(id)) {
-          clearTimeout(timers.get(id));
-          timers.delete(id); startPos.delete(id);
-          trigger(i);
-        }
+        clearTimeout(timers.get(id));
+        timers.delete(id); startPos.delete(id);
       });
     }, {passive: false});
 
@@ -1161,23 +1218,75 @@ PADS.forEach((pad, i) => {
     let mouseTimer = null;
     el.addEventListener('mousedown', e => {
       e.preventDefault();
+      trigger(i); // 클릭 순간 즉시 재생
       mouseTimer = setTimeout(() => { mouseTimer = null; openFXPicker(fxIdx); }, LONG_PRESS_MS);
     });
-    el.addEventListener('mouseup',    () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; trigger(i); } });
+    el.addEventListener('mouseup',    () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; } });
     el.addEventListener('mouseleave', () => { if (mouseTimer) { clearTimeout(mouseTimer); mouseTimer = null; } });
 
   } else {
-    // Drum pads: each new touch triggers independently
+    // Drum pads: immediate trigger on touch, long-press → volume picker
+    const dtimers   = new Map();
+    const dstartPos = new Map();
     el.addEventListener('touchstart', e => {
       e.preventDefault();
-      Array.from(e.changedTouches).forEach(() => trigger(i));
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        dstartPos.set(id, {x: touch.clientX, y: touch.clientY});
+        trigger(i);
+        dtimers.set(id, setTimeout(() => {
+          dtimers.delete(id); dstartPos.delete(id);
+          openDrumPicker(i);
+        }, LONG_PRESS_MS));
+      });
     }, {passive: false});
-    el.addEventListener('mousedown', e => { e.preventDefault(); trigger(i); });
+    el.addEventListener('touchmove', e => {
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        const sp = dstartPos.get(id);
+        if (!sp) return;
+        const dx = touch.clientX - sp.x, dy = touch.clientY - sp.y;
+        if (Math.sqrt(dx*dx + dy*dy) > 10) {
+          clearTimeout(dtimers.get(id));
+          dtimers.delete(id); dstartPos.delete(id);
+        }
+      });
+    }, {passive: true});
+    el.addEventListener('touchend', e => {
+      e.preventDefault();
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        clearTimeout(dtimers.get(id));
+        dtimers.delete(id); dstartPos.delete(id);
+      });
+    }, {passive: false});
+    el.addEventListener('touchcancel', e => {
+      Array.from(e.changedTouches).forEach(touch => {
+        const id = touch.identifier;
+        clearTimeout(dtimers.get(id));
+        dtimers.delete(id); dstartPos.delete(id);
+      });
+    });
+    let dmouseTimer = null;
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      trigger(i);
+      dmouseTimer = setTimeout(() => { dmouseTimer = null; openDrumPicker(i); }, LONG_PRESS_MS);
+    });
+    el.addEventListener('mouseup',    () => { if (dmouseTimer) { clearTimeout(dmouseTimer); dmouseTimer = null; } });
+    el.addEventListener('mouseleave', () => { if (dmouseTimer) { clearTimeout(dmouseTimer); dmouseTimer = null; } });
   }
 });
 
 // ─── Trigger ──────────────────────────────────────────────────────────────────
+function updateVolDisplay(idx) {
+  const el = document.getElementById(`pvol-${idx}`);
+  if (!el) return;
+  el.textContent = padVolumes[idx] !== VOL_DEFAULT_IDX ? (padVolumes[idx] * 10) + '%' : '';
+}
+
 function trigger(idx) {
+  _vol = padVolumes[idx] / 10;
   boot();
   PADS[idx].fn();
   display.textContent = `[ ${DNAMES[idx]} ]`;
@@ -1205,6 +1314,7 @@ let pickerMode = 'chord'; // 'chord' | 'fx'
 const rootDrum    = document.getElementById('rootDrum');
 const typeDrum    = document.getElementById('typeDrum');
 const fxDrum      = document.getElementById('fxDrum');
+const volDrum     = document.getElementById('volDrum');
 const overlay     = document.getElementById('pickerOverlay');
 const pickerTitle = document.getElementById('pickerTitle');
 const pickerCols  = document.querySelector('.picker-cols');
@@ -1250,43 +1360,68 @@ function updateHighlights(drumEl) {
 function openFXPicker(fxIdx) {
   pickerMode = 'fx';
   pickerCols.classList.add('fx-mode');
+  pickerCols.classList.remove('drum-mode');
   pickerIdx = fxIdx;
   pickerTitle.textContent = `── FX PAD ${fxIdx + 1} ──`;
   buildDrum(fxDrum, FX_SOUNDS.map(s => s.name));
+  buildDrum(volDrum, VOL_ITEMS);
   fxDrum.addEventListener('scroll', () => updateHighlights(fxDrum), {passive: true});
+  volDrum.addEventListener('scroll', () => updateHighlights(volDrum), {passive: true});
   overlay.classList.remove('hidden');
   requestAnimationFrame(() => requestAnimationFrame(() => {
     scrollTo(fxDrum, padFX[fxIdx]);
+    scrollTo(volDrum, padVolumes[8 + fxIdx]);
     updateHighlights(fxDrum);
+    updateHighlights(volDrum);
   }));
 }
 
 function openPicker(padId) {
   pickerMode = 'chord';
-  pickerCols.classList.remove('fx-mode');
+  pickerCols.classList.remove('fx-mode', 'drum-mode');
   pickerIdx = padId;
   const pc = padChords[padId];
   pickerTitle.textContent = `── EDIT: ${chordName(pc.r, pc.t)} ──`;
 
   buildDrum(rootDrum, ROOTS);
   buildDrum(typeDrum, TYPES);
+  buildDrum(volDrum, VOL_ITEMS);
 
   rootDrum.addEventListener('scroll', () => updateHighlights(rootDrum), {passive:true});
   typeDrum.addEventListener('scroll', () => updateHighlights(typeDrum), {passive:true});
+  volDrum.addEventListener('scroll',  () => updateHighlights(volDrum),  {passive:true});
 
   overlay.classList.remove('hidden');
 
-  // Set scroll after render
   requestAnimationFrame(() => requestAnimationFrame(() => {
     scrollTo(rootDrum, pc.r);
     scrollTo(typeDrum, TYPES.indexOf(pc.t));
+    scrollTo(volDrum, padVolumes[padId]);
     updateHighlights(rootDrum);
     updateHighlights(typeDrum);
+    updateHighlights(volDrum);
+  }));
+}
+
+function openDrumPicker(padIdx) {
+  pickerMode = 'drum';
+  pickerCols.classList.remove('fx-mode');
+  pickerCols.classList.add('drum-mode');
+  pickerIdx = padIdx;
+  const drumNames = ['KICK','SNARE','HH CLOSED','HH OPEN'];
+  pickerTitle.textContent = `── ${drumNames[padIdx - 12]} VOL ──`;
+  buildDrum(volDrum, VOL_ITEMS);
+  volDrum.addEventListener('scroll', () => updateHighlights(volDrum), {passive: true});
+  overlay.classList.remove('hidden');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    scrollTo(volDrum, padVolumes[padIdx]);
+    updateHighlights(volDrum);
   }));
 }
 
 function closePicker() {
   overlay.classList.add('hidden');
+  pickerCols.classList.remove('drum-mode', 'fx-mode');
   pickerIdx = -1;
 }
 
@@ -1299,11 +1434,21 @@ function saveFXPicker() {
   PADS[fxPadGlobal].name = sound.padName;
   DNAMES[fxPadGlobal] = sound.name;
   padEls[fxPadGlobal].querySelector('.pad-name').innerHTML = sound.padName.replace('\n', '<br>');
+  padVolumes[fxPadGlobal] = getIdx(volDrum);
+  updateVolDisplay(fxPadGlobal);
+  closePicker();
+}
+
+function saveDrumPicker() {
+  if (pickerIdx < 0) return;
+  padVolumes[pickerIdx] = getIdx(volDrum);
+  updateVolDisplay(pickerIdx);
   closePicker();
 }
 
 function savePicker() {
-  if (pickerMode === 'fx') { saveFXPicker(); return; }
+  if (pickerMode === 'fx')   { saveFXPicker();   return; }
+  if (pickerMode === 'drum') { saveDrumPicker(); return; }
   if (pickerIdx < 0) return;
   const ri = getIdx(rootDrum);
   const ti = getIdx(typeDrum);
@@ -1315,6 +1460,8 @@ function savePicker() {
   PADS[pickerIdx].name = name;
   DNAMES[pickerIdx] = name;
   padEls[pickerIdx].querySelector('.pad-name').textContent = name;
+  padVolumes[pickerIdx] = getIdx(volDrum);
+  updateVolDisplay(pickerIdx);
 
   closePicker();
 }
