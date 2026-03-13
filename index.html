@@ -700,7 +700,7 @@ body {
 
   <div class="metro-bar" id="metroBar">
     <div class="metro-left">
-      <button class="metro-btn" id="metroBtn">&#9654; METRO</button>
+      <button class="metro-btn" id="metroBtn">METRO</button>
       <div class="bpm-row">
         <button class="bpm-adj" id="bpmDown">&#8722;</button>
         <span class="bpm-val" id="bpmVal">90</span>
@@ -757,10 +757,10 @@ body {
       <div class="knob-wrap"><div class="knob"></div><div class="knob-label">Drive</div></div>
     </div>
     <div class="key-hint">
-      Q W E R — chords 1~4<br>
-      A S D F — chords 5~8<br>
-      Z X C V — fx<br>
-      1 2 3 4 — drums
+      1 2 3 4 — chords 1~4<br>
+      Q W E R — chords 5~8<br>
+      A S D F — fx 1~4<br>
+      Z X C V — drums
     </div>
   </div>
   <div class="footer">BCT-404 · Jazz Hip-Hop · Web Audio API</div>
@@ -1657,6 +1657,7 @@ function trigger(idx) {
 const keyMap = Object.fromEntries(PADS.map((p,i) => [p.key, i]));
 document.addEventListener('keydown', e => {
   if (e.repeat || e.ctrlKey || e.metaKey) return;
+  if (!document.getElementById('midiOverlay').classList.contains('hidden')) return;
   const k = e.key.toLowerCase();
   if (k in keyMap) { e.preventDefault(); trigger(keyMap[k]); }
 });
@@ -1919,6 +1920,7 @@ function scheduleBeats() {
 function _beginRecording(audioTime) {
   recState = 'recording';
   loopStartAudioTime = audioTime;
+  loopStartPhase = metroPhase;
   loopDuration = loopBars * BEATS_PER_BAR * spb();
   recBtnEl.className = 'rec-btn recording';
   recBtnEl.textContent = '\u25A0 REC';
@@ -1944,7 +1946,7 @@ metroBtn.addEventListener('click', () => {
   boot();
   metroClickOn = !metroClickOn;
   metroBtn.classList.toggle('active', metroClickOn);
-  metroBtn.textContent = metroClickOn ? '\u25A0 METRO' : '\u25B6 METRO';
+  metroBtn.textContent = metroClickOn ? 'METRO ON' : 'METRO';
 });
 
 // PLAY button: transport start/stop
@@ -2018,6 +2020,7 @@ document.querySelectorAll('.bar-sel-item').forEach(btn => {
     document.querySelectorAll('.bar-sel-item').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     loopBars = parseInt(btn.dataset.bars);
+    loopDuration = loopBars * BEATS_PER_BAR * spb();
     scrLoopTag.textContent = loopBars + ' BAR';
   });
 });
@@ -2083,8 +2086,11 @@ recBtnEl.addEventListener('click', () => {
       // Immediate overdub — start now (align to loop time)
       if (!streamDest) { streamDest = ctx.createMediaStreamDestination(); masterOut.connect(streamDest); }
       initMediaRec();
+      // Update loop duration in case loopBars changed since transport started
+      loopDuration = loopBars * BEATS_PER_BAR * spb();
+      // Align loop start phase to current bar boundary
+      loopStartPhase = metroPhase - (metroPhase % BEATS_PER_BAR);
       recState = 'recording';
-      // loopStartAudioTime already set by transport
       recBtnEl.className = 'rec-btn recording';
       recBtnEl.textContent = '\u25A0 REC';
       mediaRecChunks = [];
