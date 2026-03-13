@@ -518,22 +518,27 @@ const AC = window.AudioContext || window.webkitAudioContext;
 let ctx, masterOut, dryBus, wetBus, reverbNode;
 
 // ─── iOS Silent Mode Bypass ───────────────────────────────────────────────────
-// iOS routes Web Audio through AVAudioSessionCategoryAmbient by default,
-// which is muted by the hardware silent switch.
-// Playing an HTMLAudioElement during a user gesture switches the session to
-// AVAudioSessionCategoryPlayback, bypassing the silent switch entirely.
+// iOS uses AVAudioSessionCategoryAmbient for Web Audio (muted by silent switch).
+// Fix: play a looping HTMLAudioElement to lock the session into
+// AVAudioSessionCategoryPlayback permanently — even with silent mode on.
+// KEY: the element must keep looping; a 1-shot play lets iOS revert the session.
 let _silentEl = null, _silentDone = false;
 (function() {
   try {
-    // Minimal valid WAV: 1 sample, 8-bit, 8 kHz, mono (45 bytes)
-    const wav = new Uint8Array([
-      0x52,0x49,0x46,0x46,0x25,0x00,0x00,0x00,0x57,0x41,0x56,0x45,
-      0x66,0x6D,0x74,0x20,0x10,0x00,0x00,0x00,0x01,0x00,0x01,0x00,
-      0x40,0x1F,0x00,0x00,0x40,0x1F,0x00,0x00,0x01,0x00,0x08,0x00,
-      0x64,0x61,0x74,0x61,0x01,0x00,0x00,0x00,0x80
-    ]);
-    const url = URL.createObjectURL(new Blob([wav], {type:'audio/wav'}));
-    _silentEl = new Audio(url);
+    // Build a 1-second silent WAV: 8 kHz, 8-bit, mono → 8000 samples
+    const rate = 8000, n = rate;
+    const ab = new ArrayBuffer(44 + n);
+    const dv = new DataView(ab);
+    const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+    ws(0,'RIFF'); dv.setUint32(4, 36 + n, true);
+    ws(8,'WAVE'); ws(12,'fmt '); dv.setUint32(16, 16, true);
+    dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);   // PCM, mono
+    dv.setUint32(24, rate, true); dv.setUint32(28, rate, true);
+    dv.setUint16(32, 1, true); dv.setUint16(34, 8, true);   // 8-bit
+    ws(36,'data'); dv.setUint32(40, n, true);
+    for (let i = 0; i < n; i++) dv.setUint8(44 + i, 128);  // 0x80 = silence
+    _silentEl = new Audio(URL.createObjectURL(new Blob([ab], {type:'audio/wav'})));
+    _silentEl.loop = true;     // keeps session in Playback mode indefinitely
     _silentEl.volume = 0.001;
     _silentEl.preload = 'auto';
   } catch(e) {}
@@ -541,8 +546,7 @@ let _silentEl = null, _silentDone = false;
 
 function bypassSilent() {
   if (_silentDone || !_silentEl) return;
-  _silentDone = true;
-  _silentEl.play().catch(() => { _silentDone = false; });
+  _silentEl.play().then(() => { _silentDone = true; }).catch(() => {});
 }
 
 function boot() {
