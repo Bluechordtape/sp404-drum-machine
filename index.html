@@ -584,6 +584,92 @@ body {
 .midi-undo-btn:hover { color: var(--text); }
 .midi-undo-btn:disabled { opacity: 0.2; cursor: not-allowed; }
 
+
+/* ── PLAY button ── */
+.play-btn {
+  font-family: 'Public Sans', sans-serif; font-size: 9px;
+  letter-spacing: 0.1em; font-weight: 500; text-transform: uppercase;
+  color: var(--primary); background: var(--surface2);
+  border: 1px solid rgba(26,58,255,0.4); border-radius: 3px;
+  padding: 4px 10px; cursor: pointer; transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.play-btn.playing { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ── LCD Screen ── */
+.bct-screen {
+  background: #101a10;
+  border: 1.5px solid #1c2e1c;
+  border-radius: 5px;
+  padding: 6px 10px 7px;
+  margin-bottom: 5px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.85), 0 0 0 1px rgba(0,0,0,0.4);
+}
+.bct-screen::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(80,130,50,0.10) 1px, transparent 1px);
+  background-size: 3px 3px;
+  pointer-events: none; z-index: 0;
+}
+.scr-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; }
+.scr-main-block { display: flex; align-items: baseline; gap: 1px; flex-shrink: 0; }
+.scr-num {
+  font-size: 36px; font-weight: 700; line-height: 1;
+  color: #7ec850; letter-spacing: -0.03em;
+  font-family: 'Courier New', Courier, monospace;
+  text-shadow: 0 0 8px rgba(126,200,80,0.5), 0 0 18px rgba(126,200,80,0.18);
+  min-width: 0.62em; text-align: center;
+}
+.scr-sep {
+  font-size: 28px; color: rgba(126,200,80,0.55);
+  font-family: 'Courier New', monospace; line-height: 1.05;
+  text-shadow: 0 0 6px rgba(126,200,80,0.3);
+}
+.scr-side { display: flex; flex-direction: column; justify-content: space-between; gap: 4px; flex: 1; min-width: 0; }
+.scr-top-row { display: flex; align-items: center; gap: 6px; }
+.scr-tag {
+  font-size: 7px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(126,200,80,0.35); font-family: 'Public Sans', sans-serif;
+}
+.scr-indicator {
+  font-size: 8px; color: rgba(126,200,80,0.18); transition: color 0.08s, text-shadow 0.08s;
+  font-family: 'Public Sans', sans-serif;
+}
+.scr-indicator.on { color: #7ec850; text-shadow: 0 0 5px rgba(126,200,80,0.7); }
+.scr-indicator.rec-ind { color: rgba(220,70,70,0.2); }
+.scr-indicator.rec-ind.on { color: #e05050; text-shadow: 0 0 5px rgba(220,80,80,0.8); animation: recBlink 0.6s ease infinite; }
+@keyframes recBlink { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+.scr-bpm-val {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.05em;
+  color: rgba(126,200,80,0.6); font-family: 'Courier New', monospace;
+  margin-left: auto;
+}
+.scr-beat-dots { display: flex; gap: 5px; align-items: center; }
+.scr-bd {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(126,200,80,0.1);
+  border: 1px solid rgba(126,200,80,0.18);
+  transition: background 0.05s, box-shadow 0.05s;
+  flex-shrink: 0;
+}
+.scr-bd.on { background: #7ec850; box-shadow: 0 0 5px rgba(126,200,80,0.9); border-color: #7ec850; }
+.scr-loop-tag {
+  font-size: 7px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(126,200,80,0.3); font-family: 'Public Sans', sans-serif;
+  margin-left: auto; white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 500px) {
+  .play-btn { font-size: 10px; padding: 5px 12px; }
+  .bct-screen { padding: 8px 14px 10px; }
+  .scr-num { font-size: 46px; }
+  .scr-sep { font-size: 36px; }
+}
+
 </style>
 </head>
 <body>
@@ -617,7 +703,7 @@ body {
       <button class="metro-btn" id="metroBtn">&#9654; METRO</button>
       <div class="bpm-row">
         <button class="bpm-adj" id="bpmDown">&#8722;</button>
-        <span class="bpm-val" id="bpmVal">120</span>
+        <span class="bpm-val" id="bpmVal">90</span>
         <button class="bpm-adj" id="bpmUp">+</button>
       </div>
       <div class="metro-vol-wrap">
@@ -632,8 +718,34 @@ body {
         <div class="bar-sel-item" data-bars="4">4</div>
         <div class="bar-sel-item" data-bars="8">8</div>
       </div>
+      <button class="play-btn" id="playBtn">&#9654; PLAY</button>
       <button class="rec-btn" id="recBtn">&#9679; REC</button>
       <button class="sheet-btn" id="sheetBtn">SHEET</button>
+    </div>
+  </div>
+
+  <div class="bct-screen" id="bctScreen">
+    <div class="scr-inner">
+      <div class="scr-main-block">
+        <span class="scr-num" id="scrBar">-</span>
+        <span class="scr-sep">.</span>
+        <span class="scr-num" id="scrBeat">-</span>
+      </div>
+      <div class="scr-side">
+        <div class="scr-top-row">
+          <span class="scr-tag">BAR</span>
+          <span class="scr-indicator" id="scrPlay">&#9654;</span>
+          <span class="scr-indicator rec-ind" id="scrRec">&#9679;</span>
+          <span class="scr-bpm-val" id="scrBPMVal">90</span>
+        </div>
+        <div class="scr-beat-dots">
+          <span class="scr-bd" id="sbd0"></span>
+          <span class="scr-bd" id="sbd1"></span>
+          <span class="scr-bd" id="sbd2"></span>
+          <span class="scr-bd" id="sbd3"></span>
+          <span class="scr-loop-tag" id="scrLoopTag">1 BAR</span>
+        </div>
+      </div>
     </div>
   </div>
   <div class="pad-grid" id="padGrid"></div>
@@ -1532,7 +1644,7 @@ function trigger(idx) {
   boot();
   PADS[idx].fn();
   if (recState === 'recording' && ctx) recordNote(idx);
-  if (!metroOn) display.textContent = `[ ${DNAMES[idx]} ]`;
+  if (!transportOn) display.textContent = `[ ${DNAMES[idx]} ]`;
   lastTriggerTime = ctx ? ctx.currentTime : 0;
   const led = leds[idx % 8];
   led.classList.add('on');
@@ -1718,15 +1830,40 @@ overlay.addEventListener('touchstart', e => {
 }, {passive:false});
 
 
+// ─── LCD Screen ───────────────────────────────────────────────────────────────
+const scrBar      = document.getElementById('scrBar');
+const scrBeat     = document.getElementById('scrBeat');
+const scrPlay     = document.getElementById('scrPlay');
+const scrRec      = document.getElementById('scrRec');
+const scrBPMVal   = document.getElementById('scrBPMVal');
+const scrLoopTag  = document.getElementById('scrLoopTag');
+const scrBDs      = [0,1,2,3].map(i => document.getElementById('sbd'+i));
+
+function updateScreen(barN, beatN) {
+  scrBar.textContent  = String(barN);
+  scrBeat.textContent = String(beatN);
+  scrBDs.forEach((d, i) => d.classList.toggle('on', i < beatN));
+}
+function setScreenIdle() {
+  scrBar.textContent = '-'; scrBeat.textContent = '-';
+  scrBDs.forEach(d => d.classList.remove('on'));
+}
+function syncScreenMeta() {
+  scrBPMVal.textContent = metroBPM;
+  scrLoopTag.textContent = loopBars + ' BAR';
+  scrPlay.classList.toggle('on', transportOn);
+  scrRec.classList.toggle('on', recState === 'recording');
+}
+
 // ─── Metronome ────────────────────────────────────────────────────────────────
-let metroBPM = 120, metroVol = 0.5, metroOn = false;
+let metroBPM = 90, metroVol = 0.5, metroClickOn = false, transportOn = false;
 let metroPhase = 0, metroNextTime = 0, metroTimer = null;
 let lastTriggerTime = 0;
 const BEATS_PER_BAR = 4;
 const spb = () => 60 / metroBPM;
 
 function metroClick(time, accent) {
-  if (!ctx) return;
+  if (!ctx || !metroClickOn) return;
   const osc = ctx.createOscillator(); osc.type = 'sine';
   osc.frequency.value = accent ? 1500 : 1000;
   const g = ctx.createGain();
@@ -1742,43 +1879,34 @@ function scheduleBeats() {
     const isBar = (metroPhase % BEATS_PER_BAR) === 0;
     metroClick(metroNextTime, isBar);
 
-    // Bar.beat counter display
+    // Screen update
     let dispBar, dispBeat;
-    if (recState === 'recording') {
-      const pos = ((metroPhase - loopStartPhase) % (loopBars * BEATS_PER_BAR) + loopBars * BEATS_PER_BAR) % (loopBars * BEATS_PER_BAR);
-      dispBar = Math.floor(pos / BEATS_PER_BAR) + 1;
+    if (transportOn) {
+      const loopBeats = loopBars * BEATS_PER_BAR;
+      const pos = ((metroPhase - loopStartPhase) % loopBeats + loopBeats) % loopBeats;
+      dispBar  = Math.floor(pos / BEATS_PER_BAR) + 1;
       dispBeat = (pos % BEATS_PER_BAR) + 1;
     } else {
-      dispBar = Math.floor(metroPhase / BEATS_PER_BAR) + 1;
+      dispBar  = Math.floor(metroPhase / BEATS_PER_BAR) + 1;
       dispBeat = (metroPhase % BEATS_PER_BAR) + 1;
     }
-    const _db = dispBar, _dbt = dispBeat;
-    const _t = metroNextTime;
+    const _db = dispBar, _dbt = dispBeat, _t = metroNextTime;
     setTimeout(() => {
-      if ((metroOn || recState !== 'idle') && ctx && ctx.currentTime - lastTriggerTime > 0.25)
-        display.textContent = `[ ${_db}.${_dbt} ]`;
+      if (transportOn || recState !== 'idle') {
+        updateScreen(_db, _dbt);
+        syncScreenMeta();
+        // Only update text display if no pad was recently triggered
+        if (!metroClickOn && ctx && ctx.currentTime - lastTriggerTime > 0.25)
+          display.textContent = `[ ${_db}.${_dbt} ]`;
+      }
     }, Math.max(0, (_t - (ctx ? ctx.currentTime : 0)) * 1000));
 
     // Recorder state machine
     if (recState === 'countin' && isBar && metroNextTime >= recEarliestStartTime - 0.01) {
-      recState = 'recording';
-      loopStartAudioTime = metroNextTime;
-      loopDuration = loopBars * BEATS_PER_BAR * spb();
-      loopStartPhase = metroPhase;
-      recBtnEl.className = 'rec-btn recording';
-      recBtnEl.textContent = '\u25A0 STOP';
-      const _lst = metroNextTime;
-      setTimeout(() => {
-        if (mediaRec && mediaRec.state === 'inactive') {
-          mediaRecChunks = [];
-          try { mediaRec.start(); } catch(e) {}
-        }
-      }, Math.max(0, (_lst - ctx.currentTime - 0.03) * 1000));
-    } else if (recState === 'recording' && isBar && metroPhase > loopStartPhase) {
+      _beginRecording(metroNextTime);
+    } else if (transportOn && isBar && metroPhase > loopStartPhase) {
       const beatsSince = metroPhase - loopStartPhase;
-      const loopBeats = loopBars * BEATS_PER_BAR;
-      if (beatsSince % loopBeats === 0) {
-        // Loop boundary: schedule playback of accumulated notes
+      if (beatsSince % (loopBars * BEATS_PER_BAR) === 0) {
         scheduleLoopPass(metroNextTime);
       }
     }
@@ -1788,42 +1916,92 @@ function scheduleBeats() {
   }
 }
 
-const metroBtn = document.getElementById('metroBtn');
-const bpmVal   = document.getElementById('bpmVal');
-const bpmUp    = document.getElementById('bpmUp');
-const bpmDown  = document.getElementById('bpmDown');
-const metroVolSlider = document.getElementById('metroVolSlider');
+function _beginRecording(audioTime) {
+  recState = 'recording';
+  loopStartAudioTime = audioTime;
+  loopDuration = loopBars * BEATS_PER_BAR * spb();
+  recBtnEl.className = 'rec-btn recording';
+  recBtnEl.textContent = '\u25A0 REC';
+  syncScreenMeta();
+  const delay = Math.max(0, (audioTime - ctx.currentTime - 0.03) * 1000);
+  setTimeout(() => {
+    if (mediaRec && mediaRec.state === 'inactive') {
+      mediaRecChunks = [];
+      try { mediaRec.start(); } catch(e) {}
+    }
+  }, delay);
+}
 
-function startMetro() {
+const metroBtn     = document.getElementById('metroBtn');
+const bpmVal       = document.getElementById('bpmVal');
+const bpmUp        = document.getElementById('bpmUp');
+const bpmDown      = document.getElementById('bpmDown');
+const metroVolSlider = document.getElementById('metroVolSlider');
+const playBtn      = document.getElementById('playBtn');
+
+// METRO button: click sound toggle only
+metroBtn.addEventListener('click', () => {
   boot();
-  metroOn = true;
-  metroPhase = 0;
-  metroNextTime = ctx.currentTime + 0.05;
-  metroTimer = setInterval(scheduleBeats, 25);
-  metroBtn.classList.add('active');
-  metroBtn.textContent = '\u25A0 METRO';
+  metroClickOn = !metroClickOn;
+  metroBtn.classList.toggle('active', metroClickOn);
+  metroBtn.textContent = metroClickOn ? '\u25A0 METRO' : '\u25B6 METRO';
+});
+
+// PLAY button: transport start/stop
+playBtn.addEventListener('click', () => {
+  boot();
+  if (transportOn) {
+    stopTransport();
+  } else {
+    startTransport();
+  }
+});
+
+function startTransport() {
+  boot();
+  transportOn = true;
   if (!streamDest) {
     streamDest = ctx.createMediaStreamDestination();
     masterOut.connect(streamDest);
     initMediaRec();
   }
+  metroPhase = 0;
+  metroNextTime = ctx.currentTime + 0.05;
+  loopStartAudioTime = ctx.currentTime + 0.05;
+  loopDuration = loopBars * BEATS_PER_BAR * spb();
+  loopStartPhase = 0;
+  metroTimer = setInterval(scheduleBeats, 25);
+  playBtn.classList.add('playing');
+  playBtn.textContent = '\u25A0 STOP';
+  syncScreenMeta();
+  // If there are existing notes, schedule first pass
+  if (loopNotes.length > 0) {
+    scheduleLoopPass(loopStartAudioTime);
+  }
 }
 
-function stopMetro() {
-  metroOn = false;
+function stopTransport() {
+  transportOn = false;
   clearInterval(metroTimer); metroTimer = null;
   metroPhase = 0;
-  metroBtn.classList.remove('active');
-  metroBtn.textContent = '\u25B6 METRO';
-  if (recState !== 'idle') abortRec();
+  loopPassTimeouts.forEach(clearTimeout); loopPassTimeouts = [];
+  clearTimeout(loopRescheduleId);
+  if (recState !== 'idle') {
+    recState = 'idle';
+    if (mediaRec && mediaRec.state === 'recording') { try { mediaRec.stop(); } catch(e) {} }
+    recBtnEl.className = 'rec-btn';
+    recBtnEl.textContent = '\u25CF REC';
+  }
+  playBtn.classList.remove('playing');
+  playBtn.textContent = '\u25B6 PLAY';
+  setScreenIdle();
+  syncScreenMeta();
   display.textContent = '[ READY ]';
 }
 
-metroBtn.addEventListener('click', () => { boot(); metroOn ? stopMetro() : startMetro(); });
-
 function makeBPMBtn(el, delta) {
   let iv = null, to = null;
-  const step = () => { metroBPM = Math.max(40, Math.min(240, metroBPM + delta)); bpmVal.textContent = metroBPM; };
+  const step = () => { metroBPM = Math.max(40, Math.min(240, metroBPM+delta)); bpmVal.textContent = metroBPM; scrBPMVal.textContent = metroBPM; };
   const start = () => { step(); to = setTimeout(() => { iv = setInterval(step, 70); }, 380); };
   const end   = () => { clearTimeout(to); clearInterval(iv); };
   el.addEventListener('mousedown', start); el.addEventListener('mouseup', end); el.addEventListener('mouseleave', end);
@@ -1840,16 +2018,14 @@ document.querySelectorAll('.bar-sel-item').forEach(btn => {
     document.querySelectorAll('.bar-sel-item').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     loopBars = parseInt(btn.dataset.bars);
+    scrLoopTag.textContent = loopBars + ' BAR';
   });
 });
 
 // ─── Overdub Loop ─────────────────────────────────────────────────────────────
-let loopNotes = [];          // [{padIdx, normTime}] accumulated across passes
-let loopStartAudioTime = 0;
-let loopDuration = 1;
-let loopStartPhase = 0;
-let loopPassTimeouts = [];
-let loopRescheduleId = null;
+let loopNotes = [];
+let loopStartAudioTime = 0, loopDuration = 1, loopStartPhase = 0;
+let loopPassTimeouts = [], loopRescheduleId = null;
 let _isPlaybackTrigger = false;
 
 function scheduleLoopPass(passStartAudioTime) {
@@ -1861,7 +2037,7 @@ function scheduleLoopPass(passStartAudioTime) {
     const delay = (passStartAudioTime - now + n.normTime * loopDuration) * 1000;
     if (delay < -80) return;
     loopPassTimeouts.push(setTimeout(() => {
-      if (recState !== 'recording') return;
+      if (!transportOn) return;
       _isPlaybackTrigger = true;
       _vol = padVolumes[n.padIdx] / 10;
       PADS[n.padIdx].fn();
@@ -1870,13 +2046,12 @@ function scheduleLoopPass(passStartAudioTime) {
   });
   const nextPassStart = passStartAudioTime + loopDuration;
   loopRescheduleId = setTimeout(() => {
-    if (recState === 'recording') scheduleLoopPass(nextPassStart);
+    if (transportOn) scheduleLoopPass(nextPassStart);
   }, Math.max(0, (nextPassStart - ctx.currentTime) * 1000 - 80));
 }
 
 // ─── Recorder ─────────────────────────────────────────────────────────────────
-let recState = 'idle';
-let recEarliestStartTime = 0;
+let recState = 'idle', recEarliestStartTime = 0;
 let streamDest = null, mediaRec = null, mediaRecChunks = [];
 let lastWavBlob = null;
 const recBtnEl = document.getElementById('recBtn');
@@ -1886,7 +2061,6 @@ function getMime() {
     if (MediaRecorder.isTypeSupported(t)) return t;
   return '';
 }
-
 function initMediaRec() {
   if (!streamDest || (mediaRec && mediaRec.state !== 'inactive')) return;
   const mime = getMime();
@@ -1895,45 +2069,57 @@ function initMediaRec() {
   mediaRec.onstop = onMediaRecStop;
 }
 
-function startRec() {
-  if (!metroOn) startMetro();
-  if (recState !== 'idle') return;
-  if (!streamDest) { streamDest = ctx.createMediaStreamDestination(); masterOut.connect(streamDest); }
-  initMediaRec();
-  loopNotes = [];
-  recState = 'countin';
-  const beatsInBar = metroPhase % BEATS_PER_BAR;
-  const beatsToNext = beatsInBar === 0 ? 0 : BEATS_PER_BAR - beatsInBar;
-  recEarliestStartTime = metroNextTime + (beatsToNext + BEATS_PER_BAR) * spb();
-  recBtnEl.classList.add('countin');
-  recBtnEl.textContent = '... REC';
-  display.textContent = '[ COUNT IN ]';
-}
-
-function stopRec() {
-  if (recState === 'idle') return;
-  recState = 'idle';
-  loopPassTimeouts.forEach(clearTimeout); loopPassTimeouts = [];
-  clearTimeout(loopRescheduleId);
-  if (mediaRec && mediaRec.state === 'recording') { try { mediaRec.stop(); } catch(e) {} }
-  recBtnEl.className = 'rec-btn';
-  recBtnEl.textContent = '\u25CF REC';
-}
-
-function abortRec() {
-  recState = 'idle';
-  loopPassTimeouts.forEach(clearTimeout); loopPassTimeouts = [];
-  clearTimeout(loopRescheduleId);
-  if (mediaRec && mediaRec.state !== 'inactive') { try { mediaRec.stop(); } catch(e) {} }
-  mediaRecChunks = [];
-  recBtnEl.className = 'rec-btn';
-  recBtnEl.textContent = '\u25CF REC';
-}
-
 recBtnEl.addEventListener('click', () => {
   boot();
-  if (recState === 'idle') startRec();
-  else stopRec();
+  if (recState === 'recording') {
+    // Stop recording, keep transport playing
+    recState = 'idle';
+    if (mediaRec && mediaRec.state === 'recording') { try { mediaRec.stop(); } catch(e) {} }
+    recBtnEl.className = 'rec-btn';
+    recBtnEl.textContent = '\u25CF REC';
+    syncScreenMeta();
+  } else if (recState === 'idle') {
+    if (transportOn) {
+      // Immediate overdub — start now (align to loop time)
+      if (!streamDest) { streamDest = ctx.createMediaStreamDestination(); masterOut.connect(streamDest); }
+      initMediaRec();
+      recState = 'recording';
+      // loopStartAudioTime already set by transport
+      recBtnEl.className = 'rec-btn recording';
+      recBtnEl.textContent = '\u25A0 REC';
+      mediaRecChunks = [];
+      if (mediaRec && mediaRec.state === 'inactive') { try { mediaRec.start(); } catch(e) {} }
+      syncScreenMeta();
+    } else {
+      // Not playing: start transport + 1 bar count-in
+      if (!streamDest) { streamDest = ctx.createMediaStreamDestination(); masterOut.connect(streamDest); }
+      // Start transport (scheduler starts)
+      transportOn = true;
+      if (!streamDest) { streamDest = ctx.createMediaStreamDestination(); masterOut.connect(streamDest); }
+      initMediaRec();
+      metroPhase = 0;
+      metroNextTime = ctx.currentTime + 0.05;
+      loopStartPhase = 0;
+      metroTimer = setInterval(scheduleBeats, 25);
+      playBtn.classList.add('playing');
+      playBtn.textContent = '\u25A0 STOP';
+      // Count-in
+      recState = 'countin';
+      const beatsInBar = metroPhase % BEATS_PER_BAR;
+      const beatsToNext = beatsInBar === 0 ? 0 : BEATS_PER_BAR - beatsInBar;
+      recEarliestStartTime = metroNextTime + (beatsToNext + BEATS_PER_BAR) * spb();
+      recBtnEl.classList.add('countin');
+      recBtnEl.textContent = '... REC';
+      display.textContent = '[ COUNT IN ]';
+      syncScreenMeta();
+    }
+  } else if (recState === 'countin') {
+    // Cancel count-in
+    recState = 'idle';
+    stopTransport();
+    recBtnEl.className = 'rec-btn';
+    recBtnEl.textContent = '\u25CF REC';
+  }
 });
 
 function recordNote(idx) {
@@ -1949,11 +2135,10 @@ function audioBufferToWAV(ab) {
   for (let i = 0; i < len; i++)
     for (let ch = 0; ch < numCh; ch++) {
       const s = Math.max(-1, Math.min(1, ab.getChannelData(ch)[i]));
-      pcm[i * numCh + ch] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      pcm[i*numCh+ch] = s < 0 ? s*0x8000 : s*0x7FFF;
     }
-  const wav = new ArrayBuffer(44 + pcm.byteLength);
-  const dv = new DataView(wav);
-  const ws = (o, s) => { for (let i=0;i<s.length;i++) dv.setUint8(o+i, s.charCodeAt(i)); };
+  const wav = new ArrayBuffer(44+pcm.byteLength), dv = new DataView(wav);
+  const ws = (o,s) => { for (let i=0;i<s.length;i++) dv.setUint8(o+i,s.charCodeAt(i)); };
   ws(0,'RIFF'); dv.setUint32(4,36+pcm.byteLength,true);
   ws(8,'WAVE'); ws(12,'fmt '); dv.setUint32(16,16,true);
   dv.setUint16(20,1,true); dv.setUint16(22,numCh,true);
@@ -1963,320 +2148,182 @@ function audioBufferToWAV(ab) {
   new Int16Array(wav,44).set(pcm);
   return new Uint8Array(wav);
 }
-
 async function onMediaRecStop() {
   if (mediaRecChunks.length === 0) return;
-  const blob = new Blob(mediaRecChunks, { type: mediaRecChunks[0].type || 'audio/webm' });
+  const blob = new Blob(mediaRecChunks, { type: mediaRecChunks[0].type||'audio/webm' });
   mediaRecChunks = [];
   try {
     const arr = await blob.arrayBuffer();
-    const tmp = new (window.AudioContext || window.webkitAudioContext)();
+    const tmp = new (window.AudioContext||window.webkitAudioContext)();
     const buf = await tmp.decodeAudioData(arr.slice(0));
     tmp.close();
     lastWavBlob = new Blob([audioBufferToWAV(buf)], { type: 'audio/wav' });
   } catch(e) { console.warn('WAV encode error:', e); lastWavBlob = blob; }
-  // No auto-open — user opens via SHEET button
 }
 
 // ─── SHEET button ─────────────────────────────────────────────────────────────
 document.getElementById('sheetBtn').addEventListener('click', () => {
   boot();
-  if (recState !== 'idle') stopRec();
-  stopMetro();
+  stopTransport();
   openMidiGrid();
 });
 
 // ─── MIDI Grid ─────────────────────────────────────────────────────────────────
-const midiOverlay   = document.getElementById('midiOverlay');
-const midiCanvas    = document.getElementById('midiCanvas');
-const midiCtx2d     = midiCanvas.getContext('2d');
-const midiGridWrap  = document.getElementById('midiGridWrap');
-const midiCloseBtn  = document.getElementById('midiClose');
-const midiPlayBtn   = document.getElementById('midiPlay');
-const midiClearBtn  = document.getElementById('midiClear');
-const midiWavBtn    = document.getElementById('midiWav');
+const midiOverlay  = document.getElementById('midiOverlay');
+const midiCanvas   = document.getElementById('midiCanvas');
+const midiCtx2d    = midiCanvas.getContext('2d');
+const midiGridWrap = document.getElementById('midiGridWrap');
+const midiCloseBtn = document.getElementById('midiClose');
+const midiPlayBtn  = document.getElementById('midiPlay');
+const midiClearBtn = document.getElementById('midiClear');
+const midiWavBtn   = document.getElementById('midiWav');
 
 const LANE_H = 24, LABEL_W = 50, NOTE_W = 8, NOTE_H = 16;
-const PAD_SHORT = [
-  'Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7',
-  'FX 1','FX 2','FX 3','FX 4','KICK','SNARE','HH-C','HH-O'
-];
-const PAD_COL = [
-  '#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff',
-  '#8e44ad','#8e44ad','#8e44ad','#8e44ad',
-  '#e74c3c','#e74c3c','#27ae60','#27ae60'
-];
+const PAD_SHORT = ['Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7','FX 1','FX 2','FX 3','FX 4','KICK','SNARE','HH-C','HH-O'];
+const PAD_COL   = ['#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#8e44ad','#8e44ad','#8e44ad','#8e44ad','#e74c3c','#e74c3c','#27ae60','#27ae60'];
 
 let midiNotes = [], midiDur = 1, midiLoopBars = 1, midiQuantize = 16;
 let midiDragging = null, midiDragTapX = 0;
 
-function normToX(norm, W) { return LABEL_W + norm * (W - LABEL_W); }
-
+function normToX(norm, W) { return LABEL_W + norm*(W-LABEL_W); }
 function snapNorm(v) {
   if (midiQuantize === 0) return v;
-  const step = 1 / (midiLoopBars * BEATS_PER_BAR * (midiQuantize / 4));
-  return Math.round(v / step) * step;
+  const step = 1/(midiLoopBars*BEATS_PER_BAR*(midiQuantize/4));
+  return Math.round(v/step)*step;
 }
 
 function drawMidi() {
-  const dpr = window.devicePixelRatio || 1;
-  const W = midiCanvas.width / dpr, H = midiCanvas.height / dpr, gW = W - LABEL_W;
+  const dpr = window.devicePixelRatio||1, W = midiCanvas.width/dpr, H = midiCanvas.height/dpr, gW = W-LABEL_W;
   const g = midiCtx2d;
-  g.clearRect(0, 0, midiCanvas.width, midiCanvas.height);
-  g.save(); g.scale(dpr, dpr);
-  g.fillStyle = '#07111e'; g.fillRect(0, 0, W, H);
-
-  for (let i = 0; i < 16; i++) {
-    const y = i * LANE_H;
-    if (i % 2 === 0) { g.fillStyle = 'rgba(255,255,255,0.018)'; g.fillRect(LABEL_W, y, gW, LANE_H); }
-    g.fillStyle = PAD_COL[i];
-    g.font = '8px "Public Sans",sans-serif'; g.textAlign = 'right';
-    g.fillText(i < 8 ? DNAMES[i] : PAD_SHORT[i], LABEL_W - 4, y + LANE_H / 2 + 3);
-    g.beginPath(); g.moveTo(0, y+LANE_H); g.lineTo(W, y+LANE_H);
-    g.strokeStyle = 'rgba(255,255,255,0.05)'; g.lineWidth = 0.5; g.stroke();
+  g.clearRect(0,0,midiCanvas.width,midiCanvas.height);
+  g.save(); g.scale(dpr,dpr);
+  g.fillStyle='#07111e'; g.fillRect(0,0,W,H);
+  for (let i=0;i<16;i++) {
+    const y=i*LANE_H;
+    if (i%2===0){g.fillStyle='rgba(255,255,255,0.018)';g.fillRect(LABEL_W,y,gW,LANE_H);}
+    g.fillStyle=PAD_COL[i]; g.font='8px "Public Sans",sans-serif'; g.textAlign='right';
+    g.fillText(i<8?DNAMES[i]:PAD_SHORT[i], LABEL_W-4, y+LANE_H/2+3);
+    g.beginPath();g.moveTo(0,y+LANE_H);g.lineTo(W,y+LANE_H);
+    g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
   }
-
-  const totalBeats = midiLoopBars * BEATS_PER_BAR;
-  for (let b = 0; b <= totalBeats; b++) {
-    const x = LABEL_W + (b / totalBeats) * gW, isBar = b % BEATS_PER_BAR === 0;
-    g.beginPath(); g.moveTo(x,0); g.lineTo(x,H);
-    g.strokeStyle = isBar ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.05)';
-    g.lineWidth = isBar ? 1.2 : 0.6; g.stroke();
-    if (isBar && b < totalBeats) {
-      g.fillStyle = 'rgba(255,255,255,0.25)';
-      g.font = '8px "Public Sans",sans-serif'; g.textAlign = 'left';
-      g.fillText('B'+(b/BEATS_PER_BAR+1), x+3, 9);
-    }
+  const tb=midiLoopBars*BEATS_PER_BAR;
+  for (let b=0;b<=tb;b++) {
+    const x=LABEL_W+(b/tb)*gW, ib=b%BEATS_PER_BAR===0;
+    g.beginPath();g.moveTo(x,0);g.lineTo(x,H);
+    g.strokeStyle=ib?'rgba(255,255,255,0.18)':'rgba(255,255,255,0.05)';
+    g.lineWidth=ib?1.2:0.6;g.stroke();
+    if(ib&&b<tb){g.fillStyle='rgba(255,255,255,0.25)';g.font='8px "Public Sans",sans-serif';g.textAlign='left';g.fillText('B'+(b/BEATS_PER_BAR+1),x+3,9);}
   }
-
-  midiNotes.forEach((n, ni) => {
-    const x = normToX(n.normTime, W) - NOTE_W/2, y = n.padIdx * LANE_H + (LANE_H-NOTE_H)/2;
-    g.globalAlpha = (midiDragging && midiDragging.ni===ni) ? 0.4 : 0.9;
-    g.fillStyle = PAD_COL[n.padIdx];
-    g.beginPath();
-    if (g.roundRect) g.roundRect(x, y, NOTE_W, NOTE_H, 2); else g.rect(x, y, NOTE_W, NOTE_H);
-    g.fill(); g.globalAlpha = 1;
+  midiNotes.forEach((n,ni)=>{
+    const x=normToX(n.normTime,W)-NOTE_W/2, y=n.padIdx*LANE_H+(LANE_H-NOTE_H)/2;
+    g.globalAlpha=(midiDragging&&midiDragging.ni===ni)?0.4:0.9;
+    g.fillStyle=PAD_COL[n.padIdx];
+    g.beginPath(); if(g.roundRect) g.roundRect(x,y,NOTE_W,NOTE_H,2); else g.rect(x,y,NOTE_W,NOTE_H);
+    g.fill(); g.globalAlpha=1;
   });
-
-  if (playheadNorm >= 0) {
-    const px = normToX(playheadNorm, W);
-    g.beginPath(); g.moveTo(px,0); g.lineTo(px,H);
-    g.strokeStyle = 'rgba(255,255,255,0.7)'; g.lineWidth = 1.5; g.stroke();
+  if (playheadNorm>=0) {
+    const px=normToX(playheadNorm,W);
+    g.beginPath();g.moveTo(px,0);g.lineTo(px,H);
+    g.strokeStyle='rgba(255,255,255,0.7)';g.lineWidth=1.5;g.stroke();
   }
   g.restore();
 }
-
 function resizeMidi() {
-  const dpr = window.devicePixelRatio||1, W = midiGridWrap.clientWidth, H = 16*LANE_H;
-  midiCanvas.style.width = W+'px'; midiCanvas.style.height = H+'px';
-  midiCanvas.width = W*dpr; midiCanvas.height = H*dpr;
-  drawMidi();
+  const dpr=window.devicePixelRatio||1, W=midiGridWrap.clientWidth, H=16*LANE_H;
+  midiCanvas.style.width=W+'px'; midiCanvas.style.height=H+'px';
+  midiCanvas.width=W*dpr; midiCanvas.height=H*dpr; drawMidi();
 }
-
 function openMidiGrid() {
-  midiLoopBars = loopBars;
-  midiDur = midiLoopBars * BEATS_PER_BAR * spb();
-  midiNotes = loopNotes.map(n => ({ ...n, normTime: snapNorm(n.normTime) }));
-  midiWavBtn.disabled = !lastWavBlob;
-  undoStack.length = 0; redoStack.length = 0; updateUndoButtons();
+  midiLoopBars=loopBars; midiDur=midiLoopBars*BEATS_PER_BAR*spb();
+  midiNotes=loopNotes.map(n=>({...n,normTime:snapNorm(n.normTime)}));
+  midiWavBtn.disabled=!lastWavBlob;
+  undoStack.length=0; redoStack.length=0; updateUndoButtons();
   midiOverlay.classList.remove('hidden');
-  document.getElementById('midiTitle').textContent =
-    '\u2500\u2500 TAKE \u00B7 ' + midiLoopBars + 'BAR \u00B7 ' + metroBPM + 'BPM \u2500\u2500';
+  document.getElementById('midiTitle').textContent='\u2500\u2500 TAKE \u00B7 '+midiLoopBars+'BAR \u00B7 '+metroBPM+'BPM \u2500\u2500';
   requestAnimationFrame(resizeMidi);
 }
+midiCloseBtn.addEventListener('click', ()=>{ midiOverlay.classList.add('hidden'); stopPlayback(); stopSheetMetro(); });
 
-midiCloseBtn.addEventListener('click', () => {
-  midiOverlay.classList.add('hidden');
-  stopPlayback(); stopSheetMetro();
-});
-
-document.querySelectorAll('.midi-quant-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.midi-quant-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    midiQuantize = parseInt(btn.dataset.q);
-    saveState(); midiNotes = midiNotes.map(n => ({...n, normTime: snapNorm(n.normTime)}));
-    drawMidi();
+document.querySelectorAll('.midi-quant-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.midi-quant-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); midiQuantize=parseInt(btn.dataset.q);
+    saveState(); midiNotes=midiNotes.map(n=>({...n,normTime:snapNorm(n.normTime)})); drawMidi();
   });
 });
-
-midiClearBtn.addEventListener('click', () => { saveState(); midiNotes = []; drawMidi(); });
-midiWavBtn.addEventListener('click', () => {
-  if (!lastWavBlob) return;
-  const ext = lastWavBlob.type.includes('wav') ? 'wav' : 'webm';
-  const url = URL.createObjectURL(lastWavBlob);
-  const a = document.createElement('a'); a.href = url; a.download = 'bct-404-take.'+ext; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 3000);
+midiClearBtn.addEventListener('click',()=>{ saveState(); midiNotes=[]; drawMidi(); });
+midiWavBtn.addEventListener('click',()=>{
+  if(!lastWavBlob) return;
+  const ext=lastWavBlob.type.includes('wav')?'wav':'webm';
+  const url=URL.createObjectURL(lastWavBlob);
+  const a=document.createElement('a'); a.href=url; a.download='bct-404-take.'+ext; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
 });
 
-
 // ─── Undo / Redo ──────────────────────────────────────────────────────────────
-const undoStack = [], redoStack = [];
-const midiUndoBtn = document.getElementById('midiUndo');
-const midiRedoBtn = document.getElementById('midiRedo');
-
-function updateUndoButtons() {
-  midiUndoBtn.disabled = undoStack.length === 0;
-  midiRedoBtn.disabled = redoStack.length === 0;
-}
-
-function saveState() {
-  undoStack.push(midiNotes.map(n => ({...n})));
-  if (undoStack.length > 50) undoStack.shift();
-  redoStack.length = 0;
-  updateUndoButtons();
-}
-
-function applyUndo() {
-  if (undoStack.length === 0) return;
-  redoStack.push(midiNotes.map(n => ({...n})));
-  midiNotes = undoStack.pop();
-  updateUndoButtons();
-  drawMidi();
-}
-
-function applyRedo() {
-  if (redoStack.length === 0) return;
-  undoStack.push(midiNotes.map(n => ({...n})));
-  midiNotes = redoStack.pop();
-  updateUndoButtons();
-  drawMidi();
-}
-
+const undoStack=[], redoStack=[];
+const midiUndoBtn=document.getElementById('midiUndo');
+const midiRedoBtn=document.getElementById('midiRedo');
+function updateUndoButtons(){ midiUndoBtn.disabled=undoStack.length===0; midiRedoBtn.disabled=redoStack.length===0; }
+function saveState(){ undoStack.push(midiNotes.map(n=>({...n}))); if(undoStack.length>50)undoStack.shift(); redoStack.length=0; updateUndoButtons(); }
+function applyUndo(){ if(!undoStack.length)return; redoStack.push(midiNotes.map(n=>({...n}))); midiNotes=undoStack.pop(); updateUndoButtons(); drawMidi(); }
+function applyRedo(){ if(!redoStack.length)return; undoStack.push(midiNotes.map(n=>({...n}))); midiNotes=redoStack.pop(); updateUndoButtons(); drawMidi(); }
 midiUndoBtn.addEventListener('click', applyUndo);
 midiRedoBtn.addEventListener('click', applyRedo);
-
-// Keyboard shortcuts (desktop)
-document.addEventListener('keydown', e => {
-  if (midiOverlay.classList.contains('hidden')) return;
-  if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
-    e.preventDefault();
-    if (e.shiftKey) applyRedo(); else applyUndo();
-  }
+document.addEventListener('keydown', e=>{
+  if(midiOverlay.classList.contains('hidden')) return;
+  if((e.metaKey||e.ctrlKey)&&e.key==='z'){ e.preventDefault(); e.shiftKey?applyRedo():applyUndo(); }
 });
 
 // Canvas drag/tap
 function hitNote(cx, cy) {
-  const dpr = window.devicePixelRatio||1, W = midiCanvas.width/dpr, lane = Math.floor(cy/LANE_H);
-  for (let i = midiNotes.length-1; i >= 0; i--) {
-    const n = midiNotes[i]; if (n.padIdx !== lane) continue;
-    const nx = normToX(n.normTime, W) - NOTE_W/2;
-    if (cx >= nx-6 && cx <= nx+NOTE_W+6) return i;
+  const dpr=window.devicePixelRatio||1, W=midiCanvas.width/dpr, lane=Math.floor(cy/LANE_H);
+  for(let i=midiNotes.length-1;i>=0;i--){
+    const n=midiNotes[i]; if(n.padIdx!==lane) continue;
+    const nx=normToX(n.normTime,W)-NOTE_W/2;
+    if(cx>=nx-6&&cx<=nx+NOTE_W+6) return i;
   }
   return -1;
 }
-function cpos(e) {
-  const r = midiCanvas.getBoundingClientRect(), s = e.touches ? e.touches[0] : e;
-  return { x: s.clientX-r.left, y: s.clientY-r.top };
-}
-midiCanvas.addEventListener('mousedown', e => {
-  const {x,y}=cpos(e), ni=hitNote(x,y);
-  if (ni>=0) { midiDragging={ni,sx:x,ot:midiNotes[ni].normTime}; midiDragTapX=x; }
-});
-midiCanvas.addEventListener('mousemove', e => {
-  if (!midiDragging) return;
-  const {x}=cpos(e), dpr=window.devicePixelRatio||1, W=midiCanvas.width/dpr;
-  midiNotes[midiDragging.ni].normTime = snapNorm(Math.max(0,Math.min(1, midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
-  drawMidi();
-});
-midiCanvas.addEventListener('mouseup', e => {
-  if (!midiDragging) return;
-  if (Math.abs(cpos(e).x-midiDragTapX) < 5) { saveState(); midiNotes.splice(midiDragging.ni,1); drawMidi(); }
-  else if (midiDragging) saveState();
-  midiDragging = null;
-});
-midiCanvas.addEventListener('mouseleave', () => { midiDragging=null; });
-midiCanvas.addEventListener('touchstart', e => {
-  e.preventDefault(); const {x,y}=cpos(e), ni=hitNote(x,y);
-  if (ni>=0) { midiDragging={ni,sx:x,ot:midiNotes[ni].normTime}; midiDragTapX=x; }
-},{passive:false});
-midiCanvas.addEventListener('touchmove', e => {
-  e.preventDefault(); if (!midiDragging) return;
-  const {x}=cpos(e), dpr=window.devicePixelRatio||1, W=midiCanvas.width/dpr;
-  midiNotes[midiDragging.ni].normTime = snapNorm(Math.max(0,Math.min(1, midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
-  drawMidi();
-},{passive:false});
-midiCanvas.addEventListener('touchend', e => {
-  e.preventDefault(); if (!midiDragging) return;
-  const r=midiCanvas.getBoundingClientRect(), ch=e.changedTouches[0];
-  if (Math.abs(ch.clientX-r.left-midiDragTapX) < 8) { saveState(); midiNotes.splice(midiDragging.ni,1); drawMidi(); }
-  else saveState();
-  midiDragging=null;
-},{passive:false});
+function cpos(e){ const r=midiCanvas.getBoundingClientRect(),s=e.touches?e.touches[0]:e; return{x:s.clientX-r.left,y:s.clientY-r.top}; }
+midiCanvas.addEventListener('mousedown',e=>{ const{x,y}=cpos(e),ni=hitNote(x,y); if(ni>=0){midiDragging={ni,sx:x,ot:midiNotes[ni].normTime};midiDragTapX=x;} });
+midiCanvas.addEventListener('mousemove',e=>{ if(!midiDragging)return; const{x}=cpos(e),dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr; midiNotes[midiDragging.ni].normTime=snapNorm(Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W)))); drawMidi(); });
+midiCanvas.addEventListener('mouseup',e=>{ if(!midiDragging)return; if(Math.abs(cpos(e).x-midiDragTapX)<5){saveState();midiNotes.splice(midiDragging.ni,1);drawMidi();}else saveState(); midiDragging=null; });
+midiCanvas.addEventListener('mouseleave',()=>{ midiDragging=null; });
+midiCanvas.addEventListener('touchstart',e=>{ e.preventDefault();const{x,y}=cpos(e),ni=hitNote(x,y);if(ni>=0){midiDragging={ni,sx:x,ot:midiNotes[ni].normTime};midiDragTapX=x;}},{passive:false});
+midiCanvas.addEventListener('touchmove',e=>{ e.preventDefault();if(!midiDragging)return;const{x}=cpos(e),dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr;midiNotes[midiDragging.ni].normTime=snapNorm(Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));drawMidi();},{passive:false});
+midiCanvas.addEventListener('touchend',e=>{ e.preventDefault();if(!midiDragging)return;const r=midiCanvas.getBoundingClientRect(),ch=e.changedTouches[0];if(Math.abs(ch.clientX-r.left-midiDragTapX)<8){saveState();midiNotes.splice(midiDragging.ni,1);drawMidi();}else saveState();midiDragging=null;},{passive:false});
 
 // ─── Sheet Metro ──────────────────────────────────────────────────────────────
-let sheetMetroOn = false, sheetMetroPhase = 0, sheetMetroNextTime = 0, sheetMetroTimer = null;
-const sheetMetroBtn = document.getElementById('sheetMetroBtn');
-
-function scheduleSheetBeats() {
-  while (sheetMetroNextTime < ctx.currentTime + 0.12) {
-    const accent = (sheetMetroPhase % BEATS_PER_BAR) === 0;
-    const osc = ctx.createOscillator(); osc.type = 'sine';
-    osc.frequency.value = accent ? 1500 : 1000;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0, sheetMetroNextTime);
-    g.gain.linearRampToValueAtTime(metroVol * 0.7, sheetMetroNextTime + 0.003);
-    g.gain.exponentialRampToValueAtTime(0.0001, sheetMetroNextTime + (accent ? 0.065 : 0.042));
-    osc.connect(g); g.connect(ctx.destination);
-    osc.start(sheetMetroNextTime); osc.stop(sheetMetroNextTime + 0.09);
-    sheetMetroPhase++;
-    sheetMetroNextTime += spb();
+let sheetMetroOn=false, sheetMetroPhase=0, sheetMetroNextTime=0, sheetMetroTimer=null;
+const sheetMetroBtn=document.getElementById('sheetMetroBtn');
+function scheduleSheetBeats(){
+  while(sheetMetroNextTime<ctx.currentTime+0.12){
+    const accent=(sheetMetroPhase%BEATS_PER_BAR)===0;
+    const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=accent?1500:1000;
+    const g=ctx.createGain(); g.gain.setValueAtTime(0,sheetMetroNextTime); g.gain.linearRampToValueAtTime(metroVol*0.7,sheetMetroNextTime+0.003); g.gain.exponentialRampToValueAtTime(0.0001,sheetMetroNextTime+(accent?0.065:0.042));
+    osc.connect(g); g.connect(ctx.destination); osc.start(sheetMetroNextTime); osc.stop(sheetMetroNextTime+0.09);
+    sheetMetroPhase++; sheetMetroNextTime+=spb();
   }
 }
-
-function startSheetMetro() {
-  boot();
-  sheetMetroOn = true; sheetMetroPhase = 0;
-  sheetMetroNextTime = ctx.currentTime + 0.05;
-  sheetMetroTimer = setInterval(scheduleSheetBeats, 25);
-  sheetMetroBtn.classList.add('active');
-  sheetMetroBtn.textContent = '\u25A0 METRO';
-}
-function stopSheetMetro() {
-  clearInterval(sheetMetroTimer); sheetMetroTimer = null;
-  sheetMetroOn = false;
-  sheetMetroBtn.classList.remove('active');
-  sheetMetroBtn.textContent = '\u25B6 METRO';
-}
-sheetMetroBtn.addEventListener('click', () => { boot(); sheetMetroOn ? stopSheetMetro() : startSheetMetro(); });
+function startSheetMetro(){ boot(); sheetMetroOn=true; sheetMetroPhase=0; sheetMetroNextTime=ctx.currentTime+0.05; sheetMetroTimer=setInterval(scheduleSheetBeats,25); sheetMetroBtn.classList.add('active'); sheetMetroBtn.textContent='\u25A0 METRO'; }
+function stopSheetMetro(){ clearInterval(sheetMetroTimer); sheetMetroTimer=null; sheetMetroOn=false; sheetMetroBtn.classList.remove('active'); sheetMetroBtn.textContent='\u25B6 METRO'; }
+sheetMetroBtn.addEventListener('click',()=>{ boot(); sheetMetroOn?stopSheetMetro():startSheetMetro(); });
 
 // ─── Playback ─────────────────────────────────────────────────────────────────
-let playbackTs = [], playbackPlaying = false, playheadNorm = -1, playheadRAF = null;
-
-function stopPlayback() {
-  playbackTs.forEach(clearTimeout); playbackTs = [];
-  playbackPlaying = false;
-  if (playheadRAF) cancelAnimationFrame(playheadRAF);
-  playheadNorm = -1;
-  midiPlayBtn.classList.remove('playing');
-  midiPlayBtn.textContent = '\u25B6 PLAY';
-  drawMidi();
-}
-
-midiPlayBtn.addEventListener('click', () => {
-  if (playbackPlaying) { stopPlayback(); return; }
-  if (midiNotes.length === 0) return;
-  boot();
-  playbackPlaying = true;
-  midiPlayBtn.classList.add('playing');
-  midiPlayBtn.textContent = '\u25A0 STOP';
-  const durMs = midiDur * 1000, t0 = performance.now();
-  midiNotes.forEach(n => {
-    playbackTs.push(setTimeout(() => {
-      _vol = padVolumes[n.padIdx] / 10;
-      PADS[n.padIdx].fn();
-    }, n.normTime * durMs));
-  });
-  playbackTs.push(setTimeout(stopPlayback, durMs + 300));
-  function animPH() {
-    playheadNorm = Math.min(1, (performance.now()-t0)/durMs);
-    drawMidi();
-    if (playbackPlaying) playheadRAF = requestAnimationFrame(animPH);
-  }
-  playheadRAF = requestAnimationFrame(animPH);
+let playbackTs=[], playbackPlaying=false, playheadNorm=-1, playheadRAF=null;
+function stopPlayback(){ playbackTs.forEach(clearTimeout); playbackTs=[]; playbackPlaying=false; if(playheadRAF)cancelAnimationFrame(playheadRAF); playheadNorm=-1; midiPlayBtn.classList.remove('playing'); midiPlayBtn.textContent='\u25B6 PLAY'; drawMidi(); }
+midiPlayBtn.addEventListener('click',()=>{
+  if(playbackPlaying){stopPlayback();return;}
+  if(midiNotes.length===0)return;
+  boot(); playbackPlaying=true; midiPlayBtn.classList.add('playing'); midiPlayBtn.textContent='\u25A0 STOP';
+  const durMs=midiDur*1000, t0=performance.now();
+  midiNotes.forEach(n=>{ playbackTs.push(setTimeout(()=>{ _vol=padVolumes[n.padIdx]/10; PADS[n.padIdx].fn(); },n.normTime*durMs)); });
+  playbackTs.push(setTimeout(stopPlayback,durMs+300));
+  function animPH(){ playheadNorm=Math.min(1,(performance.now()-t0)/durMs); drawMidi(); if(playbackPlaying)playheadRAF=requestAnimationFrame(animPH); }
+  playheadRAF=requestAnimationFrame(animPH);
 });
-
-window.addEventListener('resize', () => { if (!midiOverlay.classList.contains('hidden')) resizeMidi(); });
+window.addEventListener('resize',()=>{ if(!midiOverlay.classList.contains('hidden'))resizeMidi(); });
 
 
 // ─── PWA: Service Worker + Silent Mode Audio ──────────────────────────────────
