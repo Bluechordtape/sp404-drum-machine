@@ -1704,24 +1704,21 @@ function scheduleBeats() {
     }
 
     // Recorder state machine
-    if (recState === 'countin' && isBar) {
-      recCountInBarsLeft--;
-      if (recCountInBarsLeft <= 0) {
-        recState = 'recording';
-        recBarsLeft = recBars;
-        recStartAudioTime = metroNextTime;
-        recEndAudioTime = metroNextTime + recBars * BEATS_PER_BAR * spb();
-        recBtnEl.className = 'rec-btn recording';
-        recBtnEl.textContent = '\u25A0 STOP';
-        // start MediaRecorder slightly before the bar
-        const delay = Math.max(0, (metroNextTime - ctx.currentTime - 0.03) * 1000);
-        setTimeout(() => {
-          if (mediaRec && mediaRec.state === 'inactive') {
-            mediaRecChunks = [];
-            try { mediaRec.start(); } catch(e) {}
-          }
-        }, delay);
-      }
+    if (recState === 'countin' && isBar && metroNextTime >= recEarliestStartTime - 0.01) {
+      recState = 'recording';
+      recBarsLeft = recBars;
+      recStartAudioTime = metroNextTime;
+      recEndAudioTime = metroNextTime + recBars * BEATS_PER_BAR * spb();
+      recBtnEl.className = 'rec-btn recording';
+      recBtnEl.textContent = '\u25A0 STOP';
+      // start MediaRecorder slightly before the bar
+      const delay = Math.max(0, (metroNextTime - ctx.currentTime - 0.03) * 1000);
+      setTimeout(() => {
+        if (mediaRec && mediaRec.state === 'inactive') {
+          mediaRecChunks = [];
+          try { mediaRec.start(); } catch(e) {}
+        }
+      }, delay);
     } else if (recState === 'recording' && isBar) {
       recBarsLeft--;
       if (recBarsLeft <= 0) {
@@ -1798,7 +1795,7 @@ document.querySelectorAll('.bar-sel-item').forEach(btn => {
 let recState = 'idle'; // 'idle' | 'countin' | 'recording'
 let recNotes = [];
 let recStartAudioTime = 0, recEndAudioTime = 0;
-let recCountInBarsLeft = 0, recBarsLeft = 0;
+let recEarliestStartTime = 0, recBarsLeft = 0;
 let streamDest = null, mediaRec = null, mediaRecChunks = [];
 let lastWavBlob = null;
 
@@ -1826,7 +1823,11 @@ function startRec() {
   initMediaRec();
   recNotes = [];
   recState = 'countin';
-  recCountInBarsLeft = 1;
+  // Always give exactly 1 full bar of count-in from now,
+  // starting at the next bar boundary >= 1 bar away
+  const _beatsInBar = metroPhase % BEATS_PER_BAR;
+  const _beatsToNext = _beatsInBar === 0 ? 0 : BEATS_PER_BAR - _beatsInBar;
+  recEarliestStartTime = metroNextTime + (_beatsToNext + BEATS_PER_BAR) * spb();
   recBtnEl.classList.add('countin');
   recBtnEl.textContent = '... REC';
   display.textContent = '[ COUNT IN ]';
