@@ -572,6 +572,18 @@ body {
   .sheet-btn { font-size: 10px; padding: 5px 10px; }
 }
 
+
+/* ── Undo/Redo ── */
+.midi-undo-btn {
+  font-family: 'Public Sans', sans-serif; font-size: 13px;
+  color: var(--muted); background: none; border: none;
+  cursor: pointer; padding: 2px 6px; line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.12s;
+}
+.midi-undo-btn:hover { color: var(--text); }
+.midi-undo-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
 </style>
 </head>
 <body>
@@ -647,7 +659,7 @@ body {
   <div class="midi-modal">
     <div class="midi-top">
       <span class="midi-title" id="midiTitle">&#9472;&#9472; TAKE &#9472;&#9472;</span>
-      <button class="midi-close" id="midiClose">&#10005;</button>
+      <div style="display:flex;align-items:center;gap:2px;"><button class="midi-undo-btn" id="midiUndo" title="Undo (⌘Z)" disabled>&#8630;</button><button class="midi-undo-btn" id="midiRedo" title="Redo (⌘⇧Z)" disabled>&#8631;</button><button class="midi-close" id="midiClose">&#10005;</button></div>
     </div>
     <div class="midi-grid-wrap" id="midiGridWrap">
       <canvas id="midiCanvas"></canvas>
@@ -2066,6 +2078,7 @@ function openMidiGrid() {
   midiDur = midiLoopBars * BEATS_PER_BAR * spb();
   midiNotes = loopNotes.map(n => ({ ...n, normTime: snapNorm(n.normTime) }));
   midiWavBtn.disabled = !lastWavBlob;
+  undoStack.length = 0; redoStack.length = 0; updateUndoButtons();
   midiOverlay.classList.remove('hidden');
   document.getElementById('midiTitle').textContent =
     '\u2500\u2500 TAKE \u00B7 ' + midiLoopBars + 'BAR \u00B7 ' + metroBPM + 'BPM \u2500\u2500';
@@ -2082,18 +2095,64 @@ document.querySelectorAll('.midi-quant-btn').forEach(btn => {
     document.querySelectorAll('.midi-quant-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     midiQuantize = parseInt(btn.dataset.q);
-    midiNotes = midiNotes.map(n => ({...n, normTime: snapNorm(n.normTime)}));
+    saveState(); midiNotes = midiNotes.map(n => ({...n, normTime: snapNorm(n.normTime)}));
     drawMidi();
   });
 });
 
-midiClearBtn.addEventListener('click', () => { midiNotes = []; drawMidi(); });
+midiClearBtn.addEventListener('click', () => { saveState(); midiNotes = []; drawMidi(); });
 midiWavBtn.addEventListener('click', () => {
   if (!lastWavBlob) return;
   const ext = lastWavBlob.type.includes('wav') ? 'wav' : 'webm';
   const url = URL.createObjectURL(lastWavBlob);
   const a = document.createElement('a'); a.href = url; a.download = 'bct-404-take.'+ext; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 3000);
+});
+
+
+// ─── Undo / Redo ──────────────────────────────────────────────────────────────
+const undoStack = [], redoStack = [];
+const midiUndoBtn = document.getElementById('midiUndo');
+const midiRedoBtn = document.getElementById('midiRedo');
+
+function updateUndoButtons() {
+  midiUndoBtn.disabled = undoStack.length === 0;
+  midiRedoBtn.disabled = redoStack.length === 0;
+}
+
+function saveState() {
+  undoStack.push(midiNotes.map(n => ({...n})));
+  if (undoStack.length > 50) undoStack.shift();
+  redoStack.length = 0;
+  updateUndoButtons();
+}
+
+function applyUndo() {
+  if (undoStack.length === 0) return;
+  redoStack.push(midiNotes.map(n => ({...n})));
+  midiNotes = undoStack.pop();
+  updateUndoButtons();
+  drawMidi();
+}
+
+function applyRedo() {
+  if (redoStack.length === 0) return;
+  undoStack.push(midiNotes.map(n => ({...n})));
+  midiNotes = redoStack.pop();
+  updateUndoButtons();
+  drawMidi();
+}
+
+midiUndoBtn.addEventListener('click', applyUndo);
+midiRedoBtn.addEventListener('click', applyRedo);
+
+// Keyboard shortcuts (desktop)
+document.addEventListener('keydown', e => {
+  if (midiOverlay.classList.contains('hidden')) return;
+  if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+    e.preventDefault();
+    if (e.shiftKey) applyRedo(); else applyUndo();
+  }
 });
 
 // Canvas drag/tap
@@ -2122,7 +2181,8 @@ midiCanvas.addEventListener('mousemove', e => {
 });
 midiCanvas.addEventListener('mouseup', e => {
   if (!midiDragging) return;
-  if (Math.abs(cpos(e).x-midiDragTapX) < 5) { midiNotes.splice(midiDragging.ni,1); drawMidi(); }
+  if (Math.abs(cpos(e).x-midiDragTapX) < 5) { saveState(); midiNotes.splice(midiDragging.ni,1); drawMidi(); }
+  else if (midiDragging) saveState();
   midiDragging = null;
 });
 midiCanvas.addEventListener('mouseleave', () => { midiDragging=null; });
@@ -2139,7 +2199,8 @@ midiCanvas.addEventListener('touchmove', e => {
 midiCanvas.addEventListener('touchend', e => {
   e.preventDefault(); if (!midiDragging) return;
   const r=midiCanvas.getBoundingClientRect(), ch=e.changedTouches[0];
-  if (Math.abs(ch.clientX-r.left-midiDragTapX) < 8) { midiNotes.splice(midiDragging.ni,1); drawMidi(); }
+  if (Math.abs(ch.clientX-r.left-midiDragTapX) < 8) { saveState(); midiNotes.splice(midiDragging.ni,1); drawMidi(); }
+  else saveState();
   midiDragging=null;
 },{passive:false});
 
