@@ -27,7 +27,11 @@
   --gap: 4px;
 }
 
-html { height: 100%; }
+html {
+  height: 100%;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+}
 
 body {
   background: var(--bg);
@@ -39,8 +43,11 @@ body {
   height: 100dvh;
   padding: var(--safe-top) var(--gap) var(--safe-bot);
   overflow: hidden;
+  overscroll-behavior: none;
   -webkit-user-select: none;
   user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── BCT Navigation Header ── */
@@ -234,6 +241,7 @@ body {
   display: flex; align-items: center; justify-content: center;
   z-index: 100;
   backdrop-filter: blur(4px);
+  padding: max(env(safe-area-inset-top), 12px) 12px max(env(safe-area-inset-bottom), 12px);
 }
 .picker-overlay.hidden { display: none; }
 
@@ -365,6 +373,24 @@ body {
 }
 .picker-btn.cancel  { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
 .picker-btn.confirm { background: var(--primary); color: #fff; }
+
+/* ── PWA 스탠드얼론: 네비 숨기고 패드 공간 최대화 ── */
+@media (display-mode: standalone) {
+  .bct-nav { display: none; }
+  body { padding-top: max(var(--safe-top), 8px); }
+}
+
+/* ── iPhone SE / 낮은 화면 (height ≤ 680px) ── */
+@media (max-height: 680px) and (hover: none) {
+  .bct-nav { padding: 3px 10px 2px; }
+  .machine { padding: 6px 6px 0; border-radius: 10px; }
+  .header { padding-bottom: 5px; margin-bottom: 3px; }
+  .brand { font-size: 16px; letter-spacing: 3px; }
+  .model-line { font-size: 7px; margin-top: 1px; }
+  .display { font-size: 9px; padding: 2px 8px; }
+  .pad { min-height: 58px; border-radius: 5px; }
+  .pad-name { font-size: clamp(8px, 2.5vw, 11px); }
+}
 
 /* ── Desktop restore ── */
 @media (hover: hover) and (pointer: fine) and (min-width: 500px) {
