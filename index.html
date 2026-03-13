@@ -543,6 +543,35 @@ body {
   .metro-vol { width: 70px; }
 }
 
+
+/* ── Sheet button ── */
+.sheet-btn {
+  font-family: 'Public Sans', sans-serif; font-size: 9px;
+  letter-spacing: 0.1em; font-weight: 500; text-transform: uppercase;
+  color: var(--muted); background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: 4px 8px; cursor: pointer; transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.sheet-btn:active { background: rgba(26,58,255,0.1); color: var(--primary); border-color: var(--primary); }
+/* ── Sheet metro row ── */
+.sheet-metro-row {
+  display: flex; align-items: center; gap: 8px;
+  padding-top: 8px; padding-bottom: 2px; flex-shrink: 0;
+}
+.sheet-metro-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+.sheet-metro-btn {
+  font-family: 'Public Sans', sans-serif; font-size: 9px; letter-spacing: 0.1em;
+  font-weight: 500; text-transform: uppercase; color: var(--muted);
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 3px;
+  padding: 4px 10px; cursor: pointer; transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sheet-metro-btn.active { color: var(--primary); border-color: var(--primary); background: rgba(26,58,255,0.1); }
+@media (hover: hover) and (pointer: fine) and (min-width: 500px) {
+  .sheet-btn { font-size: 10px; padding: 5px 10px; }
+}
+
 </style>
 </head>
 <body>
@@ -592,6 +621,7 @@ body {
         <div class="bar-sel-item" data-bars="8">8</div>
       </div>
       <button class="rec-btn" id="recBtn">&#9679; REC</button>
+      <button class="sheet-btn" id="sheetBtn">SHEET</button>
     </div>
   </div>
   <div class="pad-grid" id="padGrid"></div>
@@ -628,6 +658,10 @@ body {
       <button class="midi-quant-btn" data-q="8">1/8</button>
       <button class="midi-quant-btn" data-q="4">1/4</button>
       <button class="midi-quant-btn" data-q="0">Off</button>
+    </div>
+    <div class="sheet-metro-row">
+      <button class="sheet-metro-btn" id="sheetMetroBtn">&#9654; METRO</button>
+      <span class="sheet-metro-label">Playback Metro</span>
     </div>
     <div class="midi-actions">
       <button class="midi-action-btn play" id="midiPlay">&#9654; PLAY</button>
@@ -1486,7 +1520,8 @@ function trigger(idx) {
   boot();
   PADS[idx].fn();
   if (recState === 'recording' && ctx) recordNote(idx);
-  display.textContent = `[ ${DNAMES[idx]} ]`;
+  if (!metroOn) display.textContent = `[ ${DNAMES[idx]} ]`;
+  lastTriggerTime = ctx ? ctx.currentTime : 0;
   const led = leds[idx % 8];
   led.classList.add('on');
   setTimeout(() => led.classList.remove('on'), 160);
@@ -1674,13 +1709,13 @@ overlay.addEventListener('touchstart', e => {
 // ─── Metronome ────────────────────────────────────────────────────────────────
 let metroBPM = 120, metroVol = 0.5, metroOn = false;
 let metroPhase = 0, metroNextTime = 0, metroTimer = null;
+let lastTriggerTime = 0;
 const BEATS_PER_BAR = 4;
-const spb = () => 60 / metroBPM;  // seconds per beat
+const spb = () => 60 / metroBPM;
 
 function metroClick(time, accent) {
   if (!ctx) return;
-  const osc = ctx.createOscillator();
-  osc.type = 'sine';
+  const osc = ctx.createOscillator(); osc.type = 'sine';
   osc.frequency.value = accent ? 1500 : 1000;
   const g = ctx.createGain();
   g.gain.setValueAtTime(0, time);
@@ -1691,39 +1726,48 @@ function metroClick(time, accent) {
 }
 
 function scheduleBeats() {
-  const ahead = 0.12;
-  while (metroNextTime < ctx.currentTime + ahead) {
+  while (metroNextTime < ctx.currentTime + 0.12) {
     const isBar = (metroPhase % BEATS_PER_BAR) === 0;
     metroClick(metroNextTime, isBar);
 
-    // Flash display on beat 1
-    if (isBar) {
-      const t = Math.max(0, (metroNextTime - ctx.currentTime) * 1000);
-      setTimeout(() => { display.textContent = '[ ● ' + (metroBPM) + ' BPM ]'; }, t);
-      setTimeout(() => { if (recState === 'idle') display.textContent = '[ READY ]'; }, t + 180);
+    // Bar.beat counter display
+    let dispBar, dispBeat;
+    if (recState === 'recording') {
+      const pos = ((metroPhase - loopStartPhase) % (loopBars * BEATS_PER_BAR) + loopBars * BEATS_PER_BAR) % (loopBars * BEATS_PER_BAR);
+      dispBar = Math.floor(pos / BEATS_PER_BAR) + 1;
+      dispBeat = (pos % BEATS_PER_BAR) + 1;
+    } else {
+      dispBar = Math.floor(metroPhase / BEATS_PER_BAR) + 1;
+      dispBeat = (metroPhase % BEATS_PER_BAR) + 1;
     }
+    const _db = dispBar, _dbt = dispBeat;
+    const _t = metroNextTime;
+    setTimeout(() => {
+      if ((metroOn || recState !== 'idle') && ctx && ctx.currentTime - lastTriggerTime > 0.25)
+        display.textContent = `[ ${_db}.${_dbt} ]`;
+    }, Math.max(0, (_t - (ctx ? ctx.currentTime : 0)) * 1000));
 
     // Recorder state machine
     if (recState === 'countin' && isBar && metroNextTime >= recEarliestStartTime - 0.01) {
       recState = 'recording';
-      recBarsLeft = recBars;
-      recStartAudioTime = metroNextTime;
-      recEndAudioTime = metroNextTime + recBars * BEATS_PER_BAR * spb();
+      loopStartAudioTime = metroNextTime;
+      loopDuration = loopBars * BEATS_PER_BAR * spb();
+      loopStartPhase = metroPhase;
       recBtnEl.className = 'rec-btn recording';
       recBtnEl.textContent = '\u25A0 STOP';
-      // start MediaRecorder slightly before the bar
-      const delay = Math.max(0, (metroNextTime - ctx.currentTime - 0.03) * 1000);
+      const _lst = metroNextTime;
       setTimeout(() => {
         if (mediaRec && mediaRec.state === 'inactive') {
           mediaRecChunks = [];
           try { mediaRec.start(); } catch(e) {}
         }
-      }, delay);
-    } else if (recState === 'recording' && isBar) {
-      recBarsLeft--;
-      if (recBarsLeft <= 0) {
-        const delay = Math.max(0, (metroNextTime - ctx.currentTime) * 1000);
-        setTimeout(stopRec, delay + 80);
+      }, Math.max(0, (_lst - ctx.currentTime - 0.03) * 1000));
+    } else if (recState === 'recording' && isBar && metroPhase > loopStartPhase) {
+      const beatsSince = metroPhase - loopStartPhase;
+      const loopBeats = loopBars * BEATS_PER_BAR;
+      if (beatsSince % loopBeats === 0) {
+        // Loop boundary: schedule playback of accumulated notes
+        scheduleLoopPass(metroNextTime);
       }
     }
 
@@ -1746,7 +1790,6 @@ function startMetro() {
   metroTimer = setInterval(scheduleBeats, 25);
   metroBtn.classList.add('active');
   metroBtn.textContent = '\u25A0 METRO';
-  // init stream dest
   if (!streamDest) {
     streamDest = ctx.createMediaStreamDestination();
     masterOut.connect(streamDest);
@@ -1766,7 +1809,6 @@ function stopMetro() {
 
 metroBtn.addEventListener('click', () => { boot(); metroOn ? stopMetro() : startMetro(); });
 
-// BPM buttons with long-press acceleration
 function makeBPMBtn(el, delta) {
   let iv = null, to = null;
   const step = () => { metroBPM = Math.max(40, Math.min(240, metroBPM + delta)); bpmVal.textContent = metroBPM; };
@@ -1778,38 +1820,63 @@ function makeBPMBtn(el, delta) {
   el.addEventListener('touchcancel',e => { e.preventDefault(); end(); },   {passive:false});
 }
 makeBPMBtn(bpmUp, +1); makeBPMBtn(bpmDown, -1);
-
 metroVolSlider.addEventListener('input', e => { metroVol = e.target.value / 100; });
 
-// Bar selector
-let recBars = 1;
+let loopBars = 1;
 document.querySelectorAll('.bar-sel-item').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.bar-sel-item').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    recBars = parseInt(btn.dataset.bars);
+    loopBars = parseInt(btn.dataset.bars);
   });
 });
 
+// ─── Overdub Loop ─────────────────────────────────────────────────────────────
+let loopNotes = [];          // [{padIdx, normTime}] accumulated across passes
+let loopStartAudioTime = 0;
+let loopDuration = 1;
+let loopStartPhase = 0;
+let loopPassTimeouts = [];
+let loopRescheduleId = null;
+let _isPlaybackTrigger = false;
+
+function scheduleLoopPass(passStartAudioTime) {
+  loopPassTimeouts.forEach(clearTimeout);
+  loopPassTimeouts = [];
+  clearTimeout(loopRescheduleId);
+  const now = ctx.currentTime;
+  loopNotes.forEach(n => {
+    const delay = (passStartAudioTime - now + n.normTime * loopDuration) * 1000;
+    if (delay < -80) return;
+    loopPassTimeouts.push(setTimeout(() => {
+      if (recState !== 'recording') return;
+      _isPlaybackTrigger = true;
+      _vol = padVolumes[n.padIdx] / 10;
+      PADS[n.padIdx].fn();
+      _isPlaybackTrigger = false;
+    }, Math.max(0, delay)));
+  });
+  const nextPassStart = passStartAudioTime + loopDuration;
+  loopRescheduleId = setTimeout(() => {
+    if (recState === 'recording') scheduleLoopPass(nextPassStart);
+  }, Math.max(0, (nextPassStart - ctx.currentTime) * 1000 - 80));
+}
+
 // ─── Recorder ─────────────────────────────────────────────────────────────────
-let recState = 'idle'; // 'idle' | 'countin' | 'recording'
-let recNotes = [];
-let recStartAudioTime = 0, recEndAudioTime = 0;
-let recEarliestStartTime = 0, recBarsLeft = 0;
+let recState = 'idle';
+let recEarliestStartTime = 0;
 let streamDest = null, mediaRec = null, mediaRecChunks = [];
 let lastWavBlob = null;
-
 const recBtnEl = document.getElementById('recBtn');
 
 function getMime() {
-  const types = ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'];
-  for (const t of types) { if (MediaRecorder.isTypeSupported(t)) return t; }
+  for (const t of ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'])
+    if (MediaRecorder.isTypeSupported(t)) return t;
   return '';
 }
 
 function initMediaRec() {
-  if (!streamDest) return;
-  if (mediaRec && mediaRec.state !== 'inactive') return;
+  if (!streamDest || (mediaRec && mediaRec.state !== 'inactive')) return;
   const mime = getMime();
   mediaRec = new MediaRecorder(streamDest.stream, mime ? {mimeType: mime} : {});
   mediaRec.ondataavailable = e => { if (e.data.size > 0) mediaRecChunks.push(e.data); };
@@ -1821,13 +1888,11 @@ function startRec() {
   if (recState !== 'idle') return;
   if (!streamDest) { streamDest = ctx.createMediaStreamDestination(); masterOut.connect(streamDest); }
   initMediaRec();
-  recNotes = [];
+  loopNotes = [];
   recState = 'countin';
-  // Always give exactly 1 full bar of count-in from now,
-  // starting at the next bar boundary >= 1 bar away
-  const _beatsInBar = metroPhase % BEATS_PER_BAR;
-  const _beatsToNext = _beatsInBar === 0 ? 0 : BEATS_PER_BAR - _beatsInBar;
-  recEarliestStartTime = metroNextTime + (_beatsToNext + BEATS_PER_BAR) * spb();
+  const beatsInBar = metroPhase % BEATS_PER_BAR;
+  const beatsToNext = beatsInBar === 0 ? 0 : BEATS_PER_BAR - beatsInBar;
+  recEarliestStartTime = metroNextTime + (beatsToNext + BEATS_PER_BAR) * spb();
   recBtnEl.classList.add('countin');
   recBtnEl.textContent = '... REC';
   display.textContent = '[ COUNT IN ]';
@@ -1836,14 +1901,17 @@ function startRec() {
 function stopRec() {
   if (recState === 'idle') return;
   recState = 'idle';
+  loopPassTimeouts.forEach(clearTimeout); loopPassTimeouts = [];
+  clearTimeout(loopRescheduleId);
   if (mediaRec && mediaRec.state === 'recording') { try { mediaRec.stop(); } catch(e) {} }
   recBtnEl.className = 'rec-btn';
   recBtnEl.textContent = '\u25CF REC';
-  display.textContent = '[ READY ]';
 }
 
 function abortRec() {
   recState = 'idle';
+  loopPassTimeouts.forEach(clearTimeout); loopPassTimeouts = [];
+  clearTimeout(loopRescheduleId);
   if (mediaRec && mediaRec.state !== 'inactive') { try { mediaRec.stop(); } catch(e) {} }
   mediaRecChunks = [];
   recBtnEl.className = 'rec-btn';
@@ -1857,11 +1925,9 @@ recBtnEl.addEventListener('click', () => {
 });
 
 function recordNote(idx) {
-  if (!ctx) return;
-  const t = ctx.currentTime;
-  if (t >= recStartAudioTime - 0.05 && t <= recEndAudioTime + 0.05) {
-    recNotes.push({ padIdx: idx, audioTime: t });
-  }
+  if (_isPlaybackTrigger || recState !== 'recording' || !ctx) return;
+  const elapsed = (ctx.currentTime - loopStartAudioTime) % loopDuration;
+  loopNotes.push({ padIdx: idx, normTime: Math.max(0, Math.min(0.9999, elapsed / loopDuration)) });
 }
 
 // ─── WAV encoder ──────────────────────────────────────────────────────────────
@@ -1876,7 +1942,7 @@ function audioBufferToWAV(ab) {
   const wav = new ArrayBuffer(44 + pcm.byteLength);
   const dv = new DataView(wav);
   const ws = (o, s) => { for (let i=0;i<s.length;i++) dv.setUint8(o+i, s.charCodeAt(i)); };
-  ws(0,'RIFF'); dv.setUint32(4, 36+pcm.byteLength, true);
+  ws(0,'RIFF'); dv.setUint32(4,36+pcm.byteLength,true);
   ws(8,'WAVE'); ws(12,'fmt '); dv.setUint32(16,16,true);
   dv.setUint16(20,1,true); dv.setUint16(22,numCh,true);
   dv.setUint32(24,sr,true); dv.setUint32(28,sr*numCh*2,true);
@@ -1887,7 +1953,7 @@ function audioBufferToWAV(ab) {
 }
 
 async function onMediaRecStop() {
-  if (mediaRecChunks.length === 0) { openMidiGrid(); return; }
+  if (mediaRecChunks.length === 0) return;
   const blob = new Blob(mediaRecChunks, { type: mediaRecChunks[0].type || 'audio/webm' });
   mediaRecChunks = [];
   try {
@@ -1896,12 +1962,17 @@ async function onMediaRecStop() {
     const buf = await tmp.decodeAudioData(arr.slice(0));
     tmp.close();
     lastWavBlob = new Blob([audioBufferToWAV(buf)], { type: 'audio/wav' });
-  } catch(e) {
-    console.warn('WAV encode failed, using raw blob:', e);
-    lastWavBlob = blob;
-  }
-  openMidiGrid();
+  } catch(e) { console.warn('WAV encode error:', e); lastWavBlob = blob; }
+  // No auto-open — user opens via SHEET button
 }
+
+// ─── SHEET button ─────────────────────────────────────────────────────────────
+document.getElementById('sheetBtn').addEventListener('click', () => {
+  boot();
+  if (recState !== 'idle') stopRec();
+  stopMetro();
+  openMidiGrid();
+});
 
 // ─── MIDI Grid ─────────────────────────────────────────────────────────────────
 const midiOverlay   = document.getElementById('midiOverlay');
@@ -1916,8 +1987,7 @@ const midiWavBtn    = document.getElementById('midiWav');
 const LANE_H = 24, LABEL_W = 50, NOTE_W = 8, NOTE_H = 16;
 const PAD_SHORT = [
   'Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7',
-  'FX 1','FX 2','FX 3','FX 4',
-  'KICK','SNARE','HH-C','HH-O'
+  'FX 1','FX 2','FX 3','FX 4','KICK','SNARE','HH-C','HH-O'
 ];
 const PAD_COL = [
   '#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff',
@@ -1925,197 +1995,191 @@ const PAD_COL = [
   '#e74c3c','#e74c3c','#27ae60','#27ae60'
 ];
 
-let midiNotes = [];
-let midiDur = 1, midiQuantize = 16;
+let midiNotes = [], midiDur = 1, midiLoopBars = 1, midiQuantize = 16;
 let midiDragging = null, midiDragTapX = 0;
-let recBarsSnap = 1;
 
 function normToX(norm, W) { return LABEL_W + norm * (W - LABEL_W); }
-function xToNorm(x, W)    { return Math.max(0, Math.min(1, (x - LABEL_W) / (W - LABEL_W))); }
 
 function snapNorm(v) {
   if (midiQuantize === 0) return v;
-  const subdivs = recBarsSnap * BEATS_PER_BAR * (midiQuantize / 4);
-  const step = 1 / subdivs;
+  const step = 1 / (midiLoopBars * BEATS_PER_BAR * (midiQuantize / 4));
   return Math.round(v / step) * step;
 }
 
 function drawMidi() {
   const dpr = window.devicePixelRatio || 1;
-  const W = midiCanvas.width / dpr;
-  const H = midiCanvas.height / dpr;
-  const gW = W - LABEL_W;
+  const W = midiCanvas.width / dpr, H = midiCanvas.height / dpr, gW = W - LABEL_W;
   const g = midiCtx2d;
   g.clearRect(0, 0, midiCanvas.width, midiCanvas.height);
   g.save(); g.scale(dpr, dpr);
-
-  // BG
   g.fillStyle = '#07111e'; g.fillRect(0, 0, W, H);
 
-  // Lane BGs + labels
   for (let i = 0; i < 16; i++) {
     const y = i * LANE_H;
     if (i % 2 === 0) { g.fillStyle = 'rgba(255,255,255,0.018)'; g.fillRect(LABEL_W, y, gW, LANE_H); }
     g.fillStyle = PAD_COL[i];
-    g.font = '8px "Public Sans", sans-serif';
-    g.textAlign = 'right';
-    // Use dynamic chord names for chord pads
-    const lbl = i < 8 ? DNAMES[i] : PAD_SHORT[i];
-    g.fillText(lbl, LABEL_W - 4, y + LANE_H / 2 + 3);
-    g.beginPath(); g.moveTo(0, y + LANE_H); g.lineTo(W, y + LANE_H);
+    g.font = '8px "Public Sans",sans-serif'; g.textAlign = 'right';
+    g.fillText(i < 8 ? DNAMES[i] : PAD_SHORT[i], LABEL_W - 4, y + LANE_H / 2 + 3);
+    g.beginPath(); g.moveTo(0, y+LANE_H); g.lineTo(W, y+LANE_H);
     g.strokeStyle = 'rgba(255,255,255,0.05)'; g.lineWidth = 0.5; g.stroke();
   }
 
-  // Beat grid
-  const totalBeats = recBarsSnap * BEATS_PER_BAR;
+  const totalBeats = midiLoopBars * BEATS_PER_BAR;
   for (let b = 0; b <= totalBeats; b++) {
-    const x = LABEL_W + (b / totalBeats) * gW;
-    const isBar = b % BEATS_PER_BAR === 0;
-    g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H);
+    const x = LABEL_W + (b / totalBeats) * gW, isBar = b % BEATS_PER_BAR === 0;
+    g.beginPath(); g.moveTo(x,0); g.lineTo(x,H);
     g.strokeStyle = isBar ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.05)';
     g.lineWidth = isBar ? 1.2 : 0.6; g.stroke();
     if (isBar && b < totalBeats) {
       g.fillStyle = 'rgba(255,255,255,0.25)';
-      g.font = '8px "Public Sans", sans-serif'; g.textAlign = 'left';
-      g.fillText('B' + (b / BEATS_PER_BAR + 1), x + 3, 9);
+      g.font = '8px "Public Sans",sans-serif'; g.textAlign = 'left';
+      g.fillText('B'+(b/BEATS_PER_BAR+1), x+3, 9);
     }
   }
 
-  // Notes
   midiNotes.forEach((n, ni) => {
-    const x = normToX(n.t, W) - NOTE_W / 2;
-    const y = n.padIdx * LANE_H + (LANE_H - NOTE_H) / 2;
-    g.globalAlpha = (midiDragging && midiDragging.ni === ni) ? 0.45 : 0.9;
+    const x = normToX(n.normTime, W) - NOTE_W/2, y = n.padIdx * LANE_H + (LANE_H-NOTE_H)/2;
+    g.globalAlpha = (midiDragging && midiDragging.ni===ni) ? 0.4 : 0.9;
     g.fillStyle = PAD_COL[n.padIdx];
     g.beginPath();
-    if (g.roundRect) g.roundRect(x, y, NOTE_W, NOTE_H, 2);
-    else g.rect(x, y, NOTE_W, NOTE_H);
-    g.fill();
-    g.globalAlpha = 1;
+    if (g.roundRect) g.roundRect(x, y, NOTE_W, NOTE_H, 2); else g.rect(x, y, NOTE_W, NOTE_H);
+    g.fill(); g.globalAlpha = 1;
   });
 
-  // Playhead
   if (playheadNorm >= 0) {
     const px = normToX(playheadNorm, W);
-    g.beginPath(); g.moveTo(px, 0); g.lineTo(px, H);
+    g.beginPath(); g.moveTo(px,0); g.lineTo(px,H);
     g.strokeStyle = 'rgba(255,255,255,0.7)'; g.lineWidth = 1.5; g.stroke();
   }
-
   g.restore();
 }
 
 function resizeMidi() {
-  const dpr = window.devicePixelRatio || 1;
-  const W = midiGridWrap.clientWidth;
-  const H = 16 * LANE_H;
-  midiCanvas.style.width = W + 'px';
-  midiCanvas.style.height = H + 'px';
-  midiCanvas.width  = W * dpr;
-  midiCanvas.height = H * dpr;
+  const dpr = window.devicePixelRatio||1, W = midiGridWrap.clientWidth, H = 16*LANE_H;
+  midiCanvas.style.width = W+'px'; midiCanvas.style.height = H+'px';
+  midiCanvas.width = W*dpr; midiCanvas.height = H*dpr;
   drawMidi();
 }
 
 function openMidiGrid() {
-  recBarsSnap = recBars;
-  midiDur = recBarsSnap * BEATS_PER_BAR * spb();
-  midiNotes = recNotes.map(n => ({
-    padIdx: n.padIdx,
-    t: snapNorm(Math.max(0, Math.min(1, (n.audioTime - recStartAudioTime) / midiDur)))
-  }));
+  midiLoopBars = loopBars;
+  midiDur = midiLoopBars * BEATS_PER_BAR * spb();
+  midiNotes = loopNotes.map(n => ({ ...n, normTime: snapNorm(n.normTime) }));
   midiWavBtn.disabled = !lastWavBlob;
   midiOverlay.classList.remove('hidden');
   document.getElementById('midiTitle').textContent =
-    '\u2500\u2500 TAKE \u00B7 ' + recBarsSnap + 'BAR \u00B7 ' + metroBPM + 'BPM \u2500\u2500';
+    '\u2500\u2500 TAKE \u00B7 ' + midiLoopBars + 'BAR \u00B7 ' + metroBPM + 'BPM \u2500\u2500';
   requestAnimationFrame(resizeMidi);
 }
 
-midiCloseBtn.addEventListener('click', () => { midiOverlay.classList.add('hidden'); stopPlayback(); });
+midiCloseBtn.addEventListener('click', () => {
+  midiOverlay.classList.add('hidden');
+  stopPlayback(); stopSheetMetro();
+});
 
-// Quantize selector
 document.querySelectorAll('.midi-quant-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.midi-quant-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     midiQuantize = parseInt(btn.dataset.q);
-    midiNotes = midiNotes.map(n => ({ ...n, t: snapNorm(n.t) }));
+    midiNotes = midiNotes.map(n => ({...n, normTime: snapNorm(n.normTime)}));
     drawMidi();
   });
 });
 
-// Clear
 midiClearBtn.addEventListener('click', () => { midiNotes = []; drawMidi(); });
-
-// WAV download
 midiWavBtn.addEventListener('click', () => {
   if (!lastWavBlob) return;
   const ext = lastWavBlob.type.includes('wav') ? 'wav' : 'webm';
   const url = URL.createObjectURL(lastWavBlob);
-  const a = document.createElement('a'); a.href = url;
-  a.download = 'bct-404-take.' + ext; a.click();
+  const a = document.createElement('a'); a.href = url; a.download = 'bct-404-take.'+ext; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 3000);
 });
 
-// ─── Canvas drag/tap ──────────────────────────────────────────────────────────
+// Canvas drag/tap
 function hitNote(cx, cy) {
-  const dpr = window.devicePixelRatio || 1;
-  const W = midiCanvas.width / dpr;
-  const lane = Math.floor(cy / LANE_H);
-  for (let i = midiNotes.length - 1; i >= 0; i--) {
-    const n = midiNotes[i];
-    if (n.padIdx !== lane) continue;
-    const nx = normToX(n.t, W) - NOTE_W / 2;
-    if (cx >= nx - 6 && cx <= nx + NOTE_W + 6) return i;
+  const dpr = window.devicePixelRatio||1, W = midiCanvas.width/dpr, lane = Math.floor(cy/LANE_H);
+  for (let i = midiNotes.length-1; i >= 0; i--) {
+    const n = midiNotes[i]; if (n.padIdx !== lane) continue;
+    const nx = normToX(n.normTime, W) - NOTE_W/2;
+    if (cx >= nx-6 && cx <= nx+NOTE_W+6) return i;
   }
   return -1;
 }
-
 function cpos(e) {
-  const r = midiCanvas.getBoundingClientRect();
-  const s = e.touches ? e.touches[0] : e;
-  return { x: s.clientX - r.left, y: s.clientY - r.top };
+  const r = midiCanvas.getBoundingClientRect(), s = e.touches ? e.touches[0] : e;
+  return { x: s.clientX-r.left, y: s.clientY-r.top };
 }
-
 midiCanvas.addEventListener('mousedown', e => {
-  const {x,y} = cpos(e); const ni = hitNote(x,y);
-  if (ni >= 0) { midiDragging = {ni, sx:x, ot:midiNotes[ni].t}; midiDragTapX = x; }
+  const {x,y}=cpos(e), ni=hitNote(x,y);
+  if (ni>=0) { midiDragging={ni,sx:x,ot:midiNotes[ni].normTime}; midiDragTapX=x; }
 });
 midiCanvas.addEventListener('mousemove', e => {
   if (!midiDragging) return;
-  const {x} = cpos(e);
-  const dpr = window.devicePixelRatio||1, W = midiCanvas.width/dpr;
-  midiNotes[midiDragging.ni].t = snapNorm(Math.max(0,Math.min(1, midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
+  const {x}=cpos(e), dpr=window.devicePixelRatio||1, W=midiCanvas.width/dpr;
+  midiNotes[midiDragging.ni].normTime = snapNorm(Math.max(0,Math.min(1, midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
   drawMidi();
 });
 midiCanvas.addEventListener('mouseup', e => {
   if (!midiDragging) return;
-  if (Math.abs(cpos(e).x - midiDragTapX) < 5) { midiNotes.splice(midiDragging.ni,1); drawMidi(); }
+  if (Math.abs(cpos(e).x-midiDragTapX) < 5) { midiNotes.splice(midiDragging.ni,1); drawMidi(); }
   midiDragging = null;
 });
-midiCanvas.addEventListener('mouseleave', () => { midiDragging = null; });
-
+midiCanvas.addEventListener('mouseleave', () => { midiDragging=null; });
 midiCanvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  const {x,y} = cpos(e); const ni = hitNote(x,y);
-  if (ni >= 0) { midiDragging = {ni, sx:x, ot:midiNotes[ni].t}; midiDragTapX = x; }
-}, {passive:false});
+  e.preventDefault(); const {x,y}=cpos(e), ni=hitNote(x,y);
+  if (ni>=0) { midiDragging={ni,sx:x,ot:midiNotes[ni].normTime}; midiDragTapX=x; }
+},{passive:false});
 midiCanvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  if (!midiDragging) return;
-  const {x} = cpos(e);
-  const dpr = window.devicePixelRatio||1, W = midiCanvas.width/dpr;
-  midiNotes[midiDragging.ni].t = snapNorm(Math.max(0,Math.min(1, midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
+  e.preventDefault(); if (!midiDragging) return;
+  const {x}=cpos(e), dpr=window.devicePixelRatio||1, W=midiCanvas.width/dpr;
+  midiNotes[midiDragging.ni].normTime = snapNorm(Math.max(0,Math.min(1, midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
   drawMidi();
-}, {passive:false});
+},{passive:false});
 midiCanvas.addEventListener('touchend', e => {
-  e.preventDefault();
-  if (!midiDragging) return;
-  const r = midiCanvas.getBoundingClientRect();
-  const ch = e.changedTouches[0];
-  if (Math.abs(ch.clientX - r.left - midiDragTapX) < 8) { midiNotes.splice(midiDragging.ni,1); drawMidi(); }
-  midiDragging = null;
-}, {passive:false});
+  e.preventDefault(); if (!midiDragging) return;
+  const r=midiCanvas.getBoundingClientRect(), ch=e.changedTouches[0];
+  if (Math.abs(ch.clientX-r.left-midiDragTapX) < 8) { midiNotes.splice(midiDragging.ni,1); drawMidi(); }
+  midiDragging=null;
+},{passive:false});
 
-// ─── Playback ──────────────────────────────────────────────────────────────────
+// ─── Sheet Metro ──────────────────────────────────────────────────────────────
+let sheetMetroOn = false, sheetMetroPhase = 0, sheetMetroNextTime = 0, sheetMetroTimer = null;
+const sheetMetroBtn = document.getElementById('sheetMetroBtn');
+
+function scheduleSheetBeats() {
+  while (sheetMetroNextTime < ctx.currentTime + 0.12) {
+    const accent = (sheetMetroPhase % BEATS_PER_BAR) === 0;
+    const osc = ctx.createOscillator(); osc.type = 'sine';
+    osc.frequency.value = accent ? 1500 : 1000;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, sheetMetroNextTime);
+    g.gain.linearRampToValueAtTime(metroVol * 0.7, sheetMetroNextTime + 0.003);
+    g.gain.exponentialRampToValueAtTime(0.0001, sheetMetroNextTime + (accent ? 0.065 : 0.042));
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(sheetMetroNextTime); osc.stop(sheetMetroNextTime + 0.09);
+    sheetMetroPhase++;
+    sheetMetroNextTime += spb();
+  }
+}
+
+function startSheetMetro() {
+  boot();
+  sheetMetroOn = true; sheetMetroPhase = 0;
+  sheetMetroNextTime = ctx.currentTime + 0.05;
+  sheetMetroTimer = setInterval(scheduleSheetBeats, 25);
+  sheetMetroBtn.classList.add('active');
+  sheetMetroBtn.textContent = '\u25A0 METRO';
+}
+function stopSheetMetro() {
+  clearInterval(sheetMetroTimer); sheetMetroTimer = null;
+  sheetMetroOn = false;
+  sheetMetroBtn.classList.remove('active');
+  sheetMetroBtn.textContent = '\u25B6 METRO';
+}
+sheetMetroBtn.addEventListener('click', () => { boot(); sheetMetroOn ? stopSheetMetro() : startSheetMetro(); });
+
+// ─── Playback ─────────────────────────────────────────────────────────────────
 let playbackTs = [], playbackPlaying = false, playheadNorm = -1, playheadRAF = null;
 
 function stopPlayback() {
@@ -2135,27 +2199,24 @@ midiPlayBtn.addEventListener('click', () => {
   playbackPlaying = true;
   midiPlayBtn.classList.add('playing');
   midiPlayBtn.textContent = '\u25A0 STOP';
-  const durMs = midiDur * 1000;
-  const t0 = performance.now();
+  const durMs = midiDur * 1000, t0 = performance.now();
   midiNotes.forEach(n => {
     playbackTs.push(setTimeout(() => {
       _vol = padVolumes[n.padIdx] / 10;
       PADS[n.padIdx].fn();
-    }, n.t * durMs));
+    }, n.normTime * durMs));
   });
   playbackTs.push(setTimeout(stopPlayback, durMs + 300));
-  // Playhead animation
   function animPH() {
-    playheadNorm = Math.min(1, (performance.now() - t0) / durMs);
+    playheadNorm = Math.min(1, (performance.now()-t0)/durMs);
     drawMidi();
     if (playbackPlaying) playheadRAF = requestAnimationFrame(animPH);
   }
   playheadRAF = requestAnimationFrame(animPH);
 });
 
-window.addEventListener('resize', () => {
-  if (!midiOverlay.classList.contains('hidden')) resizeMidi();
-});
+window.addEventListener('resize', () => { if (!midiOverlay.classList.contains('hidden')) resizeMidi(); });
+
 
 // ─── PWA: Service Worker + Silent Mode Audio ──────────────────────────────────
 if ('serviceWorker' in navigator) {
