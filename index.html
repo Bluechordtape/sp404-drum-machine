@@ -220,10 +220,28 @@ body {
 
 /* ── Controls & Footer ── */
 .controls {
-  display: flex; justify-content: flex-start; align-items: center;
-  padding: 6px 4px 4px; border-top: 1px solid var(--border);
-  gap: 8px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  padding: 5px 4px 4px; border-top: 1px solid var(--border);
+  gap: 6px; flex-shrink: 0;
 }
+.controls-top { display: flex; align-items: center; gap: 12px; }
+.preset-row {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+}
+.preset-label {
+  font-size: 7px; letter-spacing: 0.15em; color: var(--muted);
+  text-transform: uppercase; margin-right: 2px;
+}
+.preset-btn {
+  font-family: 'Public Sans', sans-serif;
+  font-size: 8px; letter-spacing: 0.1em; font-weight: 500;
+  text-transform: uppercase; color: var(--muted);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 3px; padding: 3px 7px; cursor: pointer;
+  transition: all 0.12s; -webkit-tap-highlight-color: transparent;
+}
+.preset-btn:hover { border-color: rgba(26,58,255,0.4); color: var(--text); }
+.preset-btn.active { color: var(--primary); border-color: var(--primary); background: rgba(26,58,255,0.1); }
 .knob-row { display: flex; gap: 10px; align-items: center; }
 .knob-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .knob {
@@ -433,7 +451,8 @@ body {
   .pad-name { font-size: 10px; }
   .pad-hint { display: none; }
   .pad-key { display: block; font-size: 8px; color: var(--muted); margin-top: 4px; letter-spacing: 0.05em; pointer-events: none; }
-  .controls { justify-content: space-between; margin-top: 16px; padding-top: 12px; padding-bottom: 0; }
+  .controls { margin-top: 16px; padding-top: 12px; padding-bottom: 0; }
+  .controls-top { justify-content: space-between; }
   .knob { width: 32px; height: 32px; }
   .key-hint { display: block; font-size: 8px; color: var(--muted); line-height: 2; text-align: right; letter-spacing: 0.03em; }
   .footer { display: block; text-align: center; margin-top: 12px; font-size: 7px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
@@ -815,16 +834,27 @@ body {
   </div>
 
   <div class="controls">
-    <div class="knob-row">
-      <div class="knob-wrap"><div class="knob" id="knobReverb"></div><div class="knob-label">Reverb</div></div>
-      <div class="knob-wrap"><div class="knob" id="knobLofi"></div><div class="knob-label">Lo-Fi</div></div>
-      <div class="knob-wrap"><div class="knob" id="knobDrive"></div><div class="knob-label">Drive</div></div>
+    <div class="controls-top">
+      <div class="knob-row">
+        <div class="knob-wrap"><div class="knob" id="knobReverb"></div><div class="knob-label">Reverb</div></div>
+        <div class="knob-wrap"><div class="knob" id="knobLofi"></div><div class="knob-label">Lo-Fi</div></div>
+        <div class="knob-wrap"><div class="knob" id="knobDrive"></div><div class="knob-label">Drive</div></div>
+      </div>
+      <div class="key-hint">
+        1 2 3 4 — chords 1~4<br>
+        Q W E R — chords 5~8<br>
+        A S D F — fx 1~4<br>
+        Z X C V — drums
+      </div>
     </div>
-    <div class="key-hint">
-      1 2 3 4 — chords 1~4<br>
-      Q W E R — chords 5~8<br>
-      A S D F — fx 1~4<br>
-      Z X C V — drums
+    <div class="preset-row" id="presetRow">
+      <div class="preset-label">FX</div>
+      <button class="preset-btn active" data-preset="0">DRY</button>
+      <button class="preset-btn" data-preset="1">ROOM</button>
+      <button class="preset-btn" data-preset="2">TAPE</button>
+      <button class="preset-btn" data-preset="3">LO-FI</button>
+      <button class="preset-btn" data-preset="4">SPACE</button>
+      <button class="preset-btn" data-preset="5">VINYL</button>
     </div>
   </div>
   <div class="footer">BCT-404 · Jazz Hip-Hop · Web Audio API</div>
@@ -1734,21 +1764,59 @@ document.addEventListener('keydown', e => {
   if (e.code in keyMap) { e.preventDefault(); trigger(keyMap[e.code]); }
 });
 
-// ─── Knobs ────────────────────────────────────────────────────────────────────
-function initKnob(elId, initVal, onChange) {
+// ─── Knobs & Presets ──────────────────────────────────────────────────────────
+const knobVals = { reverb: 0, lofi: 0, drive: 1.6 / 8 };
+let knobSetters = {};
+
+function applyKnob(key, v) {
+  knobVals[key] = v;
+  if (key === 'reverb' && wetBus) wetBus.gain.value = v * 0.7;
+  if (key === 'lofi'   && lofiFilter) lofiFilter.frequency.value = 20000 - v * 19600;
+  if (key === 'drive'  && tapeSatNode) tapeSatNode.curve = tapeClip(0.5 + v * 7.5);
+}
+
+initKnob('knobReverb', knobVals.reverb, v => applyKnob('reverb', v));
+initKnob('knobLofi',   knobVals.lofi,   v => applyKnob('lofi',   v));
+initKnob('knobDrive',  knobVals.drive,  v => applyKnob('drive',  v));
+
+// ─── Presets ──────────────────────────────────────────────────────────────────
+// { reverb, lofi, drive } all 0–1
+const PRESETS = [
+  { name:'DRY',   reverb:0,    lofi:0,    drive:0.05 },
+  { name:'ROOM',  reverb:0.45, lofi:0,    drive:0.15 },
+  { name:'TAPE',  reverb:0.35, lofi:0.2,  drive:0.4  },
+  { name:'LO-FI', reverb:0.25, lofi:0.65, drive:0.45 },
+  { name:'SPACE', reverb:0.85, lofi:0,    drive:0.08 },
+  { name:'VINYL', reverb:0.4,  lofi:0.8,  drive:0.7  },
+];
+
+function applyPreset(idx) {
+  const p = PRESETS[idx];
+  ['reverb','lofi','drive'].forEach(k => {
+    applyKnob(k, p[k]);
+    if (knobSetters[k]) knobSetters[k](p[k]);
+  });
+  document.querySelectorAll('.preset-btn').forEach((btn, i) =>
+    btn.classList.toggle('active', i === idx));
+}
+
+// Store knob setters so presets can animate knob visuals
+function initKnobWithSetter(elId, initVal, onChange) {
   const el = document.getElementById(elId);
   if (!el) return;
   let val = initVal;
   let startY, startVal;
-
   function setVal(v) {
     val = Math.max(0, Math.min(1, v));
     el.style.transform = `rotate(${-135 + val * 270}deg)`;
     onChange(val);
+    // deactivate preset button when knob is manually moved
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
   }
-
-  setVal(initVal);
-
+  function externalSet(v) {
+    val = Math.max(0, Math.min(1, v));
+    el.style.transform = `rotate(${-135 + val * 270}deg)`;
+  }
   el.addEventListener('mousedown', e => {
     e.preventDefault();
     startY = e.clientY; startVal = val;
@@ -1757,29 +1825,26 @@ function initKnob(elId, initVal, onChange) {
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
   });
-
   el.addEventListener('touchstart', e => {
     e.preventDefault();
     startY = e.touches[0].clientY; startVal = val;
   }, { passive: false });
-
   el.addEventListener('touchmove', e => {
     e.preventDefault();
     setVal(startVal + (startY - e.touches[0].clientY) / 120);
   }, { passive: false });
+  externalSet(initVal);
+  return externalSet;
 }
 
-// Reverb: wetBus gain 0→0.7
-initKnob('knobReverb', 0.38 / 0.7, v => {
-  if (wetBus) wetBus.gain.value = v * 0.7;
-});
-// Lo-Fi: lowpass cutoff 20000Hz (off) → 400Hz (max lofi)
-initKnob('knobLofi', 0, v => {
-  if (lofiFilter) lofiFilter.frequency.value = 20000 - v * 19600;
-});
-// Drive: tapeSat curve 0.5 → 8
-initKnob('knobDrive', 1.6 / 8, v => {
-  if (tapeSatNode) tapeSatNode.curve = tapeClip(0.5 + v * 7.5);
+knobSetters.reverb = initKnobWithSetter('knobReverb', knobVals.reverb, v => applyKnob('reverb', v));
+knobSetters.lofi   = initKnobWithSetter('knobLofi',   knobVals.lofi,   v => applyKnob('lofi',   v));
+knobSetters.drive  = initKnobWithSetter('knobDrive',  knobVals.drive,  v => applyKnob('drive',  v));
+
+document.getElementById('presetRow').addEventListener('click', e => {
+  const btn = e.target.closest('.preset-btn');
+  if (!btn) return;
+  applyPreset(parseInt(btn.dataset.preset));
 });
 
 // ─── Drum roll picker ─────────────────────────────────────────────────────────
