@@ -734,7 +734,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v1.0</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v1.1</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -1081,7 +1081,7 @@ const FX_SOUNDS = [
   { name:'NO CAP',         padName:'NO\nCAP',         fn: ()=>speakCool('no cap')   },
   { name:'FACTS',          padName:'FACTS',           fn: ()=>speakCool('facts')    },
   { name:'KEEJOO',         padName:'KEEJOO',           fn: ()=>speakBaby('keejoo')   },
-  { name:'BISOU',          padName:'BISOU',            fn: ()=>speakFr('bisou')      },
+  { name:'UN BISOU',       padName:'UN\nBISOU',        fn: ()=>speakFr('un bisou')   },
   { name:'SHEESH',         padName:'SHEESH',          fn: ()=>speakCool('sheesh')   },
   { name:'BUSSIN',         padName:'BUSSIN',          fn: ()=>speakCool('bussin')   },
   { name:'VIBE',           padName:'VIBE',            fn: ()=>speakCool('vibe')     },
@@ -1493,8 +1493,14 @@ function speakFr(text) {
   if (!window.speechSynthesis) return;
   boot();
   try { speechSynthesis.cancel(); } catch(e) {}
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'fr-FR'; u.pitch = 1.15; u.rate = 0.82; u.volume = 1.0;
+  const voices = speechSynthesis.getVoices();
+  const frVoice = voices.find(v => /^fr/i.test(v.lang));
+  // If no French voice installed, use phonetic English approximation
+  const spoken = frVoice ? text : 'bee zoo';
+  const u = new SpeechSynthesisUtterance(spoken);
+  u.lang = frVoice ? frVoice.lang : 'en-US';
+  if (frVoice) u.voice = frVoice;
+  u.pitch = 1.25; u.rate = 0.72; u.volume = 1.0;
   speechSynthesis.speak(u);
 }
 
