@@ -89,13 +89,16 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 10px 10px 0;
+  padding: 6px 6px 0;
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
+/* MIDI sheet mode: hide pad controls, show only canvas area */
+.machine.sheet-mode .controls { display: none; }
+.machine.sheet-mode #padGrid { display: none !important; }
 
 /* ── Header ── */
 .header {
@@ -103,9 +106,9 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding-bottom: 8px;
+  padding-bottom: 5px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   flex-shrink: 0;
 }
 .brand {
@@ -461,8 +464,8 @@ body {
 /* ── Metro / Rec toolbar ── */
 .metro-bar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 5px 0; border-bottom: 1px solid var(--border);
-  margin-bottom: 5px; flex-shrink: 0; gap: 6px; flex-wrap: wrap;
+  padding: 3px 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 3px; flex-shrink: 0; gap: 4px; flex-wrap: wrap;
 }
 .metro-left, .metro-right { display: flex; align-items: center; gap: 5px; }
 .metro-btn {
@@ -540,7 +543,8 @@ body {
 }
 #midiCanvas { display: block; touch-action: none; cursor: default; }
 .midi-quant {
-  display: flex; align-items: center; gap: 6px; padding-top: 8px; flex-shrink: 0; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 5px; padding-top: 5px; flex-shrink: 0;
+  flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
 }
 .midi-quant-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
 .midi-quant-btn {
@@ -550,9 +554,9 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .midi-quant-btn.active { color: var(--primary); border-color: var(--primary); }
-.midi-actions { display: flex; gap: 8px; padding-top: 10px; flex-shrink: 0; }
+.midi-actions { display: flex; gap: 8px; padding-top: 6px; flex-shrink: 0; }
 .midi-action-btn {
-  flex: 1; padding: 10px 0; border-radius: 4px; border: none;
+  flex: 1; padding: 7px 0; border-radius: 4px; border: none;
   font-family: 'Public Sans', sans-serif; font-size: 10px;
   font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
@@ -637,8 +641,8 @@ body {
   background: #101a10;
   border: 1.5px solid #1c2e1c;
   border-radius: 5px;
-  padding: 6px 10px 7px;
-  margin-bottom: 5px;
+  padding: 3px 8px 4px;
+  margin-bottom: 3px;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
@@ -654,14 +658,14 @@ body {
 .scr-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; }
 .scr-main-block { display: flex; align-items: baseline; gap: 1px; flex-shrink: 0; }
 .scr-num {
-  font-size: 36px; font-weight: 700; line-height: 1;
+  font-size: 22px; font-weight: 700; line-height: 1;
   color: #7ec850; letter-spacing: -0.03em;
   font-family: 'Courier New', Courier, monospace;
   text-shadow: 0 0 8px rgba(126,200,80,0.5), 0 0 18px rgba(126,200,80,0.18);
   min-width: 0.62em; text-align: center;
 }
 .scr-sep {
-  font-size: 28px; color: rgba(126,200,80,0.55);
+  font-size: 17px; color: rgba(126,200,80,0.55);
   font-family: 'Courier New', monospace; line-height: 1.05;
   text-shadow: 0 0 6px rgba(126,200,80,0.3);
 }
@@ -735,7 +739,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v1.3</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v1.4</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -805,7 +809,6 @@ body {
   <div id="midiOverlay" class="midi-overlay hidden">
     <div class="midi-modal">
       <div class="midi-top">
-        <button class="midi-back-btn" id="midiClose">&#8592; PADS</button>
         <span class="midi-title" id="midiTitle">&#9472;&#9472; TAKE &#9472;&#9472;</span>
         <div class="midi-undo-row">
           <button class="midi-undo-btn" id="midiUndo" title="Undo (&#8984;Z)" disabled>&#8630; UNDO</button>
@@ -2360,7 +2363,6 @@ const midiOverlay  = document.getElementById('midiOverlay');
 const midiCanvas   = document.getElementById('midiCanvas');
 const midiCtx2d    = midiCanvas.getContext('2d');
 const midiGridWrap = document.getElementById('midiGridWrap');
-const midiCloseBtn = document.getElementById('midiClose');
 const midiClearBtn = document.getElementById('midiClear');
 const midiWavBtn   = document.getElementById('midiWav');
 
@@ -2442,6 +2444,7 @@ function resizeMidi() {
   midiCanvas.style.width=W+'px'; midiCanvas.style.height=H+'px';
   midiCanvas.width=W*dpr; midiCanvas.height=H*dpr; drawMidi();
 }
+const _machine = document.querySelector('.machine');
 function openMidiGrid() {
   sheetOpen = true;
   midiLoopBars = loopBars; midiDur = midiLoopBars * BEATS_PER_BAR * spb();
@@ -2449,7 +2452,7 @@ function openMidiGrid() {
   midiWavBtn.disabled = !lastWavBlob;
   midiZoom=1.0; const zv=document.getElementById('midiZoomVal'); if(zv) zv.textContent='1×';
   undoStack.length = 0; redoStack.length = 0; updateUndoButtons();
-  document.getElementById('padGrid').style.display = 'none';
+  _machine.classList.add('sheet-mode');
   midiOverlay.classList.remove('hidden');
   document.getElementById('midiTitle').textContent =
     '\u2500\u2500 TAKE \u00B7 ' + midiLoopBars + 'BAR \u00B7 ' + metroBPM + 'BPM \u2500\u2500';
@@ -2460,12 +2463,11 @@ function openMidiGrid() {
 function closeMidiGrid() {
   sheetOpen = false;
   stopTransportPlayhead();
+  _machine.classList.remove('sheet-mode');
   midiOverlay.classList.add('hidden');
-  document.getElementById('padGrid').style.display = '';
   const sb = document.getElementById('sheetBtn');
   sb.textContent = 'SHEET'; sb.classList.remove('active');
 }
-midiCloseBtn.addEventListener('click', () => closeMidiGrid());
 
 document.querySelectorAll('.midi-quant-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
