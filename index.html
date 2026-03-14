@@ -734,7 +734,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404</div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v1.0</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -1471,50 +1471,31 @@ if (window.speechSynthesis) {
   speechSynthesis.addEventListener('voiceschanged', _loadVoices);
 }
 
-function _speak(u) {
-  // Safari fix: cancel stuck queue before speaking
-  try { speechSynthesis.cancel(); } catch(e) {}
-  setTimeout(() => speechSynthesis.speak(u), 30);
-}
-
 function speakCool(text) {
   if (!window.speechSynthesis) return;
   boot();
+  try { speechSynthesis.cancel(); } catch(e) {}
   const u = new SpeechSynthesisUtterance(text);
-  u.pitch = 0.55; u.rate = 0.78; u.volume = Math.min(1.0, 0.85 * _vol);
-  const voices = _voices.length ? _voices : speechSynthesis.getVoices();
-  const enVoice = voices.find(v => v.lang.startsWith('en') && /male/i.test(v.name))
-    || voices.find(v => v.lang.startsWith('en'))
-    || voices[0];
-  if (enVoice) u.voice = enVoice;
-  _speak(u);
+  u.lang = 'en-US'; u.pitch = 0.55; u.rate = 0.78; u.volume = 1.0;
+  speechSynthesis.speak(u);
 }
 
 function speakBaby(text) {
   if (!window.speechSynthesis) return;
   boot();
+  try { speechSynthesis.cancel(); } catch(e) {}
   const u = new SpeechSynthesisUtterance(text);
-  u.pitch = 2.0; u.rate = 1.1; u.volume = Math.min(1.0, _vol);
-  const voices = _voices.length ? _voices : speechSynthesis.getVoices();
-  const enVoice = voices.find(v => v.lang.startsWith('en') && /female|woman/i.test(v.name))
-    || voices.find(v => v.lang.startsWith('en'))
-    || voices[0];
-  if (enVoice) u.voice = enVoice;
-  _speak(u);
+  u.lang = 'en-US'; u.pitch = 2.0; u.rate = 1.1; u.volume = 1.0;
+  speechSynthesis.speak(u);
 }
 
 function speakFr(text) {
   if (!window.speechSynthesis) return;
   boot();
+  try { speechSynthesis.cancel(); } catch(e) {}
   const u = new SpeechSynthesisUtterance(text);
-  u.pitch = 1.15; u.rate = 0.82; u.volume = Math.min(1.0, _vol);
-  const voices = _voices.length ? _voices : speechSynthesis.getVoices();
-  const frVoice = voices.find(v => v.lang.startsWith('fr') && /female|woman|fiona|amelie|alice|thomas/i.test(v.name))
-    || voices.find(v => v.lang.startsWith('fr'))
-    || voices.find(v => /female|woman/i.test(v.name))
-    || voices[0];
-  if (frVoice) u.voice = frVoice;
-  _speak(u);
+  u.lang = 'fr-FR'; u.pitch = 1.15; u.rate = 0.82; u.volume = 1.0;
+  speechSynthesis.speak(u);
 }
 
 // ─── Pad definitions ──────────────────────────────────────────────────────────
