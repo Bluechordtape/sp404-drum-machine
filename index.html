@@ -1080,8 +1080,8 @@ const FX_SOUNDS = [
   { name:'DRIP',           padName:'DRIP',            fn: ()=>speakCool('drip')     },
   { name:'NO CAP',         padName:'NO\nCAP',         fn: ()=>speakCool('no cap')   },
   { name:'FACTS',          padName:'FACTS',           fn: ()=>speakCool('facts')    },
-  { name:'기주',           padName:'기주',             fn: ()=>speakBaby('기주')     },
-  { name:'비쥬',           padName:'비쥬',             fn: ()=>speakFr('Biju')       },
+  { name:'KEEJOO',         padName:'KEEJOO',           fn: ()=>speakBaby('keejoo')   },
+  { name:'BISOU',          padName:'BISOU',            fn: ()=>speakFr('bisou')      },
   { name:'SHEESH',         padName:'SHEESH',          fn: ()=>speakCool('sheesh')   },
   { name:'BUSSIN',         padName:'BUSSIN',          fn: ()=>speakCool('bussin')   },
   { name:'VIBE',           padName:'VIBE',            fn: ()=>speakCool('vibe')     },
@@ -1471,6 +1471,12 @@ if (window.speechSynthesis) {
   speechSynthesis.addEventListener('voiceschanged', _loadVoices);
 }
 
+function _speak(u) {
+  // Safari fix: cancel stuck queue before speaking
+  try { speechSynthesis.cancel(); } catch(e) {}
+  setTimeout(() => speechSynthesis.speak(u), 30);
+}
+
 function speakCool(text) {
   if (!window.speechSynthesis) return;
   boot();
@@ -1481,7 +1487,7 @@ function speakCool(text) {
     || voices.find(v => v.lang.startsWith('en'))
     || voices[0];
   if (enVoice) u.voice = enVoice;
-  speechSynthesis.speak(u);
+  _speak(u);
 }
 
 function speakBaby(text) {
@@ -1490,11 +1496,11 @@ function speakBaby(text) {
   const u = new SpeechSynthesisUtterance(text);
   u.pitch = 2.0; u.rate = 1.1; u.volume = Math.min(1.0, _vol);
   const voices = _voices.length ? _voices : speechSynthesis.getVoices();
-  const koVoice = voices.find(v => v.lang.startsWith('ko'))
+  const enVoice = voices.find(v => v.lang.startsWith('en') && /female|woman/i.test(v.name))
     || voices.find(v => v.lang.startsWith('en'))
     || voices[0];
-  if (koVoice) u.voice = koVoice;
-  speechSynthesis.speak(u);
+  if (enVoice) u.voice = enVoice;
+  _speak(u);
 }
 
 function speakFr(text) {
@@ -1508,7 +1514,7 @@ function speakFr(text) {
     || voices.find(v => /female|woman/i.test(v.name))
     || voices[0];
   if (frVoice) u.voice = frVoice;
-  speechSynthesis.speak(u);
+  _speak(u);
 }
 
 // ─── Pad definitions ──────────────────────────────────────────────────────────
