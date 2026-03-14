@@ -226,7 +226,11 @@ body {
   width: 32px; height: 32px; border-radius: 50%;
   background: var(--surface2);
   border: 1px solid var(--border); position: relative;
+  cursor: ns-resize;
+  touch-action: none;
+  transition: border-color 0.12s;
 }
+.knob:active { border-color: var(--primary); }
 .knob::after {
   content: ''; position: absolute; top: 5px; left: 50%;
   transform: translateX(-50%); width: 2px; height: 8px;
@@ -807,9 +811,9 @@ body {
 
   <div class="controls">
     <div class="knob-row">
-      <div class="knob-wrap"><div class="knob"></div><div class="knob-label">Reverb</div></div>
-      <div class="knob-wrap"><div class="knob"></div><div class="knob-label">Lo-Fi</div></div>
-      <div class="knob-wrap"><div class="knob"></div><div class="knob-label">Drive</div></div>
+      <div class="knob-wrap"><div class="knob" id="knobReverb"></div><div class="knob-label">Reverb</div></div>
+      <div class="knob-wrap"><div class="knob" id="knobLofi"></div><div class="knob-label">Lo-Fi</div></div>
+      <div class="knob-wrap"><div class="knob" id="knobDrive"></div><div class="knob-label">Drive</div></div>
     </div>
     <div class="key-hint">
       1 2 3 4 — chords 1~4<br>
@@ -867,7 +871,7 @@ body {
 <script>
 // ─── Audio Context ────────────────────────────────────────────────────────────
 const AC = window.AudioContext || window.webkitAudioContext;
-let ctx, masterOut, dryBus, wetBus, reverbNode;
+let ctx, masterOut, dryBus, wetBus, reverbNode, tapeSatNode, lofiFilter;
 
 // Disconnect nodes when trigger node ends (prevents node accumulation)
 function autoFree(trigger, ...nodes) {
@@ -911,14 +915,20 @@ function boot() {
   if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
   ctx = new AC();
 
-  const tapeSat = ctx.createWaveShaper();
-  tapeSat.curve = tapeClip(1.6);
-  tapeSat.oversample = '2x';
-  tapeSat.connect(ctx.destination);
+  tapeSatNode = ctx.createWaveShaper();
+  tapeSatNode.curve = tapeClip(1.6);
+  tapeSatNode.oversample = '2x';
+  tapeSatNode.connect(ctx.destination);
+
+  lofiFilter = ctx.createBiquadFilter();
+  lofiFilter.type = 'lowpass';
+  lofiFilter.frequency.value = 20000;
+  lofiFilter.Q.value = 0.5;
+  lofiFilter.connect(tapeSatNode);
 
   masterOut = ctx.createGain();
   masterOut.gain.value = 0.80;
-  masterOut.connect(tapeSat);
+  masterOut.connect(lofiFilter);
 
   const rate = ctx.sampleRate, len = Math.floor(rate * 2.8);
   const imp = ctx.createBuffer(2, len, rate);
@@ -1717,6 +1727,54 @@ document.addEventListener('keydown', e => {
   if (e.repeat || e.ctrlKey || e.metaKey) return;
   if (!document.getElementById('midiOverlay').classList.contains('hidden')) return;
   if (e.code in keyMap) { e.preventDefault(); trigger(keyMap[e.code]); }
+});
+
+// ─── Knobs ────────────────────────────────────────────────────────────────────
+function initKnob(elId, initVal, onChange) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  let val = initVal;
+  let startY, startVal;
+
+  function setVal(v) {
+    val = Math.max(0, Math.min(1, v));
+    el.style.transform = `rotate(${-135 + val * 270}deg)`;
+    onChange(val);
+  }
+
+  setVal(initVal);
+
+  el.addEventListener('mousedown', e => {
+    e.preventDefault();
+    startY = e.clientY; startVal = val;
+    const move = ev => setVal(startVal + (startY - ev.clientY) / 120);
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  });
+
+  el.addEventListener('touchstart', e => {
+    e.preventDefault();
+    startY = e.touches[0].clientY; startVal = val;
+  }, { passive: false });
+
+  el.addEventListener('touchmove', e => {
+    e.preventDefault();
+    setVal(startVal + (startY - e.touches[0].clientY) / 120);
+  }, { passive: false });
+}
+
+// Reverb: wetBus gain 0→0.7
+initKnob('knobReverb', 0.38 / 0.7, v => {
+  if (wetBus) wetBus.gain.value = v * 0.7;
+});
+// Lo-Fi: lowpass cutoff 20000Hz (off) → 400Hz (max lofi)
+initKnob('knobLofi', 0, v => {
+  if (lofiFilter) lofiFilter.frequency.value = 20000 - v * 19600;
+});
+// Drive: tapeSat curve 0.5 → 8
+initKnob('knobDrive', 1.6 / 8, v => {
+  if (tapeSatNode) tapeSatNode.curve = tapeClip(0.5 + v * 7.5);
 });
 
 // ─── Drum roll picker ─────────────────────────────────────────────────────────
