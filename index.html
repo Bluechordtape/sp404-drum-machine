@@ -1710,12 +1710,13 @@ function trigger(idx) {
 }
 
 // ─── Keyboard ─────────────────────────────────────────────────────────────────
-const keyMap = Object.fromEntries(PADS.map((p,i) => [p.key, i]));
+// Use e.code (physical key position) so Korean IME doesn't break shortcuts
+const KEY_CODES = ['Digit1','Digit2','Digit3','Digit4','KeyQ','KeyW','KeyE','KeyR','KeyA','KeyS','KeyD','KeyF','KeyZ','KeyX','KeyC','KeyV'];
+const keyMap = Object.fromEntries(KEY_CODES.map((code, i) => [code, i]));
 document.addEventListener('keydown', e => {
   if (e.repeat || e.ctrlKey || e.metaKey) return;
   if (!document.getElementById('midiOverlay').classList.contains('hidden')) return;
-  const k = e.key.toLowerCase();
-  if (k in keyMap) { e.preventDefault(); trigger(keyMap[k]); }
+  if (e.code in keyMap) { e.preventDefault(); trigger(keyMap[e.code]); }
 });
 
 // ─── Drum roll picker ─────────────────────────────────────────────────────────
