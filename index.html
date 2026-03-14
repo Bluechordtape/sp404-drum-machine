@@ -734,7 +734,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v1.1</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v1.2</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -2417,6 +2417,8 @@ function drawMidi() {
   g.restore();
 }
 let midiZoom=1.0;
+let _zoomTarget=1.0, _zoomRAF=null;
+
 function setMidiZoom(z){
   midiZoom=Math.max(0.5,Math.min(8.0,z));
   const d=midiZoom%1===0?midiZoom:midiZoom.toFixed(1);
@@ -2525,7 +2527,7 @@ midiCanvas.addEventListener('touchmove',e=>{
   e.preventDefault();
   if(e.touches.length===2){
     const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
-    setMidiZoom(_pinchZoom0*(Math.sqrt(dx*dx+dy*dy)/_pinchDist0));
+    setMidiZoom(_pinchZoom0*(Math.sqrt(dx*dx+dy*dy)/_pinchDist0)); _zoomTarget=midiZoom;
   } else if(midiDragging){
     const{x}=cpos(e),dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr;
     midiNotes[midiDragging.ni].normTime=snapNorm(Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
@@ -2562,12 +2564,29 @@ function stopPlayback() { stopTransportPlayhead(); drawMidi(); }
 window.addEventListener('resize',()=>{ if(!midiOverlay.classList.contains('hidden'))resizeMidi(); });
 
 // ─── MIDI Zoom controls ─────────────────────────────────────────────────────
-document.getElementById('midiZoomIn').addEventListener('click', ()=>setMidiZoom(midiZoom*1.5));
-document.getElementById('midiZoomOut').addEventListener('click', ()=>setMidiZoom(midiZoom/1.5));
-// Ctrl/Cmd + wheel to zoom on desktop
-midiGridWrap.addEventListener('wheel', e=>{
-  if(e.ctrlKey||e.metaKey){ e.preventDefault(); setMidiZoom(midiZoom*(e.deltaY<0?1.25:1/1.25)); }
-},{passive:false});
+function smoothZoomTo(target) {
+  _zoomTarget = Math.max(0.5, Math.min(8.0, target));
+  if (_zoomRAF) return;
+  function step() {
+    const diff = _zoomTarget - midiZoom;
+    if (Math.abs(diff) < 0.004) { setMidiZoom(_zoomTarget); _zoomRAF = null; return; }
+    setMidiZoom(midiZoom + diff * 0.2);
+    _zoomRAF = requestAnimationFrame(step);
+  }
+  _zoomRAF = requestAnimationFrame(step);
+}
+
+document.getElementById('midiZoomIn').addEventListener('click',  () => smoothZoomTo(midiZoom * 2));
+document.getElementById('midiZoomOut').addEventListener('click', () => smoothZoomTo(midiZoom / 2));
+
+// Ctrl/Cmd + wheel: continuous smooth zoom
+midiGridWrap.addEventListener('wheel', e => {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.06 : 1 / 1.06;
+    smoothZoomTo(_zoomTarget * factor);
+  }
+}, { passive: false });
 
 
 // ─── PWA: Service Worker + Silent Mode Audio ──────────────────────────────────
