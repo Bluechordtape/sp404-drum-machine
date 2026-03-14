@@ -534,8 +534,9 @@ body {
   cursor: pointer; padding: 4px 8px; -webkit-tap-highlight-color: transparent;
 }
 .midi-grid-wrap {
-  flex: 1; overflow-x: auto; overflow-y: hidden; min-height: 0;
+  flex: 1; overflow: auto; min-height: 0;
   background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  -webkit-overflow-scrolling: touch;
 }
 #midiCanvas { display: block; touch-action: none; cursor: default; }
 .midi-quant {
@@ -734,7 +735,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v1.2</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v1.3</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -2513,28 +2514,58 @@ midiCanvas.addEventListener('mousemove',e=>{ if(!midiDragging)return; const{x}=c
 midiCanvas.addEventListener('mouseup',e=>{ if(!midiDragging)return; if(Math.abs(cpos(e).x-midiDragTapX)<5){saveState();midiNotes.splice(midiDragging.ni,1);drawMidi();}else saveState(); midiDragging=null; });
 midiCanvas.addEventListener('mouseleave',()=>{ midiDragging=null; });
 let _pinchDist0=0,_pinchZoom0=1;
+let _scrolling=false,_scrollStartX=0,_scrollStartY=0,_scrollLeft0=0,_scrollTop0=0;
+
 midiCanvas.addEventListener('touchstart',e=>{
-  e.preventDefault();
   if(e.touches.length===2){
+    e.preventDefault();
     const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
-    _pinchDist0=Math.sqrt(dx*dx+dy*dy); _pinchZoom0=midiZoom; midiDragging=null;
+    _pinchDist0=Math.sqrt(dx*dx+dy*dy); _pinchZoom0=midiZoom; midiDragging=null; _scrolling=false;
+    return;
+  }
+  const{x,y}=cpos(e),ni=hitNote(x,y);
+  if(ni>=0){
+    e.preventDefault();
+    midiDragging={ni,sx:x,ot:midiNotes[ni].normTime}; midiDragTapX=x; _scrolling=false;
   } else {
-    const{x,y}=cpos(e),ni=hitNote(x,y);
-    if(ni>=0){midiDragging={ni,sx:x,ot:midiNotes[ni].normTime};midiDragTapX=x;}
+    // Empty area → scroll mode (let touch propagate for native scroll)
+    _scrolling=true; midiDragging=null;
+    _scrollStartX=e.touches[0].clientX; _scrollStartY=e.touches[0].clientY;
+    _scrollLeft0=midiGridWrap.scrollLeft; _scrollTop0=midiGridWrap.scrollTop;
+    e.preventDefault();
   }
 },{passive:false});
+
 midiCanvas.addEventListener('touchmove',e=>{
-  e.preventDefault();
   if(e.touches.length===2){
+    e.preventDefault();
     const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
     setMidiZoom(_pinchZoom0*(Math.sqrt(dx*dx+dy*dy)/_pinchDist0)); _zoomTarget=midiZoom;
-  } else if(midiDragging){
+    return;
+  }
+  if(_scrolling){
+    e.preventDefault();
+    midiGridWrap.scrollLeft=_scrollLeft0-( e.touches[0].clientX-_scrollStartX);
+    midiGridWrap.scrollTop =_scrollTop0 -( e.touches[0].clientY-_scrollStartY);
+    return;
+  }
+  if(midiDragging){
+    e.preventDefault();
     const{x}=cpos(e),dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr;
     midiNotes[midiDragging.ni].normTime=snapNorm(Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
     drawMidi();
   }
 },{passive:false});
-midiCanvas.addEventListener('touchend',e=>{ e.preventDefault();if(!midiDragging)return;const r=midiCanvas.getBoundingClientRect(),ch=e.changedTouches[0];if(Math.abs(ch.clientX-r.left-midiDragTapX)<8){saveState();midiNotes.splice(midiDragging.ni,1);drawMidi();}else saveState();midiDragging=null;},{passive:false});
+
+midiCanvas.addEventListener('touchend',e=>{
+  e.preventDefault();
+  _scrolling=false;
+  if(!midiDragging)return;
+  const r=midiCanvas.getBoundingClientRect(),ch=e.changedTouches[0];
+  if(Math.abs(ch.clientX-r.left-midiDragTapX)<8){saveState();midiNotes.splice(midiDragging.ni,1);drawMidi();}
+  else saveState();
+  midiDragging=null;
+},{passive:false});
 
 // ─── Sheet Metro removed — main METRO button controls click sound ───────────────
 
@@ -2579,13 +2610,14 @@ function smoothZoomTo(target) {
 document.getElementById('midiZoomIn').addEventListener('click',  () => smoothZoomTo(midiZoom * 2));
 document.getElementById('midiZoomOut').addEventListener('click', () => smoothZoomTo(midiZoom / 2));
 
-// Ctrl/Cmd + wheel: continuous smooth zoom
+// Ctrl/Cmd + wheel: zoom / plain wheel: scroll (native)
 midiGridWrap.addEventListener('wheel', e => {
   if (e.ctrlKey || e.metaKey) {
     e.preventDefault();
     const factor = e.deltaY < 0 ? 1.06 : 1 / 1.06;
     smoothZoomTo(_zoomTarget * factor);
   }
+  // no preventDefault for normal wheel → native scroll works
 }, { passive: false });
 
 
