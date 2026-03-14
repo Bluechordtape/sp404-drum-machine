@@ -219,11 +219,15 @@ body {
 .pad > * { pointer-events: none; }
 
 /* ── Controls & Footer ── */
-.controls { display: none; }
-.knob-row { display: flex; gap: 12px; align-items: center; }
-.knob-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.controls {
+  display: flex; justify-content: flex-start; align-items: center;
+  padding: 6px 4px 4px; border-top: 1px solid var(--border);
+  gap: 8px; flex-shrink: 0;
+}
+.knob-row { display: flex; gap: 10px; align-items: center; }
+.knob-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .knob {
-  width: 32px; height: 32px; border-radius: 50%;
+  width: 28px; height: 28px; border-radius: 50%;
   background: var(--surface2);
   border: 1px solid var(--border); position: relative;
   cursor: ns-resize;
@@ -429,7 +433,8 @@ body {
   .pad-name { font-size: 10px; }
   .pad-hint { display: none; }
   .pad-key { display: block; font-size: 8px; color: var(--muted); margin-top: 4px; letter-spacing: 0.05em; pointer-events: none; }
-  .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); gap: 8px; }
+  .controls { justify-content: space-between; margin-top: 16px; padding-top: 12px; padding-bottom: 0; }
+  .knob { width: 32px; height: 32px; }
   .key-hint { display: block; font-size: 8px; color: var(--muted); line-height: 2; text-align: right; letter-spacing: 0.03em; }
   .footer { display: block; text-align: center; margin-top: 12px; font-size: 7px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
 }
