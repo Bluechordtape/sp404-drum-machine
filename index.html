@@ -1775,10 +1775,6 @@ function applyKnob(key, v) {
   if (key === 'drive'  && tapeSatNode) tapeSatNode.curve = tapeClip(0.5 + v * 7.5);
 }
 
-initKnob('knobReverb', knobVals.reverb, v => applyKnob('reverb', v));
-initKnob('knobLofi',   knobVals.lofi,   v => applyKnob('lofi',   v));
-initKnob('knobDrive',  knobVals.drive,  v => applyKnob('drive',  v));
-
 // ─── Presets ──────────────────────────────────────────────────────────────────
 // { reverb, lofi, drive } all 0–1
 const PRESETS = [
