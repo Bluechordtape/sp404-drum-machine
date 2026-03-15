@@ -834,7 +834,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v2.5</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v2.6</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -2465,7 +2465,10 @@ function recordNote(idx) {
   // just before the loop restarts (seamless loop boundary crossing).
   const WRAP = 1 / (loopBars * BEATS_PER_BAR * 4); // 1/16 note of current loop
   if (norm > 1 - WRAP) norm -= 1;
-  loopNotes.push({ padIdx: idx, normTime: Math.max(-WRAP, Math.min(0.9999, norm)) });
+  const note = { padIdx: idx, normTime: Math.max(-WRAP, Math.min(0.9999, norm)) };
+  loopNotes.push(note);
+  // Live-update MIDI sheet if open (so new notes appear immediately while recording)
+  if (sheetOpen) { midiNotes.push({...note, normTime: snapNorm(note.normTime)}); requestDraw(); }
 }
 
 // ─── WAV encoder ──────────────────────────────────────────────────────────────
@@ -2687,6 +2690,8 @@ function openMidiGrid() {
   requestAnimationFrame(() => { resizeMidi(); startTransportPlayhead(); });
 }
 function closeMidiGrid() {
+  // Sync MIDI edits (drags, deletes) and newly recorded notes back to loopNotes
+  loopNotes.splice(0, loopNotes.length, ...midiNotes);
   sheetOpen = false;
   stopTransportPlayhead();
   _machine.classList.remove('sheet-mode');
