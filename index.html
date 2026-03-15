@@ -660,6 +660,7 @@ body {
 /* ── CHOP dedicated pads ── */
 .chop-ded-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
 .chop-ded-label { font-size: 8px; font-weight: 500; letter-spacing: 0.18em; color: rgba(221,216,208,0.4); text-transform: uppercase; }
+.chop-ded-hint { font-size: 8px; color: rgba(221,216,208,0.2); letter-spacing: 0.08em; }
 .chop-ded-actions { display: flex; gap: 4px; }
 .chop-ded-pads { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 4px; flex: 1; min-height: 0; }
 .chop-ded-pad { border-radius: 5px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; position: relative; overflow: hidden; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 36px; }
@@ -960,19 +961,9 @@ body {
       <div class="chop-pad-section">
         <div class="chop-ded-header">
           <span class="chop-ded-label">CHOP PADS</span>
-          <div class="chop-ded-actions">
-            <button class="btn-chop-rec" id="chopSheetRecBtn">● REC</button>
-            <button class="btn-chop-sheet" id="chopSheetViewBtn">SHEET</button>
-          </div>
+          <span class="chop-ded-hint">hold to clear</span>
         </div>
         <div class="chop-ded-pads" id="chopDedPads"></div>
-        <div class="chop-sheet-area" id="chopSheetArea">
-          <canvas class="chop-sheet-canvas" id="chopSheetCanvas"></canvas>
-          <div class="chop-sheet-btns">
-            <button class="btn-chop-clr" id="chopClearBtn">CLEAR</button>
-            <button class="btn-chop-midi" id="chopMidiBtn">↓ MIDI</button>
-          </div>
-        </div>
         <div id="chopMiniPads" style="display:none"></div>
       </div>
       <div class="chop-actions">
@@ -2376,8 +2367,9 @@ function scheduleLoopPass(passStartAudioTime) {
     loopPassTimeouts.push(setTimeout(() => {
       if (!transportOn) return;
       _isPlaybackTrigger = true;
-      _vol = padVolumes[n.padIdx] / 10;
-      if (chopBufs[n.padIdx]) { playChop(n.padIdx); } else { PADS[n.padIdx].fn(); }
+      _vol = (padVolumes[n.padIdx] ?? 10) / 10;
+      if (n.padIdx >= 16) { playDedPad(n.padIdx - 16); }
+      else if (chopBufs[n.padIdx]) { playChop(n.padIdx); } else { PADS[n.padIdx].fn(); }
       _isPlaybackTrigger = false;
     }, Math.max(0, delay)));
   });
@@ -2528,8 +2520,8 @@ function noteSize() {
   const s = Math.sqrt(midiZoom);
   return { w: Math.round(Math.max(8, 8*s)), h: Math.round(Math.min(LANE_H-2, Math.max(14, 14*s))) };
 }
-const PAD_SHORT = ['Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7','FX 1','FX 2','FX 3','FX 4','KICK','SNARE','HH-C','HH-O'];
-const PAD_COL   = ['#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#8e44ad','#8e44ad','#8e44ad','#8e44ad','#e74c3c','#e74c3c','#27ae60','#27ae60'];
+const PAD_SHORT = ['Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7','FX 1','FX 2','FX 3','FX 4','KICK','SNARE','HH-C','HH-O','CP1','CP2','CP3','CP4','CP5','CP6','CP7','CP8'];
+const PAD_COL   = ['#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#8e44ad','#8e44ad','#8e44ad','#8e44ad','#e74c3c','#e74c3c','#27ae60','#27ae60','#e87040','#5080d0','#50b080','#d0a020','#d05080','#8060c0','#40a0b0','#c06030'];
 
 let midiNotes = [], midiDur = 1, midiLoopBars = 1, midiQuantize = 16;
 let midiDragging = null, midiDragTapX = 0;
@@ -2578,11 +2570,13 @@ function drawMidi() {
   g.clearRect(0,0,midiCanvas.width,midiCanvas.height);
   g.save(); g.scale(dpr,dpr);
   g.fillStyle='#07111e'; g.fillRect(0,0,W,H);
-  for (let i=0;i<16;i++) {
+  for (let i=0;i<24;i++) {
     const y=i*LANE_H;
-    if (i%2===0){g.fillStyle='rgba(255,255,255,0.018)';g.fillRect(LABEL_W,y,gW,LANE_H);}
+    if (i===16){g.strokeStyle='rgba(245,158,11,0.25)';g.lineWidth=1;g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+    if (i%2===0){g.fillStyle=i>=16?'rgba(245,158,11,0.025)':'rgba(255,255,255,0.018)';g.fillRect(LABEL_W,y,gW,LANE_H);}
+    const lbl=i>=16?(chopDedMeta[i-16].name||`CP${i-15}`):i<8?DNAMES[i]:PAD_SHORT[i];
     g.fillStyle=PAD_COL[i]; g.font='8px "Public Sans",sans-serif'; g.textAlign='right';
-    g.fillText(i<8?DNAMES[i]:PAD_SHORT[i], LABEL_W-4, y+LANE_H/2+3);
+    g.fillText(lbl, LABEL_W-4, y+LANE_H/2+3);
     g.beginPath();g.moveTo(0,y+LANE_H);g.lineTo(W,y+LANE_H);
     g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
   }
@@ -2634,11 +2628,12 @@ function drawMidi() {
   const sx=midiGridWrap.scrollLeft;
   if(sx>0){
     g.fillStyle='#07111e'; g.fillRect(sx,0,LABEL_W,H);
-    for(let i=0;i<16;i++){
+    for(let i=0;i<24;i++){
       const y=i*LANE_H;
-      if(i%2===0){g.fillStyle='rgba(255,255,255,0.018)';g.fillRect(sx,y,LABEL_W,LANE_H);}
+      if(i%2===0){g.fillStyle=i>=16?'rgba(245,158,11,0.025)':'rgba(255,255,255,0.018)';g.fillRect(sx,y,LABEL_W,LANE_H);}
+      const lbl=i>=16?(chopDedMeta[i-16].name||`CP${i-15}`):i<8?DNAMES[i]:PAD_SHORT[i];
       g.fillStyle=PAD_COL[i]; g.font='8px "Public Sans",sans-serif'; g.textAlign='right';
-      g.fillText(i<8?DNAMES[i]:PAD_SHORT[i], sx+LABEL_W-4, y+LANE_H/2+3);
+      g.fillText(lbl, sx+LABEL_W-4, y+LANE_H/2+3);
       g.beginPath();g.moveTo(sx,y+LANE_H);g.lineTo(sx+LABEL_W,y+LANE_H);
       g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
     }
@@ -2668,7 +2663,7 @@ function resizeMidi() {
   const dpr=window.devicePixelRatio||1;
   const containerW=midiGridWrap.clientWidth;
   const W=Math.max(containerW, Math.round(containerW*midiZoom));
-  const H=16*LANE_H;
+  const H=24*LANE_H;
   midiCanvas.style.width=W+'px'; midiCanvas.style.height=H+'px';
   midiCanvas.width=W*dpr; midiCanvas.height=H*dpr; drawMidi();
 }
@@ -3253,19 +3248,11 @@ function playDedPad(i) {
   dedPlayInfo = { startRatio: chopDedMeta[i].startRatio, endRatio: chopDedMeta[i].endRatio, startTime: ctx.currentTime, duration: buf.duration };
   _animateDedPlayhead();
   chopDedPadsEl.children[i].classList.add('active');
-  if (isDedRecording && ctx) {
-    if (pendingDedNotes.size) pendingDedNotes.forEach((s,k) => { if(k!==i){ dedSheetNotes.push({pad:k, startSec:s, durSec:Math.max(0.05,ctx.currentTime-dedRecOrigin-s)}); pendingDedNotes.delete(k); }});
-    pendingDedNotes.set(i, ctx.currentTime - dedRecOrigin);
-  }
+  recordNote(16 + i);
   src.onended = () => {
     chopDedPadsEl.children[i].classList.remove('active');
     if (activeDedSrc[i] === src) activeDedSrc[i] = null;
     if (dedPlayIdx === i) { dedPlayIdx = -1; dedPlayInfo = null; drawWave(); }
-    if (isDedRecording && pendingDedNotes.has(i)) {
-      dedSheetNotes.push({pad:i, startSec: pendingDedNotes.get(i), durSec: Math.max(0.05, ctx.currentTime - dedRecOrigin - pendingDedNotes.get(i))});
-      pendingDedNotes.delete(i);
-      if (chopSheetAreaEl.classList.contains('open')) drawDedSheet();
-    }
   };
 }
 
@@ -3281,7 +3268,16 @@ chopDedPadsEl.addEventListener('pointerdown', e => {
   const el = e.target.closest('.chop-ded-pad'); if (!el) return;
   e.preventDefault();
   const i = +el.dataset.di; _dpLpIdx = i;
-  _dpLpTimer = setTimeout(() => { _dpLpTimer = null; _dpLpIdx = -1; }, 500);
+  _dpLpTimer = setTimeout(() => {
+    _dpLpTimer = null;
+    const ci = _dpLpIdx; _dpLpIdx = -1;
+    if (ci < 0 || !chopDedBufs[ci]) return;
+    chopDedBufs[ci] = null;
+    chopDedMeta[ci] = {startRatio:-1, endRatio:-1, name:'', color:''};
+    refreshDedPad(ci);
+    chopHint.textContent = `CHOP PAD ${ci+1} cleared`;
+    if (navigator.vibrate) navigator.vibrate(30);
+  }, 500);
 }, {passive: false});
 chopDedPadsEl.addEventListener('pointerup', e => {
   if (_dpLpTimer) {
@@ -3292,61 +3288,7 @@ chopDedPadsEl.addEventListener('pointerup', e => {
 }, {passive: true});
 chopDedPadsEl.addEventListener('pointercancel', () => { clearTimeout(_dpLpTimer); _dpLpTimer = null; _dpLpIdx = -1; }, {passive: true});
 
-// Sheet REC
-chopSheetRecBtn.addEventListener('click', () => {
-  if (!isDedRecording) {
-    boot(); isDedRecording = true; dedRecOrigin = ctx.currentTime;
-    chopSheetRecBtn.textContent = '■ STOP'; chopSheetRecBtn.classList.add('recording');
-  } else {
-    isDedRecording = false;
-    chopSheetRecBtn.textContent = '● REC'; chopSheetRecBtn.classList.remove('recording');
-    pendingDedNotes.forEach((s,k) => dedSheetNotes.push({pad:k, startSec:s, durSec:Math.max(0.05,ctx.currentTime-dedRecOrigin-s)}));
-    pendingDedNotes.clear();
-    if (chopSheetAreaEl.classList.contains('open')) drawDedSheet();
-  }
-});
-
-chopSheetViewBtn.addEventListener('click', () => {
-  const open = chopSheetAreaEl.classList.toggle('open');
-  chopSheetViewBtn.classList.toggle('active', open);
-  if (open) { resizeDedSheet(); drawDedSheet(); }
-});
-
-chopClearBtn.addEventListener('click', () => { dedSheetNotes.length = 0; drawDedSheet(); });
-
-chopMidiBtn.addEventListener('click', () => {
-  if (!dedSheetNotes.length) { alert('기록된 노트가 없습니다'); return; }
-  const buf = _buildMidi(dedSheetNotes);
-  const url = URL.createObjectURL(new Blob([buf], {type:'audio/midi'}));
-  const a = document.createElement('a'); a.href=url; a.download='bct-chop.mid'; a.click(); URL.revokeObjectURL(url);
-});
-
-function resizeDedSheet() {
-  const dpr = window.devicePixelRatio || 1;
-  const w = chopSheetCanvas.offsetWidth, h = chopSheetCanvas.offsetHeight;
-  chopSheetCanvas.width = Math.round(w*dpr); chopSheetCanvas.height = Math.round(h*dpr);
-  chopSheetCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-
-function drawDedSheet() {
-  const W = chopSheetCanvas.offsetWidth, H = chopSheetCanvas.offsetHeight; if(!W||!H) return;
-  chopSheetCtx.fillStyle = '#050d18'; chopSheetCtx.fillRect(0,0,W,H);
-  if (!dedSheetNotes.length) {
-    chopSheetCtx.fillStyle='rgba(221,216,208,0.2)'; chopSheetCtx.font='10px "Public Sans",sans-serif';
-    chopSheetCtx.textAlign='center'; chopSheetCtx.textBaseline='middle';
-    chopSheetCtx.fillText('REC 후 CHOP 패드를 연주하면 기록됩니다', W/2, H/2); return;
-  }
-  const totalDur = Math.max(...dedSheetNotes.map(n=>n.startSec+n.durSec), 1);
-  const rowH = H/8;
-  chopSheetCtx.strokeStyle='rgba(255,255,255,0.05)'; chopSheetCtx.lineWidth=0.5;
-  for(let i=1;i<8;i++){chopSheetCtx.beginPath();chopSheetCtx.moveTo(0,i*rowH);chopSheetCtx.lineTo(W,i*rowH);chopSheetCtx.stroke();}
-  dedSheetNotes.forEach(n => {
-    const x=(n.startSec/totalDur)*W, w=Math.max(4,(n.durSec/totalDur)*W), y=n.pad*rowH;
-    chopSheetCtx.fillStyle=DED_COLORS[n.pad%8];
-    chopSheetCtx.beginPath(); chopSheetCtx.roundRect(x,y+1,w,rowH-2,2); chopSheetCtx.fill();
-    if(w>14){chopSheetCtx.fillStyle='rgba(0,0,0,0.7)';chopSheetCtx.font='7px "Public Sans",sans-serif';chopSheetCtx.textAlign='left';chopSheetCtx.textBaseline='middle';chopSheetCtx.fillText(chopDedMeta[n.pad].name||`C${n.pad+1}`,x+3,y+rowH/2);}
-  });
-}
+// (Chop pad sheet integrated into main MIDI sheet — no separate sheet needed)
 
 function _buildMidi(notes) {
   const PPQ=480, BPM=120, mpb=Math.round(60000000/BPM);
