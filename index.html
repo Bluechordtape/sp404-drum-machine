@@ -834,7 +834,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v2.4</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v2.5</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -2247,6 +2247,8 @@ function _beginRecording(audioTime) {
   recBtnEl.className = 'rec-btn recording';
   recBtnEl.textContent = '\u25A0 REC';
   syncScreenMeta();
+  // Play back existing notes immediately on recording start (overdub from any view)
+  if (loopNotes.length > 0) scheduleLoopPass(audioTime);
   const delay = Math.max(0, (audioTime - ctx.currentTime - 0.03) * 1000);
   setTimeout(() => {
     if (mediaRec && mediaRec.state === 'inactive') {
