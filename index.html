@@ -636,7 +636,9 @@ body {
 /* ── Chop Overlay ── */
 .chop-overlay { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
 .chop-overlay.hidden { display: none; }
-.chop-modal { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.chop-modal { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; position: relative; }
+.chop-clear-confirm { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(7,17,30,0.82); }
+.chop-clear-confirm.hidden { display: none; }
 .chop-top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; flex-shrink: 0; }
 .chop-title { font-size: 10px; letter-spacing: 0.22em; color: #f59e0b; text-transform: uppercase; }
 .chop-wave-wrap { position: relative; height: 90px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #050d18; border: 1px solid var(--border); }
@@ -961,7 +963,7 @@ body {
       <div class="chop-pad-section">
         <div class="chop-ded-header">
           <span class="chop-ded-label">CHOP PADS</span>
-          <span class="chop-ded-hint">hold to clear</span>
+          <span class="chop-ded-hint">hold to clear (confirm)</span>
         </div>
         <div class="chop-ded-pads" id="chopDedPads"></div>
         <div id="chopMiniPads" style="display:none"></div>
@@ -969,6 +971,15 @@ body {
       <div class="chop-actions">
         <button class="chop-btn-action chop-btn-pre" id="chopPreBtn" disabled>▶ PRE</button>
         <button class="chop-btn-action chop-btn-do" id="chopDoBtn" disabled>CHOP</button>
+      </div>
+      <div id="chopClearConfirm" class="chop-clear-confirm hidden">
+        <div class="midi-delete-box">
+          <div class="midi-delete-msg" id="chopClearMsg">Clear this pad?</div>
+          <div class="midi-delete-btns">
+            <button class="midi-delete-btn cancel" id="chopClearNo">CANCEL</button>
+            <button class="midi-delete-btn ok" id="chopClearYes">CLEAR</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -3262,6 +3273,38 @@ function _animateDedPlayhead() {
   requestAnimationFrame(_animateDedPlayhead);
 }
 
+// Ded pad clear confirm
+let _chopClearIdx = -1, _chopClearShownAt = 0;
+function showChopClearConfirm(i) {
+  _chopClearIdx = i;
+  _chopClearShownAt = Date.now();
+  const dlg = document.getElementById('chopClearConfirm');
+  document.getElementById('chopClearMsg').textContent = `Clear CHOP PAD ${i+1}?`;
+  dlg.classList.remove('hidden');
+  dlg.querySelectorAll('.midi-delete-btn').forEach(b => b.style.pointerEvents = 'none');
+  setTimeout(() => dlg.querySelectorAll('.midi-delete-btn').forEach(b => b.style.pointerEvents = ''), 400);
+}
+function hideChopClearConfirm() {
+  _chopClearIdx = -1;
+  document.getElementById('chopClearConfirm').classList.add('hidden');
+}
+document.getElementById('chopClearYes').addEventListener('click', () => {
+  if (Date.now() - _chopClearShownAt < 350) return;
+  const ci = _chopClearIdx;
+  if (ci >= 0 && chopDedBufs[ci]) {
+    chopDedBufs[ci] = null;
+    chopDedMeta[ci] = {startRatio:-1, endRatio:-1, name:'', color:''};
+    refreshDedPad(ci);
+    chopHint.textContent = `CHOP PAD ${ci+1} cleared`;
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
+  hideChopClearConfirm();
+});
+document.getElementById('chopClearNo').addEventListener('click', () => {
+  if (Date.now() - _chopClearShownAt < 350) return;
+  hideChopClearConfirm();
+});
+
 // Ded pad tap events
 let _dpLpTimer = null, _dpLpIdx = -1;
 chopDedPadsEl.addEventListener('pointerdown', e => {
@@ -3272,11 +3315,8 @@ chopDedPadsEl.addEventListener('pointerdown', e => {
     _dpLpTimer = null;
     const ci = _dpLpIdx; _dpLpIdx = -1;
     if (ci < 0 || !chopDedBufs[ci]) return;
-    chopDedBufs[ci] = null;
-    chopDedMeta[ci] = {startRatio:-1, endRatio:-1, name:'', color:''};
-    refreshDedPad(ci);
-    chopHint.textContent = `CHOP PAD ${ci+1} cleared`;
-    if (navigator.vibrate) navigator.vibrate(30);
+    if (navigator.vibrate) navigator.vibrate(20);
+    showChopClearConfirm(ci);
   }, 500);
 }, {passive: false});
 chopDedPadsEl.addEventListener('pointerup', e => {
