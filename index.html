@@ -657,6 +657,29 @@ body {
 .chop-mini-pad.target .cmp-num { color: #f59e0b; }
 .chop-mini-pad.has-chop { border-color: rgba(245,158,11,0.6); background: rgba(245,158,11,0.1); color: #f59e0b; }
 .chop-mini-pad.target { border-color: #f59e0b; box-shadow: 0 0 0 1.5px #f59e0b; background: rgba(245,158,11,0.22); color: #f59e0b; }
+/* ── CHOP dedicated pads ── */
+.chop-ded-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+.chop-ded-label { font-size: 8px; font-weight: 500; letter-spacing: 0.18em; color: rgba(221,216,208,0.4); text-transform: uppercase; }
+.chop-ded-actions { display: flex; gap: 4px; }
+.chop-ded-pads { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 4px; flex: 1; min-height: 0; }
+.chop-ded-pad { border-radius: 5px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; position: relative; overflow: hidden; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 36px; }
+.chop-ded-pad.filled { border-color: transparent; }
+.chop-ded-pad.active { filter: brightness(1.5); }
+.chop-ded-pad-num { font-size: 7px; color: rgba(221,216,208,0.25); position: absolute; top: 3px; left: 4px; }
+.chop-ded-pad-key { font-size: 7px; color: rgba(221,216,208,0.2); position: absolute; bottom: 3px; right: 4px; }
+.chop-ded-pad-name { font-size: 9px; font-weight: 600; color: rgba(0,0,0,0.75); }
+.chop-ded-pad-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(221,216,208,0.12); }
+.btn-chop-rec, .btn-chop-sheet { background: transparent; border-radius: 4px; font-family: 'Public Sans', sans-serif; font-size: 9px; font-weight: 500; letter-spacing: 0.1em; cursor: pointer; touch-action: manipulation; padding: 3px 8px; }
+.btn-chop-rec { border: 1px solid rgba(192,64,48,0.5); color: #c04030; }
+.btn-chop-rec.recording { background: #c04030; color: #fff; border-color: #c04030; }
+.btn-chop-sheet { border: 1px solid var(--border); color: rgba(221,216,208,0.4); }
+.btn-chop-sheet.active { border-color: #f59e0b; color: #f59e0b; }
+.chop-sheet-area { display: none; flex-direction: column; gap: 4px; margin-top: 4px; }
+.chop-sheet-area.open { display: flex; }
+.chop-sheet-canvas { width: 100%; height: 72px; border-radius: 4px; background: var(--surface2); display: block; }
+.chop-sheet-btns { display: flex; gap: 4px; justify-content: flex-end; }
+.btn-chop-clr, .btn-chop-midi { background: transparent; border-radius: 4px; font-family: 'Public Sans', sans-serif; font-size: 9px; font-weight: 500; letter-spacing: 0.1em; cursor: pointer; touch-action: manipulation; padding: 3px 8px; border: 1px solid var(--border); color: rgba(221,216,208,0.4); }
+.btn-chop-clr { border-color: rgba(192,64,48,0.3); color: rgba(192,64,48,0.6); }
 .chop-actions { display: flex; gap: 8px; padding-top: 5px; padding-bottom: 2px; flex-shrink: 0; }
 .chop-btn-action { flex: 1; padding: 8px 0; border-radius: 5px; border: none; font-family: 'Public Sans', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .chop-btn-pre { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
@@ -935,7 +958,22 @@ body {
         </div>
       </div>
       <div class="chop-pad-section">
-        <div class="chop-mini-pads" id="chopMiniPads"></div>
+        <div class="chop-ded-header">
+          <span class="chop-ded-label">CHOP PADS</span>
+          <div class="chop-ded-actions">
+            <button class="btn-chop-rec" id="chopSheetRecBtn">● REC</button>
+            <button class="btn-chop-sheet" id="chopSheetViewBtn">SHEET</button>
+          </div>
+        </div>
+        <div class="chop-ded-pads" id="chopDedPads"></div>
+        <div class="chop-sheet-area" id="chopSheetArea">
+          <canvas class="chop-sheet-canvas" id="chopSheetCanvas"></canvas>
+          <div class="chop-sheet-btns">
+            <button class="btn-chop-clr" id="chopClearBtn">CLEAR</button>
+            <button class="btn-chop-midi" id="chopMidiBtn">↓ MIDI</button>
+          </div>
+        </div>
+        <div id="chopMiniPads" style="display:none"></div>
       </div>
       <div class="chop-actions">
         <button class="chop-btn-action chop-btn-pre" id="chopPreBtn" disabled>▶ PRE</button>
@@ -1863,7 +1901,11 @@ const KEY_CODES = ['Digit1','Digit2','Digit3','Digit4','KeyQ','KeyW','KeyE','Key
 const keyMap = Object.fromEntries(KEY_CODES.map((code, i) => [code, i]));
 document.addEventListener('keydown', e => {
   if (e.repeat || e.ctrlKey || e.metaKey) return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   if (!document.getElementById('midiOverlay').classList.contains('hidden')) return;
+  // CHOP ded pad keys: 5-8, T-Y-U-I
+  const dedKeyMap = {'Digit5':0,'Digit6':1,'Digit7':2,'Digit8':3,'KeyT':4,'KeyY':5,'KeyU':6,'KeyI':7};
+  if (e.code in dedKeyMap && chopOpen) { e.preventDefault(); boot(); playDedPad(dedKeyMap[e.code]); return; }
   if (e.code in keyMap) { e.preventDefault(); trigger(keyMap[e.code]); }
 });
 
@@ -2914,6 +2956,35 @@ function drawWave() {
     g.fillStyle = 'rgba(255,255,255,0.06)'; g.fillRect(0, bY, W, bH);
     g.fillStyle = 'rgba(245,158,11,0.55)'; g.fillRect(viewStart * W, bY, (viewEnd - viewStart) * W, bH);
   }
+  // PRE playhead (yellow)
+  if (previewSrc && ctx && previewStartRatio >= 0) {
+    const elapsed = ctx.currentTime - previewStartTime + previewOffset;
+    const dur = previewSlicedBuf ? previewSlicedBuf.duration : 1;
+    const progress = Math.min(1, elapsed / Math.max(0.001, dur));
+    const bufPos = previewStartRatio + progress * (previewEndRatio - previewStartRatio);
+    const px = chopBufToCanvas(bufPos, W);
+    if (px >= 0 && px <= W) {
+      g.shadowColor = 'rgba(255,220,80,0.5)'; g.shadowBlur = 5;
+      g.strokeStyle = 'rgba(255,220,80,0.95)'; g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(px, 0); g.lineTo(px, H); g.stroke();
+      g.fillStyle = 'rgba(255,220,80,0.95)';
+      g.beginPath(); g.moveTo(px-5,0); g.lineTo(px+5,0); g.lineTo(px,7); g.closePath(); g.fill();
+      g.shadowBlur = 0;
+    }
+  }
+  // Chop ded pad playhead (white)
+  if (dedPlayIdx >= 0 && ctx && dedPlayInfo) {
+    const elapsed = ctx.currentTime - dedPlayInfo.startTime;
+    const progress = Math.min(1, elapsed / Math.max(0.001, dedPlayInfo.duration));
+    const bufPos = dedPlayInfo.startRatio + progress * (dedPlayInfo.endRatio - dedPlayInfo.startRatio);
+    const px = chopBufToCanvas(bufPos, W);
+    if (px >= 0 && px <= W) {
+      g.shadowColor = 'rgba(255,255,255,0.4)'; g.shadowBlur = 4;
+      g.strokeStyle = 'rgba(255,255,255,0.85)'; g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(px, 0); g.lineTo(px, H); g.stroke();
+      g.shadowBlur = 0;
+    }
+  }
   g.restore();
 }
 
@@ -2927,10 +2998,15 @@ chopCanvas.addEventListener('pointerdown', e => {
   chopCanvas.setPointerCapture(e.pointerId);
   _wPtrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (_wPtrs.size === 1) {
-    _wDrag = true;
     const r = chopCanvas.getBoundingClientRect();
-    selA = Math.max(0, Math.min(1, chopCanvasToBuf(e.clientX - r.left, r.width)));
-    selB = selA; drawWave();
+    const bufRat = Math.max(0, Math.min(1, chopCanvasToBuf(e.clientX - r.left, r.width)));
+    if (previewSrc) {
+      _preIsSeeking = true;
+      _seekPreview(bufRat);
+    } else {
+      _wDrag = true;
+      selA = bufRat; selB = selA; drawWave();
+    }
   } else if (_wPtrs.size === 2) {
     _wDrag = false;
     const pts = [..._wPtrs.values()];
@@ -2956,6 +3032,12 @@ chopCanvas.addEventListener('pointermove', e => {
     if (ns < 0) { ns = 0; ne = newLen; }
     if (ne > 1) { ne = 1; ns = Math.max(0, 1 - newLen); }
     viewStart = ns; viewEnd = ne; drawWave();
+  } else if (_preIsSeeking && _wPtrs.size === 1 && previewSrc) {
+    _preSeekTarget = Math.max(0, Math.min(1, chopCanvasToBuf(e.clientX - r.left, r.width)));
+    if (!_preSeekRaf) _preSeekRaf = requestAnimationFrame(() => {
+      _preSeekRaf = null;
+      if (_preIsSeeking && _preSeekTarget >= 0) _seekPreview(_preSeekTarget);
+    });
   } else if (_wDrag && _wPtrs.size === 1) {
     selB = Math.max(0, Math.min(1, chopCanvasToBuf(e.clientX - r.left, r.width)));
     drawWave();
@@ -2966,6 +3048,7 @@ function _wPtrEnd(e) {
   _wPtrs.delete(e.pointerId);
   if (_wPtrs.size === 0) {
     _wPinchV0 = null;
+    _preIsSeeking = false; _preSeekRaf = null; _preSeekTarget = -1;
     if (_wDrag) {
       _wDrag = false;
       const span = Math.abs(selB - selA);
@@ -3059,36 +3142,248 @@ async function startChopRec(mode) {
 chopMicBtn.addEventListener('click', () => startChopRec('mic'));
 chopSysBtn.addEventListener('click', () => startChopRec('sys'));
 
+// Preview state tracking
+let previewSlicedBuf = null, previewStartRatio = -1, previewEndRatio = -1;
+let previewStartTime = 0, previewOffset = 0;
+let _preIsSeeking = false, _preSeekRaf = null, _preSeekTarget = -1;
+
+function _stopPreview() {
+  if (previewSrc) { try { previewSrc.stop(); } catch(e){} previewSrc = null; }
+  previewStartRatio = -1;
+  _preIsSeeking = false;
+  chopPreBtn.textContent = '▶ PRE';
+  chopPreBtn.classList.remove('playing');
+  drawWave();
+}
+
+function _startPreviewFrom(offsetSec) {
+  if (previewSrc) { try { previewSrc.stop(); } catch(e){} previewSrc = null; }
+  const src = ctx.createBufferSource();
+  src.buffer = previewSlicedBuf;
+  src.connect(ctx.destination);
+  src.start(0, Math.max(0, Math.min(previewSlicedBuf.duration - 0.001, offsetSec)));
+  previewSrc = src;
+  previewStartTime = ctx.currentTime;
+  previewOffset = offsetSec;
+  src.onended = () => { if (previewSrc === src) _stopPreview(); };
+  _animatePreview();
+}
+
+function _animatePreview() {
+  if (!previewSrc) return;
+  drawWave();
+  requestAnimationFrame(_animatePreview);
+}
+
+function _seekPreview(bufRatio) {
+  if (!previewSlicedBuf || previewStartRatio < 0) return;
+  const clamped = Math.max(previewStartRatio, Math.min(previewEndRatio, bufRatio));
+  const offsetSec = ((clamped - previewStartRatio) / (previewEndRatio - previewStartRatio)) * previewSlicedBuf.duration;
+  _startPreviewFrom(offsetSec);
+}
+
 // Preview
 chopPreBtn.addEventListener('click', () => {
   boot();
   if (!waveBuffer) return;
-  if (previewSrc) {
-    try { previewSrc.stop(); } catch (e) {} previewSrc = null;
-    chopPreBtn.classList.remove('playing'); return;
-  }
-  const sl = sliceChopBuffer(waveBuffer, Math.min(selA, selB), Math.max(selA, selB));
-  const src = ctx.createBufferSource();
-  src.buffer = sl; src.connect(ctx.destination); src.start();
-  previewSrc = src; chopPreBtn.classList.add('playing');
-  src.onended = () => { previewSrc = null; chopPreBtn.classList.remove('playing'); };
+  if (previewSrc) { _stopPreview(); return; }
+  const s = Math.min(selA, selB), e = Math.max(selA, selB);
+  if (e - s < 0.001) return;
+  previewSlicedBuf = sliceChopBuffer(waveBuffer, s, e);
+  previewStartRatio = s; previewEndRatio = e;
+  chopPreBtn.textContent = '■ PRE';
+  chopPreBtn.classList.add('playing');
+  _startPreviewFrom(0);
 });
 
-// Chop → assign to target pad
+// ─── CHOP Dedicated Pads ───────────────────────────────────────────────────────
+const DED_COLORS = ['#e87040','#5080d0','#50b080','#d0a020','#d05080','#8060c0','#40a0b0','#c06030'];
+const DED_KEYS   = ['5','6','7','8','t','y','u','i'];
+const chopDedBufs   = new Array(8).fill(null);
+const chopDedMeta   = Array.from({length:8}, () => ({startRatio:-1, endRatio:-1, name:'', color:''}));
+const activeDedSrc  = new Array(8).fill(null);
+let dedPlayIdx = -1, dedPlayInfo = null;
+
+// Sheet recording
+const dedSheetNotes = [];
+let isDedRecording = false, dedRecOrigin = 0;
+const pendingDedNotes = new Map();
+
+const chopDedPadsEl    = document.getElementById('chopDedPads');
+const chopSheetAreaEl  = document.getElementById('chopSheetArea');
+const chopSheetCanvas  = document.getElementById('chopSheetCanvas');
+const chopSheetRecBtn  = document.getElementById('chopSheetRecBtn');
+const chopSheetViewBtn = document.getElementById('chopSheetViewBtn');
+const chopClearBtn     = document.getElementById('chopClearBtn');
+const chopMidiBtn      = document.getElementById('chopMidiBtn');
+const chopSheetCtx     = chopSheetCanvas.getContext('2d');
+
+// Build ded pads DOM
+for (let i = 0; i < 8; i++) {
+  const el = document.createElement('div');
+  el.className = 'chop-ded-pad';
+  el.dataset.di = i;
+  el.innerHTML = `<span class="chop-ded-pad-num">${i+1}</span><span class="chop-ded-pad-name"></span><span class="chop-ded-pad-key">${DED_KEYS[i].toUpperCase()}</span>`;
+  chopDedPadsEl.appendChild(el);
+}
+
+function refreshDedPad(i) {
+  const el = chopDedPadsEl.children[i];
+  const m  = chopDedMeta[i];
+  el.classList.toggle('filled', !!chopDedBufs[i]);
+  el.style.background = chopDedBufs[i] ? m.color : '';
+  el.querySelector('.chop-ded-pad-name').textContent = chopDedBufs[i] ? m.name : '';
+  let dot = el.querySelector('.chop-ded-pad-dot');
+  if (!chopDedBufs[i]) {
+    if (!dot) { dot = document.createElement('div'); dot.className = 'chop-ded-pad-dot'; el.appendChild(dot); }
+  } else { if (dot) dot.remove(); }
+}
+for (let i = 0; i < 8; i++) refreshDedPad(i);
+
+function playDedPad(i) {
+  const buf = chopDedBufs[i]; if (!buf || !ctx) return;
+  for (let j = 0; j < 8; j++) {
+    if (activeDedSrc[j]) { try { activeDedSrc[j].stop(); } catch(e){} activeDedSrc[j] = null; chopDedPadsEl.children[j].classList.remove('active'); }
+  }
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const gn = ctx.createGain(); gn.gain.value = _vol;
+  src.connect(gn); gn.connect(ctx.destination); src.start();
+  activeDedSrc[i] = src;
+  dedPlayIdx = i;
+  dedPlayInfo = { startRatio: chopDedMeta[i].startRatio, endRatio: chopDedMeta[i].endRatio, startTime: ctx.currentTime, duration: buf.duration };
+  _animateDedPlayhead();
+  chopDedPadsEl.children[i].classList.add('active');
+  if (isDedRecording && ctx) {
+    if (pendingDedNotes.size) pendingDedNotes.forEach((s,k) => { if(k!==i){ dedSheetNotes.push({pad:k, startSec:s, durSec:Math.max(0.05,ctx.currentTime-dedRecOrigin-s)}); pendingDedNotes.delete(k); }});
+    pendingDedNotes.set(i, ctx.currentTime - dedRecOrigin);
+  }
+  src.onended = () => {
+    chopDedPadsEl.children[i].classList.remove('active');
+    if (activeDedSrc[i] === src) activeDedSrc[i] = null;
+    if (dedPlayIdx === i) { dedPlayIdx = -1; dedPlayInfo = null; drawWave(); }
+    if (isDedRecording && pendingDedNotes.has(i)) {
+      dedSheetNotes.push({pad:i, startSec: pendingDedNotes.get(i), durSec: Math.max(0.05, ctx.currentTime - dedRecOrigin - pendingDedNotes.get(i))});
+      pendingDedNotes.delete(i);
+      if (chopSheetAreaEl.classList.contains('open')) drawDedSheet();
+    }
+  };
+}
+
+function _animateDedPlayhead() {
+  if (dedPlayIdx < 0) return;
+  drawWave();
+  requestAnimationFrame(_animateDedPlayhead);
+}
+
+// Ded pad tap events
+let _dpLpTimer = null, _dpLpIdx = -1;
+chopDedPadsEl.addEventListener('pointerdown', e => {
+  const el = e.target.closest('.chop-ded-pad'); if (!el) return;
+  e.preventDefault();
+  const i = +el.dataset.di; _dpLpIdx = i;
+  _dpLpTimer = setTimeout(() => { _dpLpTimer = null; _dpLpIdx = -1; }, 500);
+}, {passive: false});
+chopDedPadsEl.addEventListener('pointerup', e => {
+  if (_dpLpTimer) {
+    clearTimeout(_dpLpTimer); _dpLpTimer = null;
+    const i = _dpLpIdx; _dpLpIdx = -1;
+    if (i < 0) return; boot(); playDedPad(i);
+  } else { _dpLpIdx = -1; }
+}, {passive: true});
+chopDedPadsEl.addEventListener('pointercancel', () => { clearTimeout(_dpLpTimer); _dpLpTimer = null; _dpLpIdx = -1; }, {passive: true});
+
+// Sheet REC
+chopSheetRecBtn.addEventListener('click', () => {
+  if (!isDedRecording) {
+    boot(); isDedRecording = true; dedRecOrigin = ctx.currentTime;
+    chopSheetRecBtn.textContent = '■ STOP'; chopSheetRecBtn.classList.add('recording');
+  } else {
+    isDedRecording = false;
+    chopSheetRecBtn.textContent = '● REC'; chopSheetRecBtn.classList.remove('recording');
+    pendingDedNotes.forEach((s,k) => dedSheetNotes.push({pad:k, startSec:s, durSec:Math.max(0.05,ctx.currentTime-dedRecOrigin-s)}));
+    pendingDedNotes.clear();
+    if (chopSheetAreaEl.classList.contains('open')) drawDedSheet();
+  }
+});
+
+chopSheetViewBtn.addEventListener('click', () => {
+  const open = chopSheetAreaEl.classList.toggle('open');
+  chopSheetViewBtn.classList.toggle('active', open);
+  if (open) { resizeDedSheet(); drawDedSheet(); }
+});
+
+chopClearBtn.addEventListener('click', () => { dedSheetNotes.length = 0; drawDedSheet(); });
+
+chopMidiBtn.addEventListener('click', () => {
+  if (!dedSheetNotes.length) { alert('기록된 노트가 없습니다'); return; }
+  const buf = _buildMidi(dedSheetNotes);
+  const url = URL.createObjectURL(new Blob([buf], {type:'audio/midi'}));
+  const a = document.createElement('a'); a.href=url; a.download='bct-chop.mid'; a.click(); URL.revokeObjectURL(url);
+});
+
+function resizeDedSheet() {
+  const dpr = window.devicePixelRatio || 1;
+  const w = chopSheetCanvas.offsetWidth, h = chopSheetCanvas.offsetHeight;
+  chopSheetCanvas.width = Math.round(w*dpr); chopSheetCanvas.height = Math.round(h*dpr);
+  chopSheetCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function drawDedSheet() {
+  const W = chopSheetCanvas.offsetWidth, H = chopSheetCanvas.offsetHeight; if(!W||!H) return;
+  chopSheetCtx.fillStyle = '#050d18'; chopSheetCtx.fillRect(0,0,W,H);
+  if (!dedSheetNotes.length) {
+    chopSheetCtx.fillStyle='rgba(221,216,208,0.2)'; chopSheetCtx.font='10px "Public Sans",sans-serif';
+    chopSheetCtx.textAlign='center'; chopSheetCtx.textBaseline='middle';
+    chopSheetCtx.fillText('REC 후 CHOP 패드를 연주하면 기록됩니다', W/2, H/2); return;
+  }
+  const totalDur = Math.max(...dedSheetNotes.map(n=>n.startSec+n.durSec), 1);
+  const rowH = H/8;
+  chopSheetCtx.strokeStyle='rgba(255,255,255,0.05)'; chopSheetCtx.lineWidth=0.5;
+  for(let i=1;i<8;i++){chopSheetCtx.beginPath();chopSheetCtx.moveTo(0,i*rowH);chopSheetCtx.lineTo(W,i*rowH);chopSheetCtx.stroke();}
+  dedSheetNotes.forEach(n => {
+    const x=(n.startSec/totalDur)*W, w=Math.max(4,(n.durSec/totalDur)*W), y=n.pad*rowH;
+    chopSheetCtx.fillStyle=DED_COLORS[n.pad%8];
+    chopSheetCtx.beginPath(); chopSheetCtx.roundRect(x,y+1,w,rowH-2,2); chopSheetCtx.fill();
+    if(w>14){chopSheetCtx.fillStyle='rgba(0,0,0,0.7)';chopSheetCtx.font='7px "Public Sans",sans-serif';chopSheetCtx.textAlign='left';chopSheetCtx.textBaseline='middle';chopSheetCtx.fillText(chopDedMeta[n.pad].name||`C${n.pad+1}`,x+3,y+rowH/2);}
+  });
+}
+
+function _buildMidi(notes) {
+  const PPQ=480, BPM=120, mpb=Math.round(60000000/BPM);
+  const s2t=s=>Math.round(s*PPQ*BPM/60);
+  const NOTE=[60,62,64,65,67,69,71,72];
+  function vlq(n){const b=[n&0x7F];n>>=7;while(n>0){b.unshift((n&0x7F)|0x80);n>>=7;}return b;}
+  const evs=[];
+  notes.forEach(n=>{evs.push({t:s2t(n.startSec),on:true,note:NOTE[n.pad%8]});evs.push({t:s2t(n.startSec+n.durSec),on:false,note:NOTE[n.pad%8]});});
+  evs.sort((a,b)=>a.t-b.t);
+  const tk=[];
+  tk.push(...vlq(0),0xFF,0x51,0x03,(mpb>>16)&0xFF,(mpb>>8)&0xFF,mpb&0xFF);
+  let prev=0; evs.forEach(ev=>{const d=ev.t-prev;prev=ev.t;tk.push(...vlq(d),ev.on?0x90:0x80,ev.note,ev.on?100:0);});
+  tk.push(...vlq(0),0xFF,0x2F,0x00);
+  const buf=new ArrayBuffer(14+8+tk.length); const v=new DataView(buf); let off=0;
+  [0x4D,0x54,0x68,0x64].forEach(b=>v.setUint8(off++,b)); v.setUint32(off,6,false);off+=4;
+  v.setUint16(off,0,false);off+=2; v.setUint16(off,1,false);off+=2; v.setUint16(off,PPQ,false);off+=2;
+  [0x4D,0x54,0x72,0x6B].forEach(b=>v.setUint8(off++,b)); v.setUint32(off,tk.length,false);off+=4;
+  tk.forEach(b=>v.setUint8(off++,b)); return buf;
+}
+
+// Chop → assign to dedicated pad
 chopDoBtn.addEventListener('click', () => {
   if (!waveBuffer || selA < 0) return;
   boot();
+  const s = Math.min(selA, selB), e = Math.max(selA, selB);
+  if (e - s < 0.001) { chopHint.textContent = '구간을 더 크게 선택하세요'; return; }
+  const idx = chopDedBufs.findIndex(b => !b);
+  if (idx === -1) { chopHint.textContent = 'CHOP 패드가 꽉 찼습니다 (8/8)'; return; }
   chopCount++;
   const name = 'C' + chopCount;
-  const buf = sliceChopBuffer(waveBuffer, Math.min(selA, selB), Math.max(selA, selB));
-  chopBufs[chopTarget] = buf;
-  DNAMES[chopTarget] = name;
-  padEls[chopTarget].querySelector('.pad-name').textContent = name;
-  padEls[chopTarget].classList.add('chop');
-  const prev = chopTarget;
-  chopTarget = (chopTarget + 1) % 16;
-  updateChopMiniPads();
-  chopHint.textContent = `✓ ${name} → PAD ${prev + 1}  next → PAD ${chopTarget + 1}`;
+  const buf = sliceChopBuffer(waveBuffer, s, e);
+  chopDedBufs[idx] = buf;
+  chopDedMeta[idx] = { startRatio: s, endRatio: e, name, color: DED_COLORS[idx] };
+  refreshDedPad(idx);
+  const el = chopDedPadsEl.children[idx];
+  el.classList.add('active'); setTimeout(() => el.classList.remove('active'), 180);
+  chopHint.textContent = `✓ ${name} → CHOP PAD ${idx+1}`;
 });
 
 // sliceChopBuffer: extract a portion of an AudioBuffer
