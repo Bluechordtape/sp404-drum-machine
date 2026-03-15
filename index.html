@@ -2,6 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -99,6 +102,9 @@ body {
 /* MIDI sheet mode: hide pad controls, show only canvas area */
 .machine.sheet-mode .controls { display: none; }
 .machine.sheet-mode #padGrid { display: none !important; }
+/* CHOP mode: hide pad grid and controls, maximize chop area */
+.machine.chop-mode .controls { display: none; }
+.machine.chop-mode #padGrid { display: none !important; }
 
 /* ── Header ── */
 .header {
@@ -223,13 +229,13 @@ body {
 
 /* ── Controls & Footer ── */
 .controls {
-  display: flex; flex-direction: column;
+  display: flex; flex-direction: row; align-items: center;
   padding: 5px 4px 4px; border-top: 1px solid var(--border);
-  gap: 6px; flex-shrink: 0;
+  gap: 8px; flex-shrink: 0;
 }
-.controls-top { display: flex; align-items: center; gap: 12px; }
+.controls-top { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .preset-row {
-  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 3px; flex: 1; flex-wrap: nowrap; overflow-x: auto;
 }
 .preset-label {
   font-size: 7px; letter-spacing: 0.15em; color: var(--muted);
@@ -526,7 +532,27 @@ body {
   flex: 1; min-height: 0; overflow: hidden;
 }
 .midi-overlay.hidden { display: none; }
-.midi-modal { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.midi-modal { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; position: relative; }
+/* Delete confirm overlay */
+.midi-delete-confirm {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(7,17,30,0.82);
+}
+.midi-delete-confirm.hidden { display: none; }
+.midi-delete-box {
+  background: #131f2e; border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 10px; padding: 18px 22px; text-align: center; min-width: 190px;
+}
+.midi-delete-msg { font-size: 11px; color: #ccc; letter-spacing: 0.05em; margin-bottom: 14px; }
+.midi-delete-btns { display: flex; gap: 8px; justify-content: center; }
+.midi-delete-btn {
+  flex: 1; padding: 7px 0; border-radius: 4px; border: none; cursor: pointer;
+  font-family: 'Public Sans', sans-serif; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; -webkit-tap-highlight-color: transparent;
+}
+.midi-delete-btn.cancel { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+.midi-delete-btn.ok { background: #c02020; color: #fff; }
 .midi-top {
   display: flex; align-items: center; justify-content: space-between;
   padding-bottom: 10px; flex-shrink: 0;
@@ -590,10 +616,55 @@ body {
 .sheet-btn:active { background: rgba(26,58,255,0.1); color: var(--primary); border-color: var(--primary); }
 @media (hover: hover) and (pointer: fine) and (min-width: 500px) {
   .sheet-btn { font-size: 10px; padding: 5px 10px; }
+  .chop-btn { font-size: 10px; padding: 5px 12px; }
 }
 
 /* ── Sheet btn active state & back button ── */
 .sheet-btn.active { color: var(--primary); border-color: var(--primary); background: rgba(26,58,255,0.1); }
+
+/* ── Chop Button ── */
+.chop-btn { font-family: 'Public Sans', sans-serif; font-size: 9px; letter-spacing: 0.1em; font-weight: 500; text-transform: uppercase; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: 3px 8px; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; flex-shrink: 0; }
+.chop-btn.active { color: #f59e0b; border-color: #f59e0b; background: rgba(245,158,11,0.1); }
+/* ── Chop mode: hide pad grid + controls ── */
+.machine.chop-mode .controls { display: none; }
+.machine.chop-mode #padGrid { display: none !important; }
+/* ── MIDI/CHOP mode: hide irrelevant chrome ── */
+.machine.sheet-mode .bct-screen,
+.machine.chop-mode  .bct-screen { display: none; }
+.machine.sheet-mode .led-strip,
+.machine.chop-mode  .led-strip  { display: none; }
+/* ── Chop Overlay ── */
+.chop-overlay { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+.chop-overlay.hidden { display: none; }
+.chop-modal { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.chop-top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; flex-shrink: 0; }
+.chop-title { font-size: 10px; letter-spacing: 0.22em; color: #f59e0b; text-transform: uppercase; }
+.chop-wave-wrap { position: relative; height: 90px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #050d18; border: 1px solid var(--border); }
+#chopCanvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.chop-src-row { position: absolute; bottom: 0; left: 0; right: 0; display: flex; align-items: center; gap: 4px; padding: 4px 6px; background: linear-gradient(transparent, rgba(5,13,24,0.9)); z-index: 1; }
+.chop-hint { font-size: 8px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.chop-sel-info { font-size: 8px; color: #f59e0b; letter-spacing: 0.08em; flex: 1; text-align: right; }
+.chop-src-btn { font-family: 'Public Sans', sans-serif; font-size: 8px; letter-spacing: 0.08em; color: rgba(221,216,208,0.75); background: rgba(9,21,34,0.7); border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; padding: 3px 8px; cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0; backdrop-filter: blur(4px); }
+.chop-src-btn.recording { background: rgba(192,32,32,0.85); color: #fff; border-color: #c02020; animation: recPulse 0.7s ease infinite; }
+.chop-pad-section { padding-top: 5px; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.chop-mini-pads { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 4px; min-height: 0; }
+.chop-mini-pad { border-radius: 5px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 0 5px 0 10px; font-family: 'Public Sans', sans-serif; -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden; touch-action: manipulation; }
+.chop-mini-pad::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--pc, var(--border)); }
+.cmp-num { font-size: 9px; color: var(--muted); flex-shrink: 0; }
+.cmp-name { font-size: 9px; color: rgba(255,255,255,0.75); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chop-mini-pad.has-chop { border-color: rgba(245,158,11,0.45); background: rgba(245,158,11,0.07); }
+.chop-mini-pad.target { border-color: #f59e0b; box-shadow: 0 0 0 1.5px #f59e0b; }
+.chop-mini-pad.target .cmp-num { color: #f59e0b; }
+.chop-mini-pad.has-chop { border-color: rgba(245,158,11,0.6); background: rgba(245,158,11,0.1); color: #f59e0b; }
+.chop-mini-pad.target { border-color: #f59e0b; box-shadow: 0 0 0 1.5px #f59e0b; background: rgba(245,158,11,0.22); color: #f59e0b; }
+.chop-actions { display: flex; gap: 8px; padding-top: 5px; padding-bottom: 2px; flex-shrink: 0; }
+.chop-btn-action { flex: 1; padding: 8px 0; border-radius: 5px; border: none; font-family: 'Public Sans', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.chop-btn-pre { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.chop-btn-pre.playing { background: #c04030; color: #fff; border-color: #c04030; }
+.chop-btn-do { background: #f59e0b; color: #07111e; }
+.chop-btn-do:disabled { opacity: 0.35; }
+.pad.chop { border-color: rgba(245,158,11,0.5); }
+
 .midi-back-btn {
   font-family: 'Public Sans', sans-serif; font-size: 9px;
   letter-spacing: 0.1em; font-weight: 500; text-transform: uppercase;
@@ -739,7 +810,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v1.4</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v2.3</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -775,7 +846,7 @@ body {
       </div>
       <button class="play-btn" id="playBtn">&#9654; PLAY</button>
       <button class="rec-btn" id="recBtn">&#9679; REC</button>
-      <button class="sheet-btn" id="sheetBtn">SHEET</button>
+      <button class="sheet-btn" id="sheetBtn">SHEET</button><button class="chop-btn" id="chopBtn">CHOP</button>
     </div>
   </div>
 
@@ -834,6 +905,42 @@ body {
         <button class="midi-action-btn clear" id="midiClear">&#10005; CLEAR</button>
         <button class="midi-action-btn wav" id="midiWav" disabled>&#8595; WAV</button>
       </div>
+      <div id="midiDeleteConfirm" class="midi-delete-confirm hidden">
+        <div class="midi-delete-box">
+          <div class="midi-delete-msg">Delete this note?</div>
+          <div class="midi-delete-btns">
+            <button class="midi-delete-btn cancel" id="midiDeleteNo">CANCEL</button>
+            <button class="midi-delete-btn ok" id="midiDeleteYes">DELETE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHOP view -->
+  <div id="chopOverlay" class="chop-overlay hidden">
+    <div class="chop-modal">
+      <div class="chop-top">
+        <span class="chop-title" id="chopTitle">── CHOP ──</span>
+        <span class="chop-hint" id="chopHint">Load a file or record audio</span>
+      </div>
+      <div class="chop-wave-wrap" id="chopWaveWrap">
+        <canvas id="chopCanvas"></canvas>
+        <div class="chop-src-row">
+          <input type="file" id="chopFileIn" accept="audio/*" style="display:none">
+          <button class="chop-src-btn" id="chopFileBtn">↑ LOAD</button>
+          <button class="chop-src-btn" id="chopMicBtn">⏺ MIC</button>
+          <button class="chop-src-btn" id="chopSysBtn">⊞ SYS</button>
+          <span class="chop-sel-info" id="chopSelInfo"></span>
+        </div>
+      </div>
+      <div class="chop-pad-section">
+        <div class="chop-mini-pads" id="chopMiniPads"></div>
+      </div>
+      <div class="chop-actions">
+        <button class="chop-btn-action chop-btn-pre" id="chopPreBtn" disabled>▶ PRE</button>
+        <button class="chop-btn-action chop-btn-do" id="chopDoBtn" disabled>CHOP</button>
+      </div>
     </div>
   </div>
 
@@ -852,7 +959,6 @@ body {
       </div>
     </div>
     <div class="preset-row" id="presetRow">
-      <div class="preset-label">FX</div>
       <button class="preset-btn active" data-preset="0">DRY</button>
       <button class="preset-btn" data-preset="1">ROOM</button>
       <button class="preset-btn" data-preset="2">TAPE</button>
@@ -1740,7 +1846,7 @@ function updateVolDisplay(idx) {
 function trigger(idx) {
   _vol = padVolumes[idx] / 10;
   boot();
-  PADS[idx].fn();
+  if (chopBufs[idx]) { playChop(idx); } else { PADS[idx].fn(); }
   if (recState === 'recording' && ctx) recordNote(idx);
   if (!transportOn) display.textContent = `[ ${DNAMES[idx]} ]`;
   lastTriggerTime = ctx ? ctx.currentTime : 0;
@@ -2220,13 +2326,16 @@ function scheduleLoopPass(passStartAudioTime) {
   clearTimeout(loopRescheduleId);
   const now = ctx.currentTime;
   loopNotes.forEach(n => {
-    const delay = (passStartAudioTime - now + n.normTime * loopDuration) * 1000;
+    // Negative normTime = wrap-around note (recorded just before loop boundary,
+    // intended for beat 1). Fire at end of this pass: passStart + (1+normTime)*dur.
+    const fireOffset = n.normTime < 0 ? loopDuration + n.normTime * loopDuration : n.normTime * loopDuration;
+    const delay = (passStartAudioTime - now + fireOffset) * 1000;
     if (delay < -80) return;
     loopPassTimeouts.push(setTimeout(() => {
       if (!transportOn) return;
       _isPlaybackTrigger = true;
       _vol = padVolumes[n.padIdx] / 10;
-      PADS[n.padIdx].fn();
+      if (chopBufs[n.padIdx]) { playChop(n.padIdx); } else { PADS[n.padIdx].fn(); }
       _isPlaybackTrigger = false;
     }, Math.max(0, delay)));
   });
@@ -2314,7 +2423,13 @@ recBtnEl.addEventListener('click', () => {
 function recordNote(idx) {
   if (_isPlaybackTrigger || recState !== 'recording' || !ctx) return;
   const elapsed = (ctx.currentTime - loopStartAudioTime) % loopDuration;
-  loopNotes.push({ padIdx: idx, normTime: Math.max(0, Math.min(0.9999, elapsed / loopDuration)) });
+  let norm = elapsed / loopDuration;
+  // Wrap-around: notes in the last 1/16 of the loop are almost certainly intended
+  // for beat 1 of the next iteration — store as slightly negative so they fire
+  // just before the loop restarts (seamless loop boundary crossing).
+  const WRAP = 1 / (loopBars * BEATS_PER_BAR * 4); // 1/16 note of current loop
+  if (norm > 1 - WRAP) norm -= 1;
+  loopNotes.push({ padIdx: idx, normTime: Math.max(-WRAP, Math.min(0.9999, norm)) });
 }
 
 // ─── WAV encoder ──────────────────────────────────────────────────────────────
@@ -2366,14 +2481,49 @@ const midiGridWrap = document.getElementById('midiGridWrap');
 const midiClearBtn = document.getElementById('midiClear');
 const midiWavBtn   = document.getElementById('midiWav');
 
-const LANE_H = 24, LABEL_W = 50, NOTE_W = 8, NOTE_H = 16;
+const LANE_H = 24, LABEL_W = 50;
+function noteSize() {
+  const s = Math.sqrt(midiZoom);
+  return { w: Math.round(Math.max(8, 8*s)), h: Math.round(Math.min(LANE_H-2, Math.max(14, 14*s))) };
+}
 const PAD_SHORT = ['Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7','FX 1','FX 2','FX 3','FX 4','KICK','SNARE','HH-C','HH-O'];
 const PAD_COL   = ['#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#8e44ad','#8e44ad','#8e44ad','#8e44ad','#e74c3c','#e74c3c','#27ae60','#27ae60'];
 
 let midiNotes = [], midiDur = 1, midiLoopBars = 1, midiQuantize = 16;
 let midiDragging = null, midiDragTapX = 0;
+let _midiLongPressTimer = null, _midiPendingDeleteIdx = -1;
+const MIDI_DELETE_MS = 750; // long-press duration to trigger delete confirm
+let _drawPending = false;
+function requestDraw() {
+  if (_drawPending) return;
+  _drawPending = true;
+  requestAnimationFrame(() => { _drawPending = false; drawMidi(); });
+}
+let _deleteConfirmShownAt = 0;
+function showDeleteConfirm(ni) {
+  _midiPendingDeleteIdx = ni; midiDragging = null;
+  _deleteConfirmShownAt = Date.now();
+  const dlg = document.getElementById('midiDeleteConfirm');
+  dlg.classList.remove('hidden');
+  // Block phantom tap-through: disable buttons for 400ms after dialog appears
+  dlg.querySelectorAll('.midi-delete-btn').forEach(b => b.style.pointerEvents = 'none');
+  setTimeout(() => dlg.querySelectorAll('.midi-delete-btn').forEach(b => b.style.pointerEvents = ''), 400);
+}
+function hideDeleteConfirm() {
+  _midiPendingDeleteIdx = -1;
+  document.getElementById('midiDeleteConfirm').classList.add('hidden');
+}
+document.getElementById('midiDeleteYes').addEventListener('click', () => {
+  if (Date.now() - _deleteConfirmShownAt < 350) return;
+  if (_midiPendingDeleteIdx >= 0) { saveState(); midiNotes.splice(_midiPendingDeleteIdx, 1); drawMidi(); }
+  hideDeleteConfirm();
+});
+document.getElementById('midiDeleteNo').addEventListener('click', () => {
+  if (Date.now() - _deleteConfirmShownAt < 350) return;
+  hideDeleteConfirm();
+});
 
-function normToX(norm, W) { return LABEL_W + norm*(W-LABEL_W); }
+function normToX(norm, W) { return LABEL_W + (norm < 0 ? 1+norm : norm)*(W-LABEL_W); }
 function snapNorm(v) {
   if (midiQuantize === 0) return v;
   const step = 1/(midiLoopBars*BEATS_PER_BAR*(midiQuantize/4));
@@ -2395,27 +2545,63 @@ function drawMidi() {
     g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
   }
   const tb=midiLoopBars*BEATS_PER_BAR;
+  // Sub-beat lines based on zoom (8th notes at 2×, 16th notes at 4×)
+  const subPerBeat = midiZoom>=4 ? 4 : midiZoom>=2 ? 2 : 0;
+  if (subPerBeat>0) {
+    const totalSubs=tb*subPerBeat;
+    for (let s=1;s<totalSubs;s++) {
+      if (s%subPerBeat===0) continue; // beat lines drawn separately
+      const x=LABEL_W+(s/totalSubs)*gW;
+      const isMid=(s%subPerBeat===subPerBeat/2);
+      g.beginPath();g.moveTo(x,0);g.lineTo(x,H);
+      g.strokeStyle=isMid?'rgba(255,255,255,0.10)':'rgba(255,255,255,0.05)';
+      g.lineWidth=0.5;g.stroke();
+      if (isMid&&midiZoom>=2.5) {
+        g.fillStyle='rgba(255,255,255,0.22)';g.font='7px "Public Sans",sans-serif';g.textAlign='left';
+        g.fillText('+',x+2,9);
+      }
+    }
+  }
   for (let b=0;b<=tb;b++) {
     const x=LABEL_W+(b/tb)*gW, ib=b%BEATS_PER_BAR===0;
     g.beginPath();g.moveTo(x,0);g.lineTo(x,H);
-    g.strokeStyle=ib?'rgba(255,255,255,0.18)':'rgba(255,255,255,0.05)';
+    g.strokeStyle=ib?'rgba(255,255,255,0.18)':'rgba(255,255,255,0.08)';
     g.lineWidth=ib?1.2:0.6;g.stroke();
     if(ib&&b<tb){g.fillStyle='rgba(255,255,255,0.25)';g.font='8px "Public Sans",sans-serif';g.textAlign='left';g.fillText('B'+(b/BEATS_PER_BAR+1),x+3,9);}
+    else if(!ib&&b>0&&midiZoom>=1.5){g.fillStyle='rgba(255,255,255,0.18)';g.font='7px "Public Sans",sans-serif';g.textAlign='left';g.fillText(''+(b%BEATS_PER_BAR+1),x+2,9);}
   }
+  const {w:nW,h:nH}=noteSize();
   midiNotes.forEach((n,ni)=>{
-    const x=normToX(n.normTime,W)-NOTE_W/2, y=n.padIdx*LANE_H+(LANE_H-NOTE_H)/2;
-    g.globalAlpha=(midiDragging&&midiDragging.ni===ni)?0.4:0.9;
+    const x=normToX(n.normTime,W)-nW/2, y=n.padIdx*LANE_H+(LANE_H-nH)/2;
+    const isDragging=midiDragging&&midiDragging.ni===ni;
+    g.globalAlpha=isDragging?0.55:0.92;
     g.fillStyle=PAD_COL[n.padIdx];
-    g.beginPath(); if(g.roundRect) g.roundRect(x,y,NOTE_W,NOTE_H,2); else g.rect(x,y,NOTE_W,NOTE_H);
-    g.fill(); g.globalAlpha=1;
+    g.beginPath(); if(g.roundRect) g.roundRect(x,y,nW,nH,3); else g.rect(x,y,nW,nH);
+    g.fill();
+    if(isDragging){ g.strokeStyle='rgba(255,255,255,0.6)'; g.lineWidth=1.5; g.stroke(); }
+    g.globalAlpha=1;
   });
   if (playheadNorm>=0) {
     const px=normToX(playheadNorm,W);
-    // glow shadow
     g.shadowColor='rgba(126,200,80,0.7)'; g.shadowBlur=6;
     g.beginPath();g.moveTo(px,0);g.lineTo(px,H);
     g.strokeStyle='rgba(126,200,80,0.9)';g.lineWidth=1.5;g.stroke();
     g.shadowBlur=0;
+  }
+  // ── Sticky label column: redraw pad names at current scroll position ──
+  const sx=midiGridWrap.scrollLeft;
+  if(sx>0){
+    g.fillStyle='#07111e'; g.fillRect(sx,0,LABEL_W,H);
+    for(let i=0;i<16;i++){
+      const y=i*LANE_H;
+      if(i%2===0){g.fillStyle='rgba(255,255,255,0.018)';g.fillRect(sx,y,LABEL_W,LANE_H);}
+      g.fillStyle=PAD_COL[i]; g.font='8px "Public Sans",sans-serif'; g.textAlign='right';
+      g.fillText(i<8?DNAMES[i]:PAD_SHORT[i], sx+LABEL_W-4, y+LANE_H/2+3);
+      g.beginPath();g.moveTo(sx,y+LANE_H);g.lineTo(sx+LABEL_W,y+LANE_H);
+      g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
+    }
+    g.beginPath();g.moveTo(sx+LABEL_W,0);g.lineTo(sx+LABEL_W,H);
+    g.strokeStyle='rgba(255,255,255,0.15)';g.lineWidth=1;g.stroke();
   }
   g.restore();
 }
@@ -2446,6 +2632,7 @@ function resizeMidi() {
 }
 const _machine = document.querySelector('.machine');
 function openMidiGrid() {
+  if (chopOpen) closeChopView();
   sheetOpen = true;
   midiLoopBars = loopBars; midiDur = midiLoopBars * BEATS_PER_BAR * spb();
   midiNotes = loopNotes.map(n => ({...n, normTime: snapNorm(n.normTime)}));
@@ -2503,18 +2690,41 @@ document.addEventListener('keydown', e=>{
 // Canvas drag/tap
 function hitNote(cx, cy) {
   const dpr=window.devicePixelRatio||1, W=midiCanvas.width/dpr, lane=Math.floor(cy/LANE_H);
+  const {w:nW}=noteSize(), pad=Math.max(6, nW*0.4);
   for(let i=midiNotes.length-1;i>=0;i--){
     const n=midiNotes[i]; if(n.padIdx!==lane) continue;
-    const nx=normToX(n.normTime,W)-NOTE_W/2;
-    if(cx>=nx-6&&cx<=nx+NOTE_W+6) return i;
+    const nx=normToX(n.normTime,W)-nW/2;
+    if(cx>=nx-pad&&cx<=nx+nW+pad) return i;
   }
   return -1;
 }
 function cpos(e){ const r=midiCanvas.getBoundingClientRect(),s=e.touches?e.touches[0]:e; return{x:s.clientX-r.left,y:s.clientY-r.top}; }
-midiCanvas.addEventListener('mousedown',e=>{ const{x,y}=cpos(e),ni=hitNote(x,y); if(ni>=0){midiDragging={ni,sx:x,ot:midiNotes[ni].normTime};midiDragTapX=x;} });
-midiCanvas.addEventListener('mousemove',e=>{ if(!midiDragging)return; const{x}=cpos(e),dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr; midiNotes[midiDragging.ni].normTime=snapNorm(Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W)))); drawMidi(); });
-midiCanvas.addEventListener('mouseup',e=>{ if(!midiDragging)return; if(Math.abs(cpos(e).x-midiDragTapX)<5){saveState();midiNotes.splice(midiDragging.ni,1);drawMidi();}else saveState(); midiDragging=null; });
-midiCanvas.addEventListener('mouseleave',()=>{ midiDragging=null; });
+midiCanvas.addEventListener('mousedown',e=>{
+  const{x,y}=cpos(e),ni=hitNote(x,y);
+  if(ni>=0){
+    midiDragging={ni,sx:x,ot:midiNotes[ni].normTime}; midiDragTapX=x;
+    _midiLongPressTimer=setTimeout(()=>{ _midiLongPressTimer=null; showDeleteConfirm(ni); },MIDI_DELETE_MS);
+  }
+});
+midiCanvas.addEventListener('mousemove',e=>{
+  if(!midiDragging)return;
+  const{x}=cpos(e);
+  if(Math.abs(x-midiDragTapX)>6&&_midiLongPressTimer){clearTimeout(_midiLongPressTimer);_midiLongPressTimer=null;}
+  const dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr;
+  midiNotes[midiDragging.ni].normTime=Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W)));
+  requestDraw();
+});
+midiCanvas.addEventListener('mouseup',e=>{
+  if(_midiLongPressTimer){clearTimeout(_midiLongPressTimer);_midiLongPressTimer=null;}
+  if(!midiDragging)return;
+  const moved=Math.abs(cpos(e).x-midiDragTapX);
+  if(moved>6){midiNotes[midiDragging.ni].normTime=snapNorm(midiNotes[midiDragging.ni].normTime);saveState();requestDraw();}
+  midiDragging=null;
+});
+midiCanvas.addEventListener('mouseleave',()=>{
+  if(_midiLongPressTimer){clearTimeout(_midiLongPressTimer);_midiLongPressTimer=null;}
+  midiDragging=null;
+});
 let _pinchDist0=0,_pinchZoom0=1;
 let _scrolling=false,_scrollStartX=0,_scrollStartY=0,_scrollLeft0=0,_scrollTop0=0;
 
@@ -2523,14 +2733,15 @@ midiCanvas.addEventListener('touchstart',e=>{
     e.preventDefault();
     const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
     _pinchDist0=Math.sqrt(dx*dx+dy*dy); _pinchZoom0=midiZoom; midiDragging=null; _scrolling=false;
+    if(_midiLongPressTimer){clearTimeout(_midiLongPressTimer);_midiLongPressTimer=null;}
     return;
   }
   const{x,y}=cpos(e),ni=hitNote(x,y);
   if(ni>=0){
     e.preventDefault();
     midiDragging={ni,sx:x,ot:midiNotes[ni].normTime}; midiDragTapX=x; _scrolling=false;
+    _midiLongPressTimer=setTimeout(()=>{ _midiLongPressTimer=null; showDeleteConfirm(ni); },MIDI_DELETE_MS);
   } else {
-    // Empty area → scroll mode (let touch propagate for native scroll)
     _scrolling=true; midiDragging=null;
     _scrollStartX=e.touches[0].clientX; _scrollStartY=e.touches[0].clientY;
     _scrollLeft0=midiGridWrap.scrollLeft; _scrollTop0=midiGridWrap.scrollTop;
@@ -2547,27 +2758,34 @@ midiCanvas.addEventListener('touchmove',e=>{
   }
   if(_scrolling){
     e.preventDefault();
-    midiGridWrap.scrollLeft=_scrollLeft0-( e.touches[0].clientX-_scrollStartX);
-    midiGridWrap.scrollTop =_scrollTop0 -( e.touches[0].clientY-_scrollStartY);
+    midiGridWrap.scrollLeft=_scrollLeft0-(e.touches[0].clientX-_scrollStartX);
+    midiGridWrap.scrollTop =_scrollTop0 -(e.touches[0].clientY-_scrollStartY);
     return;
   }
   if(midiDragging){
     e.preventDefault();
-    const{x}=cpos(e),dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr;
-    midiNotes[midiDragging.ni].normTime=snapNorm(Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W))));
-    drawMidi();
+    const{x}=cpos(e);
+    if(Math.abs(x-midiDragTapX)>6&&_midiLongPressTimer){clearTimeout(_midiLongPressTimer);_midiLongPressTimer=null;}
+    const dpr=window.devicePixelRatio||1,W=midiCanvas.width/dpr;
+    midiNotes[midiDragging.ni].normTime=Math.max(0,Math.min(1,midiDragging.ot+(x-midiDragging.sx)/(W-LABEL_W)));
+    requestDraw();
   }
 },{passive:false});
 
 midiCanvas.addEventListener('touchend',e=>{
   e.preventDefault();
   _scrolling=false;
+  if(_midiLongPressTimer){clearTimeout(_midiLongPressTimer);_midiLongPressTimer=null;}
   if(!midiDragging)return;
   const r=midiCanvas.getBoundingClientRect(),ch=e.changedTouches[0];
-  if(Math.abs(ch.clientX-r.left-midiDragTapX)<8){saveState();midiNotes.splice(midiDragging.ni,1);drawMidi();}
-  else saveState();
+  const moved=Math.abs(ch.clientX-r.left-midiDragTapX);
+  if(moved>6){midiNotes[midiDragging.ni].normTime=snapNorm(midiNotes[midiDragging.ni].normTime);saveState();requestDraw();}
   midiDragging=null;
 },{passive:false});
+midiCanvas.addEventListener('touchcancel',()=>{
+  if(_midiLongPressTimer){clearTimeout(_midiLongPressTimer);_midiLongPressTimer=null;}
+  _scrolling=false; midiDragging=null;
+},{passive:true});
 
 // ─── Sheet Metro removed — main METRO button controls click sound ───────────────
 
@@ -2595,6 +2813,334 @@ function stopTransportPlayhead() {
 }
 function stopPlayback() { stopTransportPlayhead(); drawMidi(); }
 window.addEventListener('resize',()=>{ if(!midiOverlay.classList.contains('hidden'))resizeMidi(); });
+midiGridWrap.addEventListener('scroll', requestDraw, {passive:true});
+
+// ─── CHOP VIEW ─────────────────────────────────────────────────────────────────
+const chopOverlay  = document.getElementById('chopOverlay');
+const chopCanvas   = document.getElementById('chopCanvas');
+const chopCtx2d    = chopCanvas.getContext('2d');
+const chopWaveWrap = document.getElementById('chopWaveWrap');
+const chopFileBtn  = document.getElementById('chopFileBtn');
+const chopMicBtn   = document.getElementById('chopMicBtn');
+const chopSysBtn   = document.getElementById('chopSysBtn');
+const chopFileIn   = document.getElementById('chopFileIn');
+const chopPreBtn   = document.getElementById('chopPreBtn');
+const chopDoBtn    = document.getElementById('chopDoBtn');
+const chopHint     = document.getElementById('chopHint');
+const chopSelInfo  = document.getElementById('chopSelInfo');
+const chopMiniPadsEl = document.getElementById('chopMiniPads');
+
+// Chop state
+const chopBufs = new Array(16).fill(null);
+let chopTarget = 0, chopCount = 0, chopOpen = false;
+const activeChopSrc = new Array(16).fill(null);
+let previewSrc = null;
+let chopRecorder = null, chopRecChunks = [], chopRecStream = null;
+
+// Waveform state
+let waveBuffer = null, selA = -1, selB = -1, viewStart = 0, viewEnd = 1;
+
+// Build 4×4 mini pad selector
+for (let i = 0; i < 16; i++) {
+  const p = document.createElement('div');
+  p.className = 'chop-mini-pad';
+  p.style.setProperty('--pc', PAD_COL[i]);
+  p.innerHTML = `<span class="cmp-num">${i + 1}</span><span class="cmp-name"></span>`;
+  p.addEventListener('click', () => { chopTarget = i; updateChopMiniPads(); });
+  chopMiniPadsEl.appendChild(p);
+}
+function updateChopMiniPads() {
+  Array.from(chopMiniPadsEl.children).forEach((p, i) => {
+    p.classList.toggle('has-chop', !!chopBufs[i]);
+    p.classList.toggle('target', i === chopTarget);
+    p.querySelector('.cmp-name').textContent = chopBufs[i] ? DNAMES[i] : '';
+  });
+}
+updateChopMiniPads();
+
+// Coordinate helpers
+function chopBufToCanvas(r, W) { return (r - viewStart) / (viewEnd - viewStart) * W; }
+function chopCanvasToBuf(px, W) { return viewStart + (px / W) * (viewEnd - viewStart); }
+
+function drawWave() {
+  const W = chopCanvas.offsetWidth, H = chopCanvas.offsetHeight;
+  if (!W || !H) return;
+  const dpr = window.devicePixelRatio || 1;
+  chopCanvas.width = W * dpr; chopCanvas.height = H * dpr;
+  const g = chopCtx2d;
+  g.save(); g.scale(dpr, dpr);
+  g.fillStyle = '#050d18'; g.fillRect(0, 0, W, H);
+  if (!waveBuffer) {
+    g.fillStyle = 'rgba(221,216,208,0.28)'; g.font = '10px "Public Sans",sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('Load a file or record audio', W / 2, H / 2);
+    g.restore(); return;
+  }
+  const data = waveBuffer.getChannelData(0);
+  const bufStart = Math.floor(viewStart * data.length);
+  const bufEnd   = Math.ceil(viewEnd * data.length);
+  const spp      = Math.max(1, bufEnd - bufStart) / W;
+  const mid      = H / 2;
+  g.beginPath(); g.moveTo(0, mid);
+  for (let x = 0; x < W; x++) {
+    const s = Math.floor(bufStart + x * spp), e = Math.min(data.length, Math.ceil(s + spp));
+    let peak = 0; for (let j = s; j < e; j++) { const v = Math.abs(data[j]); if (v > peak) peak = v; }
+    g.lineTo(x, mid - peak * mid * 0.88);
+  }
+  for (let x = W - 1; x >= 0; x--) {
+    const s = Math.floor(bufStart + x * spp), e = Math.min(data.length, Math.ceil(s + spp));
+    let peak = 0; for (let j = s; j < e; j++) { const v = Math.abs(data[j]); if (v > peak) peak = v; }
+    g.lineTo(x, mid + peak * mid * 0.88);
+  }
+  g.closePath();
+  const grad = g.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#c07a0a'); grad.addColorStop(0.5, '#f59e0b'); grad.addColorStop(1, '#c07a0a');
+  g.fillStyle = grad; g.fill();
+  g.strokeStyle = 'rgba(255,255,255,0.1)'; g.lineWidth = 0.5;
+  g.beginPath(); g.moveTo(0, mid); g.lineTo(W, mid); g.stroke();
+  // Selection overlay
+  if (selA >= 0 && selB >= 0 && Math.abs(selB - selA) > 0.001) {
+    const px1 = Math.max(0, Math.min(W, chopBufToCanvas(Math.min(selA, selB), W)));
+    const px2 = Math.max(0, Math.min(W, chopBufToCanvas(Math.max(selA, selB), W)));
+    if (px2 > px1) {
+      g.fillStyle = 'rgba(245,158,11,0.18)'; g.fillRect(px1, 0, px2 - px1, H);
+      g.strokeStyle = 'rgba(255,255,255,0.75)'; g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(px1, 0); g.lineTo(px1, H); g.moveTo(px2, 0); g.lineTo(px2, H); g.stroke();
+    }
+  }
+  // Zoom scrollbar
+  if (viewStart > 0.001 || viewEnd < 0.999) {
+    const bH = 3, bY = H - bH - 2;
+    g.fillStyle = 'rgba(255,255,255,0.06)'; g.fillRect(0, bY, W, bH);
+    g.fillStyle = 'rgba(245,158,11,0.55)'; g.fillRect(viewStart * W, bY, (viewEnd - viewStart) * W, bH);
+  }
+  g.restore();
+}
+
+// Canvas pointer events (drag to select + pinch to zoom)
+const _wPtrs = new Map();
+let _wDrag = false, _wPinchD0 = 0, _wPinchV0 = null, _wPinchC = 0;
+
+chopCanvas.addEventListener('pointerdown', e => {
+  if (!waveBuffer) return;
+  e.preventDefault();
+  chopCanvas.setPointerCapture(e.pointerId);
+  _wPtrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (_wPtrs.size === 1) {
+    _wDrag = true;
+    const r = chopCanvas.getBoundingClientRect();
+    selA = Math.max(0, Math.min(1, chopCanvasToBuf(e.clientX - r.left, r.width)));
+    selB = selA; drawWave();
+  } else if (_wPtrs.size === 2) {
+    _wDrag = false;
+    const pts = [..._wPtrs.values()];
+    _wPinchD0 = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    _wPinchV0 = { start: viewStart, end: viewEnd };
+    const r = chopCanvas.getBoundingClientRect();
+    _wPinchC = chopCanvasToBuf((pts[0].x + pts[1].x) / 2 - r.left, r.width);
+  }
+}, { passive: false });
+
+chopCanvas.addEventListener('pointermove', e => {
+  if (!_wPtrs.has(e.pointerId)) return;
+  _wPtrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const r = chopCanvas.getBoundingClientRect();
+  if (_wPtrs.size >= 2 && _wPinchV0) {
+    const pts = [..._wPtrs.values()];
+    const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    if (dist < 1) return;
+    const initLen = _wPinchV0.end - _wPinchV0.start;
+    const newLen = Math.min(1, Math.max(0.005, initLen * (_wPinchD0 / dist)));
+    const cf = (_wPinchC - _wPinchV0.start) / initLen;
+    let ns = _wPinchC - cf * newLen, ne = ns + newLen;
+    if (ns < 0) { ns = 0; ne = newLen; }
+    if (ne > 1) { ne = 1; ns = Math.max(0, 1 - newLen); }
+    viewStart = ns; viewEnd = ne; drawWave();
+  } else if (_wDrag && _wPtrs.size === 1) {
+    selB = Math.max(0, Math.min(1, chopCanvasToBuf(e.clientX - r.left, r.width)));
+    drawWave();
+  }
+}, { passive: true });
+
+function _wPtrEnd(e) {
+  _wPtrs.delete(e.pointerId);
+  if (_wPtrs.size === 0) {
+    _wPinchV0 = null;
+    if (_wDrag) {
+      _wDrag = false;
+      const span = Math.abs(selB - selA);
+      if (span > 0.001 && waveBuffer) {
+        chopSelInfo.textContent = (waveBuffer.duration * span).toFixed(2) + 's';
+        chopDoBtn.disabled = false; chopPreBtn.disabled = false;
+      }
+    }
+  } else if (_wPtrs.size === 1) { _wPinchV0 = null; _wDrag = false; }
+}
+chopCanvas.addEventListener('pointerup', _wPtrEnd, { passive: true });
+chopCanvas.addEventListener('pointercancel', _wPtrEnd, { passive: true });
+
+// File load
+chopFileBtn.addEventListener('click', () => { boot(); chopFileIn.click(); });
+chopFileIn.addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  boot();
+  try {
+    const ab = await file.arrayBuffer();
+    waveBuffer = await new Promise((res, rej) => ctx.decodeAudioData(ab, res, rej));
+    selA = 0; selB = 1; viewStart = 0; viewEnd = 1;
+    chopHint.textContent = 'Drag to select range, then CHOP';
+    chopSelInfo.textContent = waveBuffer.duration.toFixed(2) + 's';
+    chopDoBtn.disabled = false; chopPreBtn.disabled = false;
+    drawWave();
+  } catch (err) { chopHint.textContent = 'Decode failed'; }
+  e.target.value = '';
+});
+
+// Recording (MIC / SYS)
+function _chopRecDone(blob) {
+  blob.arrayBuffer().then(ab => {
+    ctx.decodeAudioData(ab, buf => {
+      waveBuffer = buf; selA = 0; selB = 1; viewStart = 0; viewEnd = 1;
+      chopHint.textContent = 'Drag to select range, then CHOP';
+      chopSelInfo.textContent = buf.duration.toFixed(2) + 's';
+      chopDoBtn.disabled = false; chopPreBtn.disabled = false;
+      drawWave();
+    }, () => { chopHint.textContent = 'Decode failed'; });
+  });
+}
+function _chopRecReset() {
+  if (chopRecStream) { chopRecStream.getTracks().forEach(t => t.stop()); chopRecStream = null; }
+  chopRecorder = null; chopRecChunks = [];
+  [chopMicBtn, chopSysBtn].forEach(b => { b.textContent = b === chopMicBtn ? '⏺ MIC' : '⊞ SYS'; b.classList.remove('recording'); });
+}
+async function startChopRec(mode) {
+  if (chopRecorder) { chopRecorder.stop(); return; }
+  boot();
+  // SYS capture requires getDisplayMedia — not available on iOS/Safari
+  if (mode === 'sys' && typeof navigator.mediaDevices?.getDisplayMedia !== 'function') {
+    chopHint.textContent = 'SYS not supported on this device';
+    return;
+  }
+  try {
+    let stream;
+    if (mode === 'mic') {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    } else {
+      // getDisplayMedia: request video=true to maximize browser compatibility,
+      // then immediately stop video tracks so only audio is captured.
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, sampleRate: 44100 },
+        video: { width: 1, height: 1, frameRate: 1 }
+      });
+      stream.getVideoTracks().forEach(t => t.stop());
+      if (stream.getAudioTracks().length === 0) {
+        chopHint.textContent = 'No audio track — enable audio sharing in the dialog';
+        return;
+      }
+    }
+    chopRecStream = stream; chopRecChunks = [];
+    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus'
+               : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+    chopRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
+    chopRecorder.ondataavailable = e => { if (e.data.size > 0) chopRecChunks.push(e.data); };
+    chopRecorder.onstop = () => { _chopRecDone(new Blob(chopRecChunks, { type: mime || 'audio/webm' })); _chopRecReset(); };
+    chopRecorder.start();
+    const btn = mode === 'mic' ? chopMicBtn : chopSysBtn;
+    btn.textContent = '⏹ STOP'; btn.classList.add('recording');
+    chopHint.textContent = 'Recording — tap STOP when done';
+  } catch (err) {
+    const msg = err.name === 'NotAllowedError' ? 'Permission denied' :
+                err.name === 'NotSupportedError' ? 'Not supported on this device' :
+                err.name === 'NotFoundError' ? 'No audio input found' : 'Recording failed';
+    chopHint.textContent = msg;
+    _chopRecReset();
+  }
+}
+chopMicBtn.addEventListener('click', () => startChopRec('mic'));
+chopSysBtn.addEventListener('click', () => startChopRec('sys'));
+
+// Preview
+chopPreBtn.addEventListener('click', () => {
+  boot();
+  if (!waveBuffer) return;
+  if (previewSrc) {
+    try { previewSrc.stop(); } catch (e) {} previewSrc = null;
+    chopPreBtn.classList.remove('playing'); return;
+  }
+  const sl = sliceChopBuffer(waveBuffer, Math.min(selA, selB), Math.max(selA, selB));
+  const src = ctx.createBufferSource();
+  src.buffer = sl; src.connect(ctx.destination); src.start();
+  previewSrc = src; chopPreBtn.classList.add('playing');
+  src.onended = () => { previewSrc = null; chopPreBtn.classList.remove('playing'); };
+});
+
+// Chop → assign to target pad
+chopDoBtn.addEventListener('click', () => {
+  if (!waveBuffer || selA < 0) return;
+  boot();
+  chopCount++;
+  const name = 'C' + chopCount;
+  const buf = sliceChopBuffer(waveBuffer, Math.min(selA, selB), Math.max(selA, selB));
+  chopBufs[chopTarget] = buf;
+  DNAMES[chopTarget] = name;
+  padEls[chopTarget].querySelector('.pad-name').textContent = name;
+  padEls[chopTarget].classList.add('chop');
+  const prev = chopTarget;
+  chopTarget = (chopTarget + 1) % 16;
+  updateChopMiniPads();
+  chopHint.textContent = `✓ ${name} → PAD ${prev + 1}  next → PAD ${chopTarget + 1}`;
+});
+
+// sliceChopBuffer: extract a portion of an AudioBuffer
+function sliceChopBuffer(buf, s, e) {
+  const start = Math.floor(s * buf.length), end = Math.ceil(e * buf.length);
+  const len = Math.max(1, end - start);
+  const out = ctx.createBuffer(buf.numberOfChannels, len, buf.sampleRate);
+  for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+    const srcData = new Float32Array(buf.getChannelData(ch).buffer, start * 4, len);
+    out.copyToChannel(srcData, ch);
+  }
+  return out;
+}
+
+// playChop: play a pad's assigned chop buffer
+function playChop(idx) {
+  if (!chopBufs[idx] || !ctx) return;
+  if (activeChopSrc[idx]) { try { activeChopSrc[idx].stop(); } catch (e) {} activeChopSrc[idx] = null; }
+  const src = ctx.createBufferSource();
+  src.buffer = chopBufs[idx];
+  const gn = ctx.createGain(); gn.gain.value = _vol;
+  src.connect(gn); gn.connect(ctx.destination);
+  src.start();
+  activeChopSrc[idx] = src;
+  padEls[idx].classList.add('active');
+  src.onended = () => { padEls[idx].classList.remove('active'); if (activeChopSrc[idx] === src) activeChopSrc[idx] = null; };
+}
+
+// Open / close chop view
+function openChopView() {
+  chopOpen = true;
+  if (sheetOpen) closeMidiGrid();
+  _machine.classList.add('chop-mode');
+  chopOverlay.classList.remove('hidden');
+  const cb = document.getElementById('chopBtn');
+  cb.textContent = '\u2190 PADS'; cb.classList.add('active');
+  requestAnimationFrame(() => drawWave());
+}
+function closeChopView() {
+  chopOpen = false;
+  if (previewSrc) { try { previewSrc.stop(); } catch (e) {} previewSrc = null; chopPreBtn.classList.remove('playing'); }
+  if (chopRecorder && chopRecorder.state !== 'inactive') { chopRecorder.stop(); }
+  _machine.classList.remove('chop-mode');
+  chopOverlay.classList.add('hidden');
+  const cb = document.getElementById('chopBtn');
+  cb.textContent = 'CHOP'; cb.classList.remove('active');
+}
+document.getElementById('chopBtn').addEventListener('click', () => {
+  boot();
+  if (!chopOpen) openChopView(); else closeChopView();
+});
+window.addEventListener('resize', () => { if (chopOpen) drawWave(); });
 
 // ─── MIDI Zoom controls ─────────────────────────────────────────────────────
 function smoothZoomTo(target) {
