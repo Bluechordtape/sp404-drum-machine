@@ -639,6 +639,13 @@ body {
 .chop-modal { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; position: relative; }
 .chop-clear-confirm { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(7,17,30,0.82); }
 .chop-clear-confirm.hidden { display: none; }
+.chop-pad-settings-box { background: #131f2e; border: 1px solid rgba(255,255,255,0.13); border-radius: 10px; padding: 18px 22px; text-align: center; min-width: 200px; }
+.cps-title { font-size: 10px; color: #f59e0b; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 14px; }
+.cps-pitch-row { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 16px; }
+.cps-adj { width: 38px; height: 38px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 22px; line-height: 38px; cursor: pointer; font-family: 'Public Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+.cps-pitch-val { font-family: 'Courier New', monospace; font-size: 22px; font-weight: bold; min-width: 72px; }
+.cps-btns { display: flex; gap: 8px; }
+.chop-ded-pad-pitch { font-size: 7px; font-weight: 700; color: rgba(0,0,0,0.55); position: absolute; bottom: 3px; left: 4px; font-family: 'Courier New', monospace; letter-spacing: 0; }
 .chop-top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; flex-shrink: 0; }
 .chop-title { font-size: 10px; letter-spacing: 0.22em; color: #f59e0b; text-transform: uppercase; }
 .chop-wave-wrap { position: relative; height: 90px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #050d18; border: 1px solid var(--border); }
@@ -836,7 +843,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v2.7</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v2.8</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -963,7 +970,7 @@ body {
       <div class="chop-pad-section">
         <div class="chop-ded-header">
           <span class="chop-ded-label">CHOP PADS</span>
-          <span class="chop-ded-hint">hold to clear (confirm)</span>
+          <span class="chop-ded-hint">hold to edit / pitch</span>
         </div>
         <div class="chop-ded-pads" id="chopDedPads"></div>
         <div id="chopMiniPads" style="display:none"></div>
@@ -971,6 +978,20 @@ body {
       <div class="chop-actions">
         <button class="chop-btn-action chop-btn-pre" id="chopPreBtn" disabled>▶ PRE</button>
         <button class="chop-btn-action chop-btn-do" id="chopDoBtn" disabled>CHOP</button>
+      </div>
+      <div id="chopPadSettings" class="chop-clear-confirm hidden">
+        <div class="chop-pad-settings-box">
+          <div class="cps-title" id="cpsPadName">CHOP PAD 1</div>
+          <div class="cps-pitch-row">
+            <button class="cps-adj" id="cpsPitchDown">&#8722;</button>
+            <span class="cps-pitch-val" id="cpsPitchVal">0 ST</span>
+            <button class="cps-adj" id="cpsPitchUp">+</button>
+          </div>
+          <div class="cps-btns">
+            <button class="midi-delete-btn cancel" id="cpsClear">CLEAR</button>
+            <button class="midi-delete-btn ok" id="cpsClose">DONE</button>
+          </div>
+        </div>
       </div>
       <div id="chopClearConfirm" class="chop-clear-confirm hidden">
         <div class="midi-delete-box">
@@ -3223,13 +3244,14 @@ let isDedRecording = false, dedRecOrigin = 0;
 const pendingDedNotes = new Map();
 
 const chopDedPadsEl    = document.getElementById('chopDedPads');
+const chopDedPitch     = new Array(8).fill(0);
 
 // Build ded pads DOM
 for (let i = 0; i < 8; i++) {
   const el = document.createElement('div');
   el.className = 'chop-ded-pad';
   el.dataset.di = i;
-  el.innerHTML = `<span class="chop-ded-pad-num">${i+1}</span><span class="chop-ded-pad-name"></span><span class="chop-ded-pad-key">${DED_KEYS[i].toUpperCase()}</span>`;
+  el.innerHTML = `<span class="chop-ded-pad-num">${i+1}</span><span class="chop-ded-pad-name"></span><span class="chop-ded-pad-pitch"></span><span class="chop-ded-pad-key">${DED_KEYS[i].toUpperCase()}</span>`;
   chopDedPadsEl.appendChild(el);
 }
 
@@ -3239,6 +3261,9 @@ function refreshDedPad(i) {
   el.classList.toggle('filled', !!chopDedBufs[i]);
   el.style.background = chopDedBufs[i] ? m.color : '';
   el.querySelector('.chop-ded-pad-name').textContent = chopDedBufs[i] ? m.name : '';
+  const p = chopDedPitch[i];
+  const pitchEl = el.querySelector('.chop-ded-pad-pitch');
+  if (pitchEl) pitchEl.textContent = (chopDedBufs[i] && p !== 0) ? (p > 0 ? `+${p}` : `${p}`) + 'ST' : '';
   let dot = el.querySelector('.chop-ded-pad-dot');
   if (!chopDedBufs[i]) {
     if (!dot) { dot = document.createElement('div'); dot.className = 'chop-ded-pad-dot'; el.appendChild(dot); }
@@ -3251,12 +3276,14 @@ function playDedPad(i) {
   for (let j = 0; j < 8; j++) {
     if (activeDedSrc[j]) { try { activeDedSrc[j].stop(); } catch(e){} activeDedSrc[j] = null; chopDedPadsEl.children[j].classList.remove('active'); }
   }
+  const rate = Math.pow(2, (chopDedPitch[i] || 0) / 12);
   const src = ctx.createBufferSource(); src.buffer = buf;
+  src.playbackRate.value = rate;
   const gn = ctx.createGain(); gn.gain.value = _vol;
   src.connect(gn); gn.connect(ctx.destination); src.start();
   activeDedSrc[i] = src;
   dedPlayIdx = i;
-  dedPlayInfo = { startRatio: chopDedMeta[i].startRatio, endRatio: chopDedMeta[i].endRatio, startTime: ctx.currentTime, duration: buf.duration };
+  dedPlayInfo = { startRatio: chopDedMeta[i].startRatio, endRatio: chopDedMeta[i].endRatio, startTime: ctx.currentTime, duration: buf.duration / rate };
   _animateDedPlayhead();
   chopDedPadsEl.children[i].classList.add('active');
   recordNote(16 + i);
@@ -3272,6 +3299,43 @@ function _animateDedPlayhead() {
   drawWave();
   requestAnimationFrame(_animateDedPlayhead);
 }
+
+// Pad settings (pitch + clear)
+let _cpsPadIdx = -1;
+function showChopPadSettings(i) {
+  _cpsPadIdx = i;
+  const dlg = document.getElementById('chopPadSettings');
+  document.getElementById('cpsPadName').textContent = chopDedMeta[i].name || `CHOP PAD ${i+1}`;
+  _updateCpsPitchDisplay();
+  dlg.classList.remove('hidden');
+  dlg.querySelectorAll('button').forEach(b => b.style.pointerEvents = 'none');
+  setTimeout(() => dlg.querySelectorAll('button').forEach(b => b.style.pointerEvents = ''), 400);
+}
+function hideChopPadSettings() {
+  _cpsPadIdx = -1;
+  document.getElementById('chopPadSettings').classList.add('hidden');
+}
+function _updateCpsPitchDisplay() {
+  const p = chopDedPitch[_cpsPadIdx];
+  const el = document.getElementById('cpsPitchVal');
+  el.textContent = (p > 0 ? '+' : '') + p + ' ST';
+  el.style.color = p === 0 ? 'var(--text)' : p > 0 ? '#6090ff' : '#f59e0b';
+}
+document.getElementById('cpsPitchUp').addEventListener('click', () => {
+  if (_cpsPadIdx < 0) return;
+  chopDedPitch[_cpsPadIdx] = Math.min(12, chopDedPitch[_cpsPadIdx] + 1);
+  _updateCpsPitchDisplay(); refreshDedPad(_cpsPadIdx);
+});
+document.getElementById('cpsPitchDown').addEventListener('click', () => {
+  if (_cpsPadIdx < 0) return;
+  chopDedPitch[_cpsPadIdx] = Math.max(-12, chopDedPitch[_cpsPadIdx] - 1);
+  _updateCpsPitchDisplay(); refreshDedPad(_cpsPadIdx);
+});
+document.getElementById('cpsClose').addEventListener('click', () => { hideChopPadSettings(); });
+document.getElementById('cpsClear').addEventListener('click', () => {
+  const ci = _cpsPadIdx; hideChopPadSettings();
+  if (ci >= 0) showChopClearConfirm(ci);
+});
 
 // Ded pad clear confirm
 let _chopClearIdx = -1, _chopClearShownAt = 0;
@@ -3294,6 +3358,7 @@ document.getElementById('chopClearYes').addEventListener('click', () => {
   if (ci >= 0 && chopDedBufs[ci]) {
     chopDedBufs[ci] = null;
     chopDedMeta[ci] = {startRatio:-1, endRatio:-1, name:'', color:''};
+    chopDedPitch[ci] = 0;
     refreshDedPad(ci);
     chopHint.textContent = `CHOP PAD ${ci+1} cleared`;
     if (navigator.vibrate) navigator.vibrate(30);
@@ -3316,7 +3381,7 @@ chopDedPadsEl.addEventListener('pointerdown', e => {
     const ci = _dpLpIdx; _dpLpIdx = -1;
     if (ci < 0 || !chopDedBufs[ci]) return;
     if (navigator.vibrate) navigator.vibrate(20);
-    showChopClearConfirm(ci);
+    showChopPadSettings(ci);
   }, 500);
 }, {passive: false});
 chopDedPadsEl.addEventListener('pointerup', e => {
