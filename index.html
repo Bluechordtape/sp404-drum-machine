@@ -3205,13 +3205,6 @@ let isDedRecording = false, dedRecOrigin = 0;
 const pendingDedNotes = new Map();
 
 const chopDedPadsEl    = document.getElementById('chopDedPads');
-const chopSheetAreaEl  = document.getElementById('chopSheetArea');
-const chopSheetCanvas  = document.getElementById('chopSheetCanvas');
-const chopSheetRecBtn  = document.getElementById('chopSheetRecBtn');
-const chopSheetViewBtn = document.getElementById('chopSheetViewBtn');
-const chopClearBtn     = document.getElementById('chopClearBtn');
-const chopMidiBtn      = document.getElementById('chopMidiBtn');
-const chopSheetCtx     = chopSheetCanvas.getContext('2d');
 
 // Build ded pads DOM
 for (let i = 0; i < 8; i++) {
