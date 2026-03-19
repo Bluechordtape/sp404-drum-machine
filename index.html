@@ -604,27 +604,21 @@ body {
 }
 
 
-/* ── Sheet button ── */
-.sheet-btn {
+/* ── View nav (PADS / SHEET / CHOP / SEQ) ── */
+.view-nav { display: flex; gap: 2px; }
+.view-nav-btn {
   font-family: 'Public Sans', sans-serif; font-size: 9px;
   letter-spacing: 0.1em; font-weight: 500; text-transform: uppercase;
   color: var(--muted); background: var(--surface2);
   border: 1px solid var(--border); border-radius: 3px;
   padding: 4px 8px; cursor: pointer; transition: all 0.12s;
-  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; flex-shrink: 0;
 }
-.sheet-btn:active { background: rgba(26,58,255,0.1); color: var(--primary); border-color: var(--primary); }
+.view-nav-btn:active { background: rgba(26,58,255,0.1); color: var(--primary); border-color: var(--primary); }
+.view-nav-btn.active { color: var(--primary); border-color: var(--primary); background: rgba(26,58,255,0.1); }
 @media (hover: hover) and (pointer: fine) and (min-width: 500px) {
-  .sheet-btn { font-size: 10px; padding: 5px 10px; }
-  .chop-btn { font-size: 10px; padding: 5px 12px; }
+  .view-nav-btn { font-size: 10px; padding: 5px 10px; }
 }
-
-/* ── Sheet btn active state & back button ── */
-.sheet-btn.active { color: var(--primary); border-color: var(--primary); background: rgba(26,58,255,0.1); }
-
-/* ── Chop Button ── */
-.chop-btn { font-family: 'Public Sans', sans-serif; font-size: 9px; letter-spacing: 0.1em; font-weight: 500; text-transform: uppercase; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: 3px 8px; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; flex-shrink: 0; }
-.chop-btn.active { color: #f59e0b; border-color: #f59e0b; background: rgba(245,158,11,0.1); }
 /* ── Chop mode: hide pad grid + controls ── */
 .machine.chop-mode .controls { display: none; }
 .machine.chop-mode #padGrid { display: none !important; }
@@ -906,7 +900,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.4</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.5</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -937,7 +931,12 @@ body {
       <div class="bar-sel" id="barSel" style="display:none"></div>
       <button class="play-btn" id="playBtn">&#9654; PLAY</button>
       <button class="rec-btn" id="recBtn">&#9679; REC</button>
-      <button class="sheet-btn" id="sheetBtn">SHEET</button><button class="chop-btn" id="chopBtn">CHOP</button><button class="sheet-btn" id="seqBtn">SEQ</button>
+      <div class="view-nav">
+        <button class="view-nav-btn active" id="padsBtn">PADS</button>
+        <button class="view-nav-btn" id="sheetBtn">SHEET</button>
+        <button class="view-nav-btn" id="chopBtn">CHOP</button>
+        <button class="view-nav-btn" id="seqBtn">SEQ</button>
+      </div>
     </div>
   </div>
 
@@ -2652,10 +2651,23 @@ async function onMediaRecStop() {
 
 // ─── SHEET button ─────────────────────────────────────────────────────────────
 let sheetOpen = false;
+function setActiveView(id) {
+  document.querySelectorAll('.view-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+document.getElementById('padsBtn').addEventListener('click', () => {
+  boot();
+  if (sheetOpen) closeMidiGrid();
+  if (chopOpen)  closeChopView();
+  if (seqOpen)   closeSeqView();
+  setActiveView('padsBtn');
+});
+
 document.getElementById('sheetBtn').addEventListener('click', () => {
   boot();
   if (!sheetOpen) openMidiGrid();
-  else closeMidiGrid();
+  else { closeMidiGrid(); setActiveView('padsBtn'); }
 });
 
 // ─── MIDI Grid ─────────────────────────────────────────────────────────────────
@@ -2831,8 +2843,7 @@ function openMidiGrid() {
   midiOverlay.classList.remove('hidden');
   document.getElementById('midiTitle').textContent =
     '\u2500\u2500 TAKE \u00B7 ' + midiLoopBars + 'BAR \u00B7 ' + metroBPM + 'BPM \u2500\u2500';
-  const sb = document.getElementById('sheetBtn');
-  sb.textContent = '\u2190 PADS'; sb.classList.add('active');
+  setActiveView('sheetBtn');
   requestAnimationFrame(() => { resizeMidi(); startTransportPlayhead(); });
 }
 function closeMidiGrid() {
@@ -2842,8 +2853,7 @@ function closeMidiGrid() {
   stopTransportPlayhead();
   _machine.classList.remove('sheet-mode');
   midiOverlay.classList.add('hidden');
-  const sb = document.getElementById('sheetBtn');
-  sb.textContent = 'SHEET'; sb.classList.remove('active');
+  setActiveView('padsBtn');
 }
 
 document.querySelectorAll('.midi-quant-btn').forEach(btn=>{
@@ -3580,8 +3590,7 @@ function openChopView() {
   if (seqOpen) closeSeqView();
   _machine.classList.add('chop-mode');
   chopOverlay.classList.remove('hidden');
-  const cb = document.getElementById('chopBtn');
-  cb.textContent = '\u2190 PADS'; cb.classList.add('active');
+  setActiveView('chopBtn');
   requestAnimationFrame(() => drawWave());
 }
 function closeChopView() {
@@ -3590,12 +3599,12 @@ function closeChopView() {
   if (chopRecorder && chopRecorder.state !== 'inactive') { chopRecorder.stop(); }
   _machine.classList.remove('chop-mode');
   chopOverlay.classList.add('hidden');
-  const cb = document.getElementById('chopBtn');
-  cb.textContent = 'CHOP'; cb.classList.remove('active');
+  setActiveView('padsBtn');
 }
 document.getElementById('chopBtn').addEventListener('click', () => {
   boot();
-  if (!chopOpen) openChopView(); else closeChopView();
+  if (!chopOpen) openChopView();
+  else { closeChopView(); setActiveView('padsBtn'); }
 });
 window.addEventListener('resize', () => { if (chopOpen) drawWave(); });
 
@@ -3851,18 +3860,19 @@ function openSeqView() {
   seqOpen = true;
   _machine.classList.add('seq-mode');
   seqOverlayEl.classList.remove('hidden');
-  seqBtnEl.textContent = '\u2190 PADS'; seqBtnEl.classList.add('active');
+  setActiveView('seqBtn');
   buildSeqGrid(); updateSeqPageUI();
 }
 function closeSeqView() {
   seqOpen = false;
   _machine.classList.remove('seq-mode');
   seqOverlayEl.classList.add('hidden');
-  seqBtnEl.textContent = 'SEQ'; seqBtnEl.classList.remove('active');
+  setActiveView('padsBtn');
 }
 seqBtnEl.addEventListener('click', () => {
   boot();
-  if (!seqOpen) openSeqView(); else closeSeqView();
+  if (!seqOpen) openSeqView();
+  else { closeSeqView(); setActiveView('padsBtn'); }
 });
 
 // ─── Layback popup ─────────────────────────────────────────────────────────────
