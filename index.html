@@ -640,6 +640,9 @@ body {
 .seq-kit-row { display: flex; gap: 3px; flex-shrink: 0; }
 .seq-kit-btn { flex: 1; padding: 6px 0; border-radius: 5px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Public Sans', sans-serif; font-size: clamp(9px,2.5vw,11px); letter-spacing: 0.05em; font-weight: 500; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: all 0.06s; }
 .seq-kit-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.seq-enable-row { display: flex; justify-content: center; padding-top: 8px; flex-shrink: 0; }
+.seq-enable-btn { font-family: 'Public Sans', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 8px 28px; border-radius: 5px; border: 1px solid rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); color: #f59e0b; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s; }
+.seq-enable-btn.active { background: #f59e0b; color: #07111e; border-color: #f59e0b; }
 .seq-lb-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); }
 .seq-lb-overlay.hidden { display: none; }
 .seq-lb-modal { background: var(--surface); border: 1px solid rgba(26,58,255,0.3); border-radius: 14px; padding: 18px 20px 16px; width: min(280px,86vw); box-shadow: 0 0 40px rgba(26,58,255,0.1),0 20px 60px rgba(0,0,0,0.7); }
@@ -678,7 +681,7 @@ body {
 .chop-ded-label { font-size: 8px; font-weight: 500; letter-spacing: 0.18em; color: rgba(221,216,208,0.4); text-transform: uppercase; }
 .chop-ded-hint { font-size: 8px; color: rgba(221,216,208,0.2); letter-spacing: 0.08em; }
 .chop-ded-actions { display: flex; gap: 4px; }
-.chop-ded-pads { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 4px; flex: 1; min-height: 0; }
+.chop-ded-pads { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 4px; flex: 1; min-height: 0; }
 .chop-ded-pad { border-radius: 5px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; position: relative; overflow: hidden; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 36px; }
 .chop-ded-pad.filled { border-color: transparent; }
 .chop-ded-pad.active { filter: brightness(1.5); }
@@ -851,7 +854,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.6</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.7</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -1034,6 +1037,9 @@ body {
         <button class="seq-kit-btn" data-kit="lofi">LOFI</button>
         <button class="seq-kit-btn" data-kit="hiphop">808</button>
         <button class="seq-kit-btn" data-kit="electronic">ELEC</button>
+      </div>
+      <div class="seq-enable-row">
+        <button class="seq-enable-btn" id="seqEnableBtn">▶ ENABLE SEQ</button>
       </div>
     </div>
   </div>
@@ -2397,7 +2403,7 @@ function startTransport() {
   if (loopNotes.length > 0) {
     scheduleLoopPass(loopStartAudioTime);
   }
-  startSeqScheduler();
+  if (seqEnabled) startSeqScheduler();
 }
 
 function stopTransport() {
@@ -2417,7 +2423,7 @@ function stopTransport() {
   setScreenIdle();
   syncScreenMeta();
   display.textContent = '[ READY ]';
-  stopSeqScheduler();
+  if (seqEnabled) stopSeqScheduler();
 }
 
 function makeBPMBtn(el, delta) {
@@ -2635,8 +2641,8 @@ function noteSize() {
   const s = Math.sqrt(midiZoom);
   return { w: Math.round(Math.max(8, 8*s)), h: Math.round(Math.min(LANE_H-2, Math.max(14, 14*s))) };
 }
-const PAD_SHORT = ['Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7','FX 1','FX 2','FX 3','FX 4','KICK','SNARE','HH-C','HH-O','CP1','CP2','CP3','CP4','CP5','CP6','CP7','CP8'];
-const PAD_COL   = ['#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#8e44ad','#8e44ad','#8e44ad','#8e44ad','#e74c3c','#e74c3c','#27ae60','#27ae60','#e87040','#5080d0','#50b080','#d0a020','#d05080','#8060c0','#40a0b0','#c06030'];
+const PAD_SHORT = ['Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7','FX 1','FX 2','FX 3','FX 4','KICK','SNARE','HH-C','HH-O','CP1','CP2','CP3','CP4','CP5','CP6','CP7','CP8','CP9','CP10','CP11','CP12','CP13','CP14','CP15','CP16'];
+const PAD_COL   = ['#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#8e44ad','#8e44ad','#8e44ad','#8e44ad','#e74c3c','#e74c3c','#27ae60','#27ae60','#e87040','#5080d0','#50b080','#d0a020','#d05080','#8060c0','#40a0b0','#c06030','#c04060','#3090b0','#70b040','#b07030','#5040c0','#30c080','#c09020','#d05070'];
 
 let midiNotes = [], midiDur = 1, midiLoopBars = 1, midiQuantize = 16;
 let midiDragging = null, midiDragTapX = 0;
@@ -2685,7 +2691,7 @@ function drawMidi() {
   g.clearRect(0,0,midiCanvas.width,midiCanvas.height);
   g.save(); g.scale(dpr,dpr);
   g.fillStyle='#07111e'; g.fillRect(0,0,W,H);
-  for (let i=0;i<24;i++) {
+  for (let i=0;i<32;i++) {
     const y=i*LANE_H;
     if (i===16){g.strokeStyle='rgba(245,158,11,0.25)';g.lineWidth=1;g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
     if (i%2===0){g.fillStyle=i>=16?'rgba(245,158,11,0.025)':'rgba(255,255,255,0.018)';g.fillRect(LABEL_W,y,gW,LANE_H);}
@@ -2778,7 +2784,7 @@ function resizeMidi() {
   const dpr=window.devicePixelRatio||1;
   const containerW=midiGridWrap.clientWidth;
   const W=Math.max(containerW, Math.round(containerW*midiZoom));
-  const H=24*LANE_H;
+  const H=32*LANE_H;
   midiCanvas.style.width=W+'px'; midiCanvas.style.height=H+'px';
   midiCanvas.width=W*dpr; midiCanvas.height=H*dpr; drawMidi();
 }
@@ -3307,11 +3313,11 @@ chopPreBtn.addEventListener('click', () => {
 });
 
 // ─── CHOP Dedicated Pads ───────────────────────────────────────────────────────
-const DED_COLORS = ['#e87040','#5080d0','#50b080','#d0a020','#d05080','#8060c0','#40a0b0','#c06030'];
-const DED_KEYS   = ['5','6','7','8','t','y','u','i'];
-const chopDedBufs   = new Array(8).fill(null);
-const chopDedMeta   = Array.from({length:8}, () => ({startRatio:-1, endRatio:-1, name:'', color:''}));
-const activeDedSrc  = new Array(8).fill(null);
+const DED_COLORS = ['#e87040','#5080d0','#50b080','#d0a020','#d05080','#8060c0','#40a0b0','#c06030','#c04060','#3090b0','#70b040','#b07030','#5040c0','#30c080','#c09020','#d05070'];
+const DED_KEYS   = ['5','6','7','8','t','y','u','i','q','w','e','r','a','s','d','f'];
+const chopDedBufs   = new Array(16).fill(null);
+const chopDedMeta   = Array.from({length:16}, () => ({startRatio:-1, endRatio:-1, name:'', color:''}));
+const activeDedSrc  = new Array(16).fill(null);
 let dedPlayIdx = -1, dedPlayInfo = null;
 
 // Sheet recording
@@ -3320,10 +3326,10 @@ let isDedRecording = false, dedRecOrigin = 0;
 const pendingDedNotes = new Map();
 
 const chopDedPadsEl    = document.getElementById('chopDedPads');
-const chopDedPitch     = new Array(8).fill(0);
+const chopDedPitch     = new Array(16).fill(0);
 
 // Build ded pads DOM
-for (let i = 0; i < 8; i++) {
+for (let i = 0; i < 16; i++) {
   const el = document.createElement('div');
   el.className = 'chop-ded-pad';
   el.dataset.di = i;
@@ -3345,11 +3351,11 @@ function refreshDedPad(i) {
     if (!dot) { dot = document.createElement('div'); dot.className = 'chop-ded-pad-dot'; el.appendChild(dot); }
   } else { if (dot) dot.remove(); }
 }
-for (let i = 0; i < 8; i++) refreshDedPad(i);
+for (let i = 0; i < 16; i++) refreshDedPad(i);
 
 function playDedPad(i) {
   const buf = chopDedBufs[i]; if (!buf || !ctx) return;
-  for (let j = 0; j < 8; j++) {
+  for (let j = 0; j < 16; j++) {
     if (activeDedSrc[j]) { try { activeDedSrc[j].stop(); } catch(e){} activeDedSrc[j] = null; chopDedPadsEl.children[j].classList.remove('active'); }
   }
   const rate = Math.pow(2, (chopDedPitch[i] || 0) / 12);
@@ -3612,6 +3618,7 @@ SEQ[0][4].s  = SEQ[0][12].s  = true;
 [0,2,4,6,8,10,12,14].forEach(i => { SEQ[0][i].h = true; });
 
 let seqNumBars   = 1;
+let seqEnabled   = false;
 let seqViewPage  = 0;
 let seqKit       = 'acoustic';
 let seqIsPlaying = false;
@@ -3825,6 +3832,16 @@ seqBtnEl.addEventListener('click', () => {
   boot();
   if (!seqOpen) openSeqView();
   else { closeSeqView(); setActiveView('padsBtn'); }
+});
+
+document.getElementById('seqEnableBtn').addEventListener('click', () => {
+  boot();
+  seqEnabled = !seqEnabled;
+  const btn = document.getElementById('seqEnableBtn');
+  btn.textContent = seqEnabled ? '■ SEQ ACTIVE' : '▶ ENABLE SEQ';
+  btn.classList.toggle('active', seqEnabled);
+  if (seqEnabled && transportOn) startSeqScheduler();
+  else if (!seqEnabled) stopSeqScheduler();
 });
 
 // ─── Layback popup ─────────────────────────────────────────────────────────────
