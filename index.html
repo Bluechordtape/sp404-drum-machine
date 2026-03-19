@@ -646,6 +646,58 @@ body {
 .cps-pitch-val { font-family: 'Courier New', monospace; font-size: 22px; font-weight: bold; min-width: 72px; }
 .cps-btns { display: flex; gap: 8px; }
 .chop-ded-pad-pitch { font-size: 7px; font-weight: 700; color: rgba(0,0,0,0.55); position: absolute; bottom: 3px; left: 4px; font-family: 'Courier New', monospace; letter-spacing: 0; }
+/* ── SEQ mode ── */
+.machine.seq-mode .controls { display: none; }
+.machine.seq-mode #padGrid { display: none !important; }
+.machine.seq-mode .bct-screen { display: none; }
+.machine.seq-mode .led-strip  { display: none; }
+.seq-overlay { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+.seq-overlay.hidden { display: none; }
+.seq-modal { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; gap: 5px; }
+.seq-top { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.seq-title { font-size: 10px; letter-spacing: 0.22em; color: var(--primary); text-transform: uppercase; }
+.seq-pg-btn { width: 24px; height: 24px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.seq-pg-btn:disabled { opacity: 0.25; pointer-events: none; }
+.seq-pg-lbl { font-size: 10px; letter-spacing: 0.1em; color: var(--muted); min-width: 32px; text-align: center; font-weight: 500; }
+.seq-legend { display: flex; gap: 0; justify-content: space-between; flex-shrink: 0; }
+.seq-leg { font-size: 8px; letter-spacing: 0.08em; display: flex; align-items: center; gap: 3px; color: var(--muted); }
+.seq-leg-dot { width: 6px; height: 6px; border-radius: 50%; }
+.seq-lk .seq-leg-dot { background: #e05040; }
+.seq-ls .seq-leg-dot { background: #40c070; }
+.seq-lh .seq-leg-dot { background: #c0a020; }
+.seq-lo .seq-leg-dot { background: #7060c0; }
+.seq-step-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 4px; flex: 1; min-height: 0; touch-action: none; }
+.seq-step-pad { border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; overflow: hidden; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: border-color 0.05s; position: relative; }
+.seq-step-pad.beat1 { border-color: rgba(255,255,255,0.12); }
+.seq-step-pad.now { border-color: var(--primary) !important; box-shadow: 0 0 0 1px rgba(26,58,255,0.45) !important; z-index: 1; }
+.seq-quad { display: flex; align-items: center; justify-content: center; font-size: clamp(9px,2.4vw,12px); font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.07s; position: relative; }
+.seq-ql { pointer-events: none; text-transform: uppercase; opacity: 0.4; color: var(--muted); }
+.seq-qk { border-right: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); background: rgba(224,80,64,0.07); }
+.seq-qs { border-bottom: 1px solid rgba(255,255,255,0.04); background: rgba(64,192,112,0.07); }
+.seq-qh { border-right: 1px solid rgba(255,255,255,0.04); background: rgba(192,160,32,0.07); }
+.seq-qo { background: rgba(112,96,192,0.07); }
+.seq-qk.on { background: rgba(220,72,56,0.75); color: #fff; }
+.seq-qs.on { background: rgba(48,184,100,0.75); color: #fff; }
+.seq-qh.on { background: rgba(192,152,24,0.75); color: #fff; }
+.seq-qo.on { background: rgba(100,80,184,0.75); color: #fff; }
+.seq-quad.on .seq-ql { opacity: 0.85; color: #fff; }
+.seq-quad::after { content: ''; position: absolute; bottom: 0; left: 0; width: var(--lb,0%); height: 2px; background: rgba(255,255,255,0.55); pointer-events: none; border-radius: 0 1px 0 0; transition: width 0.12s; }
+.seq-kit-row { display: flex; gap: 3px; flex-shrink: 0; }
+.seq-kit-btn { flex: 1; padding: 6px 0; border-radius: 5px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Public Sans', sans-serif; font-size: clamp(9px,2.5vw,11px); letter-spacing: 0.05em; font-weight: 500; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: all 0.06s; }
+.seq-kit-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.seq-lb-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); }
+.seq-lb-overlay.hidden { display: none; }
+.seq-lb-modal { background: var(--surface); border: 1px solid rgba(26,58,255,0.3); border-radius: 14px; padding: 18px 20px 16px; width: min(280px,86vw); box-shadow: 0 0 40px rgba(26,58,255,0.1),0 20px 60px rgba(0,0,0,0.7); }
+.seq-lb-title { color: var(--primary); font-size: 10px; letter-spacing: 0.25em; text-align: center; margin-bottom: 10px; }
+.seq-lb-pct { font-size: 36px; font-weight: 700; color: var(--text); text-align: center; margin-bottom: 10px; letter-spacing: 0.05em; }
+.seq-lb-hint { font-size: 9px; letter-spacing: 0.04em; color: var(--muted); text-align: center; margin-top: 8px; }
+.seq-lb-btns { display: flex; gap: 8px; margin-top: 14px; }
+.seq-lb-btn { flex: 1; padding: 10px 0; border-radius: 7px; border: none; font-family: 'Public Sans', sans-serif; font-size: 10px; letter-spacing: 0.12em; font-weight: 500; cursor: pointer; touch-action: manipulation; }
+.seq-lb-reset { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+.seq-lb-done { background: var(--primary); color: #fff; }
+.seq-lb-modal input[type=range] { width: 100%; height: 3px; -webkit-appearance: none; appearance: none; background: linear-gradient(to right, var(--primary) 0%, var(--primary) var(--pct,0%), rgba(255,255,255,0.1) var(--pct,0%), rgba(255,255,255,0.1) 100%); border-radius: 2px; outline: none; cursor: pointer; display: block; margin: 4px 0; }
+.seq-lb-modal input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--primary); border: 2px solid rgba(255,255,255,0.2); cursor: pointer; }
+.seq-lb-modal input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--primary); border: 2px solid rgba(255,255,255,0.2); cursor: pointer; }
 .chop-top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; flex-shrink: 0; }
 .chop-title { font-size: 10px; letter-spacing: 0.22em; color: #f59e0b; text-transform: uppercase; }
 .chop-wave-wrap { position: relative; height: 90px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #050d18; border: 1px solid var(--border); }
@@ -843,7 +895,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v2.8</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v2.9</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -879,7 +931,7 @@ body {
       </div>
       <button class="play-btn" id="playBtn">&#9654; PLAY</button>
       <button class="rec-btn" id="recBtn">&#9679; REC</button>
-      <button class="sheet-btn" id="sheetBtn">SHEET</button><button class="chop-btn" id="chopBtn">CHOP</button>
+      <button class="sheet-btn" id="sheetBtn">SHEET</button><button class="chop-btn" id="chopBtn">CHOP</button><button class="sheet-btn" id="seqBtn">SEQ</button>
     </div>
   </div>
 
@@ -1001,6 +1053,31 @@ body {
             <button class="midi-delete-btn ok" id="chopClearYes">CLEAR</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEQ view -->
+  <div id="seqOverlay" class="seq-overlay hidden">
+    <div class="seq-modal">
+      <div class="seq-top">
+        <span class="seq-title">── SEQ ──</span>
+        <button class="seq-pg-btn" id="seqPrevPg">&#9664;</button>
+        <span class="seq-pg-lbl" id="seqPgLbl">PG 1</span>
+        <button class="seq-pg-btn" id="seqNextPg">&#9654;</button>
+      </div>
+      <div class="seq-legend">
+        <span class="seq-leg seq-lk"><span class="seq-leg-dot"></span>KICK</span>
+        <span class="seq-leg seq-ls"><span class="seq-leg-dot"></span>SNARE</span>
+        <span class="seq-leg seq-lh"><span class="seq-leg-dot"></span>C.HH</span>
+        <span class="seq-leg seq-lo"><span class="seq-leg-dot"></span>O.HH</span>
+      </div>
+      <div class="seq-step-grid" id="seqStepGrid"></div>
+      <div class="seq-kit-row" id="seqKitBtns">
+        <button class="seq-kit-btn active" data-kit="acoustic">ACOU</button>
+        <button class="seq-kit-btn" data-kit="lofi">LOFI</button>
+        <button class="seq-kit-btn" data-kit="hiphop">808</button>
+        <button class="seq-kit-btn" data-kit="electronic">ELEC</button>
       </div>
     </div>
   </div>
@@ -2336,6 +2413,7 @@ function startTransport() {
   if (loopNotes.length > 0) {
     scheduleLoopPass(loopStartAudioTime);
   }
+  startSeqScheduler();
 }
 
 function stopTransport() {
@@ -2355,6 +2433,7 @@ function stopTransport() {
   setScreenIdle();
   syncScreenMeta();
   display.textContent = '[ READY ]';
+  stopSeqScheduler();
 }
 
 function makeBPMBtn(el, delta) {
@@ -2378,6 +2457,9 @@ document.querySelectorAll('.bar-sel-item').forEach(btn => {
     loopBars = parseInt(btn.dataset.bars);
     loopDuration = loopBars * BEATS_PER_BAR * spb();
     scrLoopTag.textContent = loopBars + ' BAR';
+    seqNumBars = Math.min(4, loopBars);
+    if (seqViewPage >= seqNumBars) { seqViewPage = seqNumBars - 1; if (seqOpen) { buildSeqGrid(); updateSeqPageUI(); } }
+    if (seqIsPlaying) seqGlobalStep = seqGlobalStep % (seqNumBars * 16);
   });
 });
 
@@ -3523,10 +3605,432 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+// ─── SEQ (Drum Sequencer) ─────────────────────────────────────────────────────
+const SEQ = Array.from({length:4}, () =>
+  Array.from({length:16}, () => ({k:false, s:false, h:false, o:false}))
+);
+const LAYBACK = Array.from({length:4}, () =>
+  Array.from({length:16}, () => ({k:0, s:0, h:0, o:0}))
+);
+// Default starter pattern
+SEQ[0][0].k = SEQ[0][10].k = true;
+SEQ[0][4].s  = SEQ[0][12].s  = true;
+[0,2,4,6,8,10,12,14].forEach(i => { SEQ[0][i].h = true; });
+
+let seqNumBars   = 1;
+let seqViewPage  = 0;
+let seqKit       = 'acoustic';
+let seqIsPlaying = false;
+let seqGlobalStep = 0, seqNextNoteTime = 0;
+let seqSchedTimer = null;
+const seqNoteQueue = [];
+let seqLastDraw = -1;
+let seqOpen = false;
+
+const seqOverlayEl  = document.getElementById('seqOverlay');
+const seqBtnEl      = document.getElementById('seqBtn');
+const seqStepGridEl = document.getElementById('seqStepGrid');
+const seqPgLblEl    = document.getElementById('seqPgLbl');
+const seqPrevPgBtn  = document.getElementById('seqPrevPg');
+const seqNextPgBtn  = document.getElementById('seqNextPg');
+const seqStepPads   = [];
+const seqQuadEls    = [];
+
+// ─── Audio helpers ─────────────────────────────────────────────────────────────
+function seqDistCurve(k) {
+  const n = 256, c = new Float32Array(n), deg = Math.PI / 180;
+  for (let i = 0; i < n; i++) {
+    const x = i * 2 / n - 1;
+    c[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+  }
+  return c;
+}
+function seqMkNoise(dur) {
+  const len = Math.floor(ctx.sampleRate * dur);
+  const b = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = b.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const s = ctx.createBufferSource(); s.buffer = b; return s;
+}
+
+// ─── Grid ──────────────────────────────────────────────────────────────────────
+function buildSeqGrid() {
+  seqStepGridEl.innerHTML = '';
+  seqStepPads.length = 0; seqQuadEls.length = 0;
+  for (let i = 0; i < 16; i++) {
+    const pad = document.createElement('div');
+    pad.className = 'seq-step-pad' + (i % 4 === 0 ? ' beat1' : '');
+    pad.dataset.step = i;
+    const defs = [
+      {key:'k', cls:'seq-qk', lbl:'K'}, {key:'s', cls:'seq-qs', lbl:'S'},
+      {key:'h', cls:'seq-qh', lbl:'H'}, {key:'o', cls:'seq-qo', lbl:'O'},
+    ];
+    const els = {};
+    defs.forEach(d => {
+      const el = document.createElement('div');
+      el.className = `seq-quad ${d.cls}`;
+      el.dataset.key = d.key;
+      el.innerHTML = `<span class="seq-ql">${d.lbl}</span>`;
+      if (SEQ[seqViewPage][i][d.key]) el.classList.add('on');
+      pad.appendChild(el); els[d.key] = el;
+    });
+    seqStepGridEl.appendChild(pad);
+    seqStepPads.push(pad); seqQuadEls.push(els);
+  }
+  // Restore layback visuals
+  for (let i = 0; i < 16; i++) {
+    const lb = LAYBACK[seqViewPage][i];
+    ['k','s','h','o'].forEach(key => applySeqLbVisual(seqQuadEls[i][key], lb[key]));
+  }
+}
+
+function applySeqLbVisual(el, val) {
+  el.style.setProperty('--lb', Math.round(val * 100) + '%');
+}
+
+function refreshSeqGrid() {
+  seqStepPads.forEach(p => p.classList.remove('now'));
+  for (let i = 0; i < 16; i++) {
+    const s = SEQ[seqViewPage][i], lb = LAYBACK[seqViewPage][i];
+    seqQuadEls[i].k.classList.toggle('on', s.k);
+    seqQuadEls[i].s.classList.toggle('on', s.s);
+    seqQuadEls[i].h.classList.toggle('on', s.h);
+    seqQuadEls[i].o.classList.toggle('on', s.o);
+    ['k','s','h','o'].forEach(key => applySeqLbVisual(seqQuadEls[i][key], lb[key]));
+  }
+}
+
+// ─── Grid interactions ─────────────────────────────────────────────────────────
+const SEQ_LONG_MS = 500;
+let seqLpTimer = null, seqLpTarget = null, seqLpStart = null;
+
+seqStepGridEl.addEventListener('pointerdown', e => {
+  const quad = e.target.closest('.seq-quad'); if (!quad) return;
+  e.preventDefault();
+  seqLpTarget = quad; seqLpStart = {x: e.clientX, y: e.clientY};
+  seqLpTimer = setTimeout(() => {
+    seqLpTimer = null;
+    const step = parseInt(seqLpTarget.closest('.seq-step-pad').dataset.step);
+    openSeqLbPopup(step, seqLpTarget.dataset.key);
+    seqLpTarget = null; seqLpStart = null;
+  }, SEQ_LONG_MS);
+}, {passive: false});
+
+seqStepGridEl.addEventListener('pointermove', e => {
+  if (!seqLpTimer || !seqLpStart) return;
+  const dx = e.clientX - seqLpStart.x, dy = e.clientY - seqLpStart.y;
+  if (dx*dx + dy*dy > 64) { clearTimeout(seqLpTimer); seqLpTimer = null; seqLpTarget = null; seqLpStart = null; }
+}, {passive: true});
+
+seqStepGridEl.addEventListener('pointerup', e => {
+  if (seqLpTimer) {
+    clearTimeout(seqLpTimer); seqLpTimer = null;
+    const quad = seqLpTarget; seqLpTarget = null; seqLpStart = null;
+    if (!quad) return;
+    const step = parseInt(quad.closest('.seq-step-pad').dataset.step);
+    const key  = quad.dataset.key;
+    const newVal = !SEQ[seqViewPage][step][key];
+    SEQ[seqViewPage][step][key] = newVal;
+    quad.classList.toggle('on', newVal);
+    if (newVal && ctx) playSeqDrum(key, ctx.currentTime + 0.01);
+  } else { seqLpTarget = null; seqLpStart = null; }
+}, {passive: true});
+
+seqStepGridEl.addEventListener('pointercancel', () => {
+  if (seqLpTimer) { clearTimeout(seqLpTimer); seqLpTimer = null; }
+  seqLpTarget = null; seqLpStart = null;
+});
+
+// ─── Page navigation ───────────────────────────────────────────────────────────
+function updateSeqPageUI() {
+  seqPgLblEl.textContent = `PG ${seqViewPage + 1}`;
+  seqPrevPgBtn.disabled = seqViewPage <= 0;
+  seqNextPgBtn.disabled = seqViewPage >= seqNumBars - 1;
+}
+seqPrevPgBtn.addEventListener('click', () => {
+  if (seqViewPage > 0) { seqViewPage--; updateSeqPageUI(); buildSeqGrid(); }
+});
+seqNextPgBtn.addEventListener('click', () => {
+  if (seqViewPage < seqNumBars - 1) { seqViewPage++; updateSeqPageUI(); buildSeqGrid(); }
+});
+
+// ─── Kit selection ─────────────────────────────────────────────────────────────
+document.getElementById('seqKitBtns').addEventListener('click', e => {
+  const btn = e.target.closest('.seq-kit-btn'); if (!btn) return;
+  seqKit = btn.dataset.kit;
+  document.querySelectorAll('.seq-kit-btn').forEach(b => b.classList.toggle('active', b === btn));
+  boot();
+});
+
+// ─── Scheduler ─────────────────────────────────────────────────────────────────
+function startSeqScheduler() {
+  if (seqSchedTimer) { clearTimeout(seqSchedTimer); seqSchedTimer = null; }
+  seqGlobalStep = 0; seqNextNoteTime = ctx.currentTime + 0.05;
+  seqNoteQueue.length = 0; seqLastDraw = -1; seqIsPlaying = true;
+  seqScheduler();
+}
+function stopSeqScheduler() {
+  seqIsPlaying = false;
+  clearTimeout(seqSchedTimer); seqSchedTimer = null;
+  seqNoteQueue.length = 0; seqGlobalStep = 0; seqLastDraw = -1;
+  if (seqOpen) seqStepPads.forEach(p => p.classList.remove('now'));
+}
+function seqScheduler() {
+  while (seqNextNoteTime < ctx.currentTime + 0.12) {
+    const bar = Math.floor(seqGlobalStep / 16);
+    const beat = seqGlobalStep % 16;
+    const s = SEQ[bar][beat], lb = LAYBACK[bar][beat];
+    const sixteenth = (60 / metroBPM) * 0.25;
+    if (s.k) playSeqDrum('k', seqNextNoteTime + lb.k * sixteenth * 0.98);
+    if (s.s) playSeqDrum('s', seqNextNoteTime + lb.s * sixteenth * 0.98);
+    if (s.h) playSeqDrum('h', seqNextNoteTime + lb.h * sixteenth * 0.98);
+    if (s.o) playSeqDrum('o', seqNextNoteTime + lb.o * sixteenth * 0.98);
+    seqNoteQueue.push({step: seqGlobalStep, time: seqNextNoteTime});
+    seqNextNoteTime += sixteenth;
+    seqGlobalStep = (seqGlobalStep + 1) % (seqNumBars * 16);
+  }
+  seqSchedTimer = setTimeout(seqScheduler, 22);
+}
+function seqDrawLoop() {
+  if (seqIsPlaying && ctx && seqOpen) {
+    let drew = seqLastDraw;
+    const now = ctx.currentTime;
+    while (seqNoteQueue.length && seqNoteQueue[0].time <= now) drew = seqNoteQueue.shift().step;
+    if (drew !== seqLastDraw) {
+      if (seqLastDraw >= 0) {
+        const ob = Math.floor(seqLastDraw / 16), ob2 = seqLastDraw % 16;
+        if (ob === seqViewPage && seqStepPads[ob2]) seqStepPads[ob2].classList.remove('now');
+      }
+      const nb = Math.floor(drew / 16), nb2 = drew % 16;
+      if (nb === seqViewPage && seqStepPads[nb2]) seqStepPads[nb2].classList.add('now');
+      seqLastDraw = drew;
+    }
+  } else if (!seqIsPlaying && seqOpen && seqStepPads.length) {
+    seqStepPads.forEach(p => p.classList.remove('now'));
+  }
+  requestAnimationFrame(seqDrawLoop);
+}
+
+// ─── View open / close ─────────────────────────────────────────────────────────
+function openSeqView() {
+  if (chopOpen) closeChopView();
+  if (sheetOpen) closeMidiGrid();
+  seqOpen = true;
+  _machine.classList.add('seq-mode');
+  seqOverlayEl.classList.remove('hidden');
+  seqBtnEl.textContent = '\u2190 PADS'; seqBtnEl.classList.add('active');
+  buildSeqGrid(); updateSeqPageUI();
+}
+function closeSeqView() {
+  seqOpen = false;
+  _machine.classList.remove('seq-mode');
+  seqOverlayEl.classList.add('hidden');
+  seqBtnEl.textContent = 'SEQ'; seqBtnEl.classList.remove('active');
+}
+seqBtnEl.addEventListener('click', () => {
+  boot();
+  if (!seqOpen) openSeqView(); else closeSeqView();
+});
+
+// ─── Layback popup ─────────────────────────────────────────────────────────────
+const SEQ_INST_NAMES = {k:'KICK', s:'SNARE', h:'C.HH', o:'O.HH'};
+const seqLbOverlayEl = document.getElementById('seqLbOverlay');
+const seqLbSliderEl  = document.getElementById('seqLbSlider');
+const seqLbPctEl     = document.getElementById('seqLbPct');
+const seqLbTitleEl   = document.getElementById('seqLbTitle');
+let seqLbTarget = null;
+
+function openSeqLbPopup(step, key) {
+  seqLbTarget = {step, key};
+  const val = Math.round(LAYBACK[seqViewPage][step][key] * 100);
+  seqLbTitleEl.textContent = `── ${SEQ_INST_NAMES[key]} LAYBACK ──`;
+  seqLbSliderEl.value = val; syncSeqLbSlider(val);
+  seqLbOverlayEl.classList.remove('hidden');
+}
+function syncSeqLbSlider(val) {
+  seqLbPctEl.textContent = val + '%';
+  seqLbSliderEl.style.setProperty('--pct', val.toFixed(1) + '%');
+}
+seqLbSliderEl.addEventListener('input', () => {
+  if (!seqLbTarget) return;
+  const val = parseInt(seqLbSliderEl.value);
+  LAYBACK[seqViewPage][seqLbTarget.step][seqLbTarget.key] = val / 100;
+  syncSeqLbSlider(val);
+  applySeqLbVisual(seqQuadEls[seqLbTarget.step][seqLbTarget.key], val / 100);
+});
+document.getElementById('seqLbReset').addEventListener('click', () => {
+  if (!seqLbTarget) return;
+  LAYBACK[seqViewPage][seqLbTarget.step][seqLbTarget.key] = 0;
+  seqLbSliderEl.value = 0; syncSeqLbSlider(0);
+  applySeqLbVisual(seqQuadEls[seqLbTarget.step][seqLbTarget.key], 0);
+});
+document.getElementById('seqLbDone').addEventListener('click', () => {
+  seqLbOverlayEl.classList.add('hidden'); seqLbTarget = null;
+});
+seqLbOverlayEl.addEventListener('pointerdown', e => {
+  if (e.target === seqLbOverlayEl) { seqLbOverlayEl.classList.add('hidden'); seqLbTarget = null; }
+});
+
+// ─── Drum synthesis ────────────────────────────────────────────────────────────
+function playSeqDrum(type, time) {
+  switch(seqKit) {
+    case 'acoustic':   seqAcoustic(type, time);   break;
+    case 'lofi':       seqLofi(type, time);        break;
+    case 'hiphop':     seqHiphop(type, time);      break;
+    case 'electronic': seqElectronic(type, time);  break;
+  }
+}
+function seqAcoustic(type, t) {
+  switch(type) {
+    case 'k': {
+      const body = ctx.createOscillator(); body.type = 'sine';
+      body.frequency.setValueAtTime(160, t); body.frequency.exponentialRampToValueAtTime(52, t+0.055); body.frequency.exponentialRampToValueAtTime(36, t+0.22);
+      const bg = ctx.createGain(); bg.gain.setValueAtTime(1.1, t); bg.gain.exponentialRampToValueAtTime(0.0001, t+0.44);
+      const click = ctx.createOscillator(); click.type = 'triangle';
+      click.frequency.setValueAtTime(1100, t); click.frequency.exponentialRampToValueAtTime(60, t+0.016);
+      const cg = ctx.createGain(); cg.gain.setValueAtTime(0.55, t); cg.gain.exponentialRampToValueAtTime(0.0001, t+0.028);
+      const ws = ctx.createWaveShaper(); ws.curve = seqDistCurve(50);
+      const comp = ctx.createDynamicsCompressor(); comp.threshold.value=-6; comp.ratio.value=8; comp.attack.value=0.001; comp.release.value=0.1;
+      body.connect(bg); click.connect(cg); bg.connect(ws); cg.connect(ws); ws.connect(comp); comp.connect(masterOut);
+      body.start(t); body.stop(t+0.5); click.start(t); click.stop(t+0.04); break;
+    }
+    case 's': {
+      const dur=0.2; const ns=seqMkNoise(dur);
+      const bpf=ctx.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=2800; bpf.Q.value=0.65;
+      const ng=ctx.createGain(); ng.gain.setValueAtTime(0.85,t); ng.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      const osc=ctx.createOscillator(); osc.type='triangle'; osc.frequency.setValueAtTime(220,t); osc.frequency.exponentialRampToValueAtTime(100,t+0.06);
+      const og=ctx.createGain(); og.gain.setValueAtTime(0.4,t); og.gain.exponentialRampToValueAtTime(0.0001,t+0.1);
+      ns.connect(bpf); bpf.connect(ng); ng.connect(masterOut); osc.connect(og); og.connect(masterOut);
+      ns.start(t); osc.start(t); osc.stop(t+0.25); break;
+    }
+    case 'h': {
+      const dur=0.075; const ns=seqMkNoise(dur);
+      const hpf=ctx.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=8500;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t); break;
+    }
+    case 'o': {
+      const dur=0.52; const ns=seqMkNoise(dur);
+      const hpf=ctx.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=6500;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.42,t); g.gain.linearRampToValueAtTime(0.18,t+0.22); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t); break;
+    }
+  }
+}
+function seqLofi(type, t) {
+  switch(type) {
+    case 'k': {
+      const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.setValueAtTime(120,t); osc.frequency.exponentialRampToValueAtTime(42,t+0.12);
+      const g=ctx.createGain(); g.gain.setValueAtTime(1.2,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.55);
+      const ws=ctx.createWaveShaper(); ws.curve=seqDistCurve(130);
+      const lpf=ctx.createBiquadFilter(); lpf.type='lowpass'; lpf.frequency.value=850;
+      osc.connect(g); g.connect(ws); ws.connect(lpf); lpf.connect(masterOut); osc.start(t); osc.stop(t+0.6); break;
+    }
+    case 's': {
+      const dur=0.26; const ns=seqMkNoise(dur);
+      const bpf=ctx.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=2000; bpf.Q.value=1.2;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.9,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      const ws=ctx.createWaveShaper(); ws.curve=seqDistCurve(90);
+      ns.connect(bpf); bpf.connect(g); g.connect(ws); ws.connect(masterOut); ns.start(t); break;
+    }
+    case 'h': {
+      const dur=0.062; const ns=seqMkNoise(dur);
+      const hpf=ctx.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=5000;
+      const lpf=ctx.createBiquadFilter(); lpf.type='lowpass'; lpf.frequency.value=9500;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.55,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      ns.connect(hpf); hpf.connect(lpf); lpf.connect(g); g.connect(masterOut); ns.start(t); break;
+    }
+    case 'o': {
+      const dur=0.38; const ns=seqMkNoise(dur);
+      const hpf=ctx.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=5500;
+      const lpf=ctx.createBiquadFilter(); lpf.type='lowpass'; lpf.frequency.value=8200;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.42,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      ns.connect(hpf); hpf.connect(lpf); lpf.connect(g); g.connect(masterOut); ns.start(t); break;
+    }
+  }
+}
+function seqHiphop(type, t) {
+  switch(type) {
+    case 'k': {
+      const body=ctx.createOscillator(); body.type='sine';
+      body.frequency.setValueAtTime(200,t); body.frequency.exponentialRampToValueAtTime(42,t+0.08); body.frequency.exponentialRampToValueAtTime(30,t+0.55);
+      const sub=ctx.createOscillator(); sub.type='sine'; sub.frequency.setValueAtTime(50,t); sub.frequency.exponentialRampToValueAtTime(28,t+0.5);
+      const g=ctx.createGain(); g.gain.setValueAtTime(1.4,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.65);
+      const sg=ctx.createGain(); sg.gain.value=0.42;
+      const comp=ctx.createDynamicsCompressor(); comp.threshold.value=-4; comp.ratio.value=12; comp.attack.value=0.002; comp.release.value=0.15;
+      body.connect(g); sub.connect(sg); g.connect(comp); sg.connect(comp); comp.connect(masterOut);
+      body.start(t); body.stop(t+0.7); sub.start(t); sub.stop(t+0.6); break;
+    }
+    case 's': {
+      const dur=0.15; const ns=seqMkNoise(dur);
+      const bpf=ctx.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=3500; bpf.Q.value=0.45;
+      const g=ctx.createGain(); g.gain.setValueAtTime(1.0,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      const comp=ctx.createDynamicsCompressor(); comp.threshold.value=-8; comp.ratio.value=6; comp.attack.value=0; comp.release.value=0.08;
+      ns.connect(bpf); bpf.connect(g); g.connect(comp); comp.connect(masterOut); ns.start(t); break;
+    }
+    case 'h': {
+      const dur=0.065; const ns=seqMkNoise(dur);
+      const hpf=ctx.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=10000;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.55,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t); break;
+    }
+    case 'o': {
+      const dur=0.58; const ns=seqMkNoise(dur);
+      const hpf=ctx.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=8000;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.48,t); g.gain.linearRampToValueAtTime(0.22,t+0.22); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t); break;
+    }
+  }
+}
+function seqElectronic(type, t) {
+  switch(type) {
+    case 'k': {
+      const osc=ctx.createOscillator(); osc.type='sine';
+      osc.frequency.setValueAtTime(200,t); osc.frequency.exponentialRampToValueAtTime(40,t+0.04); osc.frequency.exponentialRampToValueAtTime(30,t+0.22);
+      const g=ctx.createGain(); g.gain.setValueAtTime(1.1,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.35);
+      osc.connect(g); g.connect(masterOut); osc.start(t); osc.stop(t+0.38); break;
+    }
+    case 's': {
+      const dur=0.14; const ns=seqMkNoise(dur);
+      const hpf=ctx.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=1200;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.9,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t); break;
+    }
+    case 'h': {
+      const dur=0.035; const ns=seqMkNoise(dur);
+      const hpf=ctx.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=12000;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.55,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t); break;
+    }
+    case 'o': {
+      const dur=0.44; const ns=seqMkNoise(dur);
+      const hpf=ctx.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=9000;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.44,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      ns.connect(hpf); hpf.connect(g); g.connect(masterOut); ns.start(t); break;
+    }
+  }
+}
+
+seqDrawLoop();
+
 // iOS: unlock AudioContext on first touch anywhere (Web Audio bypasses silent mode)
 document.addEventListener('touchstart', () => {
   if (ctx && ctx.state === 'suspended') ctx.resume();
 }, {once: true, passive: true});
 </script>
+
+<!-- SEQ Layback popup -->
+<div id="seqLbOverlay" class="seq-lb-overlay hidden">
+  <div class="seq-lb-modal">
+    <div class="seq-lb-title" id="seqLbTitle">── KICK LAYBACK ──</div>
+    <div class="seq-lb-pct" id="seqLbPct">0%</div>
+    <input type="range" id="seqLbSlider" min="0" max="100" value="0" step="1">
+    <div class="seq-lb-hint">0% = 정박 · 100% = 다음 16분음표 직전</div>
+    <div class="seq-lb-btns">
+      <button class="seq-lb-btn seq-lb-reset" id="seqLbReset">RESET</button>
+      <button class="seq-lb-btn seq-lb-done"  id="seqLbDone">DONE</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
