@@ -906,7 +906,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.1</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.2</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -1153,6 +1153,33 @@ body {
     <div class="picker-btns">
       <button class="picker-btn cancel" id="pickerCancel">CANCEL</button>
       <button class="picker-btn confirm" id="pickerConfirm">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEQ Layback popup -->
+<div id="seqLbOverlay" class="seq-lb-overlay hidden">
+  <div class="seq-lb-modal">
+    <div class="seq-lb-title" id="seqLbTitle">── KICK LAYBACK ──</div>
+    <div class="seq-lb-pct" id="seqLbPct">0%</div>
+    <input type="range" id="seqLbSlider" min="0" max="100" value="0" step="1">
+    <div class="seq-lb-hint">0% = on the beat · 100% = just before next 16th note</div>
+    <div class="seq-lb-btns">
+      <button class="seq-lb-btn seq-lb-reset" id="seqLbReset">RESET</button>
+      <button class="seq-lb-btn seq-lb-done"  id="seqLbDone">DONE</button>
+    </div>
+  </div>
+</div>
+
+<div id="barPickModal">
+  <div class="bar-pick-box">
+    <div class="bar-pick-title">Select Loop Length</div>
+    <div class="bar-pick-sub">Choose the number of bars before you start</div>
+    <div class="bar-pick-grid">
+      <button class="bar-pick-btn" data-bars="2">2<span>bars</span></button>
+      <button class="bar-pick-btn" data-bars="3">3<span>bars</span></button>
+      <button class="bar-pick-btn" data-bars="4">4<span>bars</span></button>
+      <button class="bar-pick-btn" data-bars="8">8<span>bars</span></button>
     </div>
   </div>
 </div>
@@ -2457,15 +2484,15 @@ metroVolSlider.addEventListener('input', e => { metroVol = e.target.value / 100;
 
 let loopBars = 2; // set by startup modal
 
-// ── Startup bar-pick modal (event delegation — modal HTML lives after </script>) ──
-document.addEventListener('click', e => {
-  const btn = e.target.closest('.bar-pick-btn');
-  if (!btn) return;
-  loopBars = parseInt(btn.dataset.bars);
-  loopDuration = loopBars * BEATS_PER_BAR * spb();
-  scrLoopTag.textContent = loopBars + ' BAR';
-  seqNumBars = Math.min(4, loopBars);
-  document.getElementById('barPickModal').classList.add('hidden');
+// ── Startup bar-pick modal ──
+document.querySelectorAll('.bar-pick-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    loopBars = parseInt(btn.dataset.bars);
+    loopDuration = loopBars * BEATS_PER_BAR * spb();
+    scrLoopTag.textContent = loopBars + ' BAR';
+    seqNumBars = Math.min(4, loopBars);
+    document.getElementById('barPickModal').classList.add('hidden');
+  });
 });
 
 // ─── Overdub Loop ─────────────────────────────────────────────────────────────
@@ -4023,32 +4050,5 @@ document.addEventListener('touchstart', () => {
   if (ctx && ctx.state === 'suspended') ctx.resume();
 }, {once: true, passive: true});
 </script>
-
-<!-- SEQ Layback popup -->
-<div id="seqLbOverlay" class="seq-lb-overlay hidden">
-  <div class="seq-lb-modal">
-    <div class="seq-lb-title" id="seqLbTitle">── KICK LAYBACK ──</div>
-    <div class="seq-lb-pct" id="seqLbPct">0%</div>
-    <input type="range" id="seqLbSlider" min="0" max="100" value="0" step="1">
-    <div class="seq-lb-hint">0% = 정박 · 100% = 다음 16분음표 직전</div>
-    <div class="seq-lb-btns">
-      <button class="seq-lb-btn seq-lb-reset" id="seqLbReset">RESET</button>
-      <button class="seq-lb-btn seq-lb-done"  id="seqLbDone">DONE</button>
-    </div>
-  </div>
-</div>
-
-<div id="barPickModal">
-  <div class="bar-pick-box">
-    <div class="bar-pick-title">Select Loop Length</div>
-    <div class="bar-pick-sub">Choose the number of bars before you start</div>
-    <div class="bar-pick-grid">
-      <button class="bar-pick-btn" data-bars="2">2<span>bars</span></button>
-      <button class="bar-pick-btn" data-bars="3">3<span>bars</span></button>
-      <button class="bar-pick-btn" data-bars="4">4<span>bars</span></button>
-      <button class="bar-pick-btn" data-bars="8">8<span>bars</span></button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
