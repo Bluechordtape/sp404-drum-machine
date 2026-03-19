@@ -906,7 +906,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.0</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.1</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -2457,15 +2457,15 @@ metroVolSlider.addEventListener('input', e => { metroVol = e.target.value / 100;
 
 let loopBars = 2; // set by startup modal
 
-// ── Startup bar-pick modal ──
-document.querySelectorAll('.bar-pick-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    loopBars = parseInt(btn.dataset.bars);
-    loopDuration = loopBars * BEATS_PER_BAR * spb();
-    scrLoopTag.textContent = loopBars + ' BAR';
-    seqNumBars = Math.min(4, loopBars);
-    document.getElementById('barPickModal').classList.add('hidden');
-  });
+// ── Startup bar-pick modal (event delegation — modal HTML lives after </script>) ──
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.bar-pick-btn');
+  if (!btn) return;
+  loopBars = parseInt(btn.dataset.bars);
+  loopDuration = loopBars * BEATS_PER_BAR * spb();
+  scrLoopTag.textContent = loopBars + ' BAR';
+  seqNumBars = Math.min(4, loopBars);
+  document.getElementById('barPickModal').classList.add('hidden');
 });
 
 // ─── Overdub Loop ─────────────────────────────────────────────────────────────
@@ -4040,13 +4040,13 @@ document.addEventListener('touchstart', () => {
 
 <div id="barPickModal">
   <div class="bar-pick-box">
-    <div class="bar-pick-title">루프 길이 선택</div>
-    <div class="bar-pick-sub">시작 전 마디 수를 정해주세요</div>
+    <div class="bar-pick-title">Select Loop Length</div>
+    <div class="bar-pick-sub">Choose the number of bars before you start</div>
     <div class="bar-pick-grid">
-      <button class="bar-pick-btn" data-bars="2">2<span>마디</span></button>
-      <button class="bar-pick-btn" data-bars="3">3<span>마디</span></button>
-      <button class="bar-pick-btn" data-bars="4">4<span>마디</span></button>
-      <button class="bar-pick-btn" data-bars="8">8<span>마디</span></button>
+      <button class="bar-pick-btn" data-bars="2">2<span>bars</span></button>
+      <button class="bar-pick-btn" data-bars="3">3<span>bars</span></button>
+      <button class="bar-pick-btn" data-bars="4">4<span>bars</span></button>
+      <button class="bar-pick-btn" data-bars="8">8<span>bars</span></button>
     </div>
   </div>
 </div>
