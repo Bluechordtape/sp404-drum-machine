@@ -646,6 +646,17 @@ body {
 .cps-pitch-val { font-family: 'Courier New', monospace; font-size: 22px; font-weight: bold; min-width: 72px; }
 .cps-btns { display: flex; gap: 8px; }
 .chop-ded-pad-pitch { font-size: 7px; font-weight: 700; color: rgba(0,0,0,0.55); position: absolute; bottom: 3px; left: 4px; font-family: 'Courier New', monospace; letter-spacing: 0; }
+/* ── Bar-select startup modal ── */
+#barPickModal { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; background: rgba(4,11,20,0.92); }
+#barPickModal.hidden { display: none; }
+.bar-pick-box { background: #111c2c; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 32px 28px; text-align: center; min-width: 260px; }
+.bar-pick-title { font-size: 10px; letter-spacing: 0.22em; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; }
+.bar-pick-sub { font-size: 11px; color: var(--muted); margin-bottom: 24px; }
+.bar-pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bar-pick-btn { padding: 18px 0; font-size: 22px; font-weight: 700; font-family: 'Public Sans', sans-serif; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.12s, border-color 0.12s; }
+.bar-pick-btn:hover { background: rgba(26,58,255,0.18); border-color: var(--primary); color: var(--primary); }
+.bar-pick-btn span { display: block; font-size: 10px; font-weight: 400; color: var(--muted); margin-top: 4px; letter-spacing: 0.1em; }
+
 /* ── SEQ mode ── */
 .machine.seq-mode .controls { display: none; }
 .machine.seq-mode #padGrid { display: none !important; }
@@ -895,7 +906,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v2.9</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.0</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -923,12 +934,7 @@ body {
       </div>
     </div>
     <div class="metro-right">
-      <div class="bar-sel" id="barSel">
-        <div class="bar-sel-item active" data-bars="1">1</div>
-        <div class="bar-sel-item" data-bars="2">2</div>
-        <div class="bar-sel-item" data-bars="4">4</div>
-        <div class="bar-sel-item" data-bars="8">8</div>
-      </div>
+      <div class="bar-sel" id="barSel" style="display:none"></div>
       <button class="play-btn" id="playBtn">&#9654; PLAY</button>
       <button class="rec-btn" id="recBtn">&#9679; REC</button>
       <button class="sheet-btn" id="sheetBtn">SHEET</button><button class="chop-btn" id="chopBtn">CHOP</button><button class="sheet-btn" id="seqBtn">SEQ</button>
@@ -2449,17 +2455,16 @@ function makeBPMBtn(el, delta) {
 makeBPMBtn(bpmUp, +1); makeBPMBtn(bpmDown, -1);
 metroVolSlider.addEventListener('input', e => { metroVol = e.target.value / 100; });
 
-let loopBars = 1;
-document.querySelectorAll('.bar-sel-item').forEach(btn => {
+let loopBars = 2; // set by startup modal
+
+// ── Startup bar-pick modal ──
+document.querySelectorAll('.bar-pick-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.bar-sel-item').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
     loopBars = parseInt(btn.dataset.bars);
     loopDuration = loopBars * BEATS_PER_BAR * spb();
     scrLoopTag.textContent = loopBars + ' BAR';
     seqNumBars = Math.min(4, loopBars);
-    if (seqViewPage >= seqNumBars) { seqViewPage = seqNumBars - 1; if (seqOpen) { buildSeqGrid(); updateSeqPageUI(); } }
-    if (seqIsPlaying) seqGlobalStep = seqGlobalStep % (seqNumBars * 16);
+    document.getElementById('barPickModal').classList.add('hidden');
   });
 });
 
@@ -4029,6 +4034,19 @@ document.addEventListener('touchstart', () => {
     <div class="seq-lb-btns">
       <button class="seq-lb-btn seq-lb-reset" id="seqLbReset">RESET</button>
       <button class="seq-lb-btn seq-lb-done"  id="seqLbDone">DONE</button>
+    </div>
+  </div>
+</div>
+
+<div id="barPickModal">
+  <div class="bar-pick-box">
+    <div class="bar-pick-title">루프 길이 선택</div>
+    <div class="bar-pick-sub">시작 전 마디 수를 정해주세요</div>
+    <div class="bar-pick-grid">
+      <button class="bar-pick-btn" data-bars="2">2<span>마디</span></button>
+      <button class="bar-pick-btn" data-bars="3">3<span>마디</span></button>
+      <button class="bar-pick-btn" data-bars="4">4<span>마디</span></button>
+      <button class="bar-pick-btn" data-bars="8">8<span>마디</span></button>
     </div>
   </div>
 </div>
