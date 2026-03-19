@@ -906,7 +906,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.2</span></div>
+      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.3</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -1176,8 +1176,8 @@ body {
     <div class="bar-pick-title">Select Loop Length</div>
     <div class="bar-pick-sub">Choose the number of bars before you start</div>
     <div class="bar-pick-grid">
+      <button class="bar-pick-btn" data-bars="1">1<span>bar</span></button>
       <button class="bar-pick-btn" data-bars="2">2<span>bars</span></button>
-      <button class="bar-pick-btn" data-bars="3">3<span>bars</span></button>
       <button class="bar-pick-btn" data-bars="4">4<span>bars</span></button>
       <button class="bar-pick-btn" data-bars="8">8<span>bars</span></button>
     </div>
@@ -2482,7 +2482,7 @@ function makeBPMBtn(el, delta) {
 makeBPMBtn(bpmUp, +1); makeBPMBtn(bpmDown, -1);
 metroVolSlider.addEventListener('input', e => { metroVol = e.target.value / 100; });
 
-let loopBars = 2; // set by startup modal
+let loopBars = 1; // set by startup modal
 
 // ── Startup bar-pick modal ──
 document.querySelectorAll('.bar-pick-btn').forEach(btn => {
