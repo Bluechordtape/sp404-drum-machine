@@ -1219,6 +1219,52 @@ body {
   border: none !important;
 }
 
+/* ── SHEET view design (midi-overlay) ── */
+
+/* Action buttons in sheet view */
+.midi-action-btn.play {
+  background: linear-gradient(180deg, #272727, #191919) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  color: rgba(232,224,208,0.75) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05), inset 0 1px 3px rgba(0,0,0,0.3) !important;
+}
+.midi-action-btn.clear {
+  background: linear-gradient(180deg, #272727, #191919) !important;
+  border: 1px solid rgba(224,80,80,0.3) !important;
+  color: #e05050 !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+/* Snap / Zoom label font */
+.midi-quant-label {
+  font-family: 'Courier New', Courier, monospace !important;
+  letter-spacing: 2px !important;
+  color: var(--muted) !important;
+}
+
+/* Delete confirm overlay background */
+.midi-delete-confirm {
+  background: rgba(4,3,1,0.85) !important;
+}
+.midi-delete-msg {
+  font-family: 'Courier New', Courier, monospace !important;
+  color: #E8E0D0 !important;
+  letter-spacing: 2px !important;
+}
+
+/* Sheet top row — title & undo/redo */
+.midi-top {
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding-bottom: 8px !important;
+  margin-bottom: 4px;
+}
+
+/* Grid wrap — dark metal */
+.midi-grid-wrap {
+  background: #111 !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+}
+
 /* ── Hardcoded legacy color overrides ── */
 /* Blue glow references → orange */
 .midi-delete-btn.ok, .midi-delete-btn.ok,
@@ -3187,7 +3233,8 @@ function resizeMidi() {
 }
 const _machine = document.querySelector('.machine');
 function openMidiGrid() {
-  if (chopOpen) closeChopView();
+  if (chopOpen)  closeChopView();
+  if (seqOpen)   closeSeqView();
   sheetOpen = true;
   midiLoopBars = loopBars; midiDur = midiLoopBars * BEATS_PER_BAR * spb();
   midiNotes = loopNotes.map(n => ({...n, normTime: snapNorm(n.normTime)}));
