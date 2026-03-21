@@ -3085,7 +3085,7 @@ function noteSize() {
   return { w: Math.round(Math.max(8, 8*s)), h: Math.round(Math.min(LANE_H-2, Math.max(14, 14*s))) };
 }
 const PAD_SHORT = ['Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7','FX 1','FX 2','FX 3','FX 4','KICK','SNARE','HH-C','HH-O','CP1','CP2','CP3','CP4','CP5','CP6','CP7','CP8','CP9','CP10','CP11','CP12','CP13','CP14','CP15','CP16'];
-const PAD_COL   = ['#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#2a5cff','#8e44ad','#8e44ad','#8e44ad','#8e44ad','#e74c3c','#e74c3c','#27ae60','#27ae60','#e87040','#5080d0','#50b080','#d0a020','#d05080','#8060c0','#40a0b0','#c06030','#c04060','#3090b0','#70b040','#b07030','#5040c0','#30c080','#c09020','#d05070'];
+const PAD_COL   = ['#E8761A','#E8761A','#E8761A','#E8761A','#E8761A','#E8761A','#E8761A','#E8761A','#4AAECC','#4AAECC','#4AAECC','#4AAECC','#e05050','#e05050','#5ecf7a','#5ecf7a','#e87040','#5080d0','#50b080','#d0a020','#d05080','#8060c0','#40a0b0','#c06030','#c04060','#3090b0','#70b040','#b07030','#5040c0','#30c080','#c09020','#d05070'];
 
 let midiNotes = [], midiDur = 1, midiLoopBars = 1, midiQuantize = 16;
 let midiDragging = null, midiDragTapX = 0;
@@ -3133,13 +3133,13 @@ function drawMidi() {
   const g = midiCtx2d;
   g.clearRect(0,0,midiCanvas.width,midiCanvas.height);
   g.save(); g.scale(dpr,dpr);
-  g.fillStyle='#07111e'; g.fillRect(0,0,W,H);
+  g.fillStyle='#0E0E0E'; g.fillRect(0,0,W,H);
   for (let i=0;i<32;i++) {
     const y=i*LANE_H;
-    if (i===16){g.strokeStyle='rgba(245,158,11,0.25)';g.lineWidth=1;g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
-    if (i%2===0){g.fillStyle=i>=16?'rgba(245,158,11,0.025)':'rgba(255,255,255,0.018)';g.fillRect(LABEL_W,y,gW,LANE_H);}
+    if (i===16){g.strokeStyle='rgba(232,118,26,0.22)';g.lineWidth=1;g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+    if (i%2===0){g.fillStyle=i>=16?'rgba(232,118,26,0.025)':'rgba(255,255,255,0.022)';g.fillRect(LABEL_W,y,gW,LANE_H);}
     const lbl=i>=16?(chopDedMeta[i-16].name||`CP${i-15}`):i<8?DNAMES[i]:PAD_SHORT[i];
-    g.fillStyle=PAD_COL[i]; g.font='8px "Public Sans",sans-serif'; g.textAlign='right';
+    g.fillStyle=PAD_COL[i]; g.font='8px "Courier New",monospace'; g.textAlign='right';
     g.fillText(lbl, LABEL_W-4, y+LANE_H/2+3);
     g.beginPath();g.moveTo(0,y+LANE_H);g.lineTo(W,y+LANE_H);
     g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
@@ -3157,7 +3157,7 @@ function drawMidi() {
       g.strokeStyle=isMid?'rgba(255,255,255,0.10)':'rgba(255,255,255,0.05)';
       g.lineWidth=0.5;g.stroke();
       if (isMid&&midiZoom>=2.5) {
-        g.fillStyle='rgba(255,255,255,0.22)';g.font='7px "Public Sans",sans-serif';g.textAlign='left';
+        g.fillStyle='rgba(255,255,255,0.22)';g.font='7px "Courier New",monospace';g.textAlign='left';
         g.fillText('+',x+2,9);
       }
     }
@@ -3167,8 +3167,8 @@ function drawMidi() {
     g.beginPath();g.moveTo(x,0);g.lineTo(x,H);
     g.strokeStyle=ib?'rgba(255,255,255,0.18)':'rgba(255,255,255,0.08)';
     g.lineWidth=ib?1.2:0.6;g.stroke();
-    if(ib&&b<tb){g.fillStyle='rgba(255,255,255,0.25)';g.font='8px "Public Sans",sans-serif';g.textAlign='left';g.fillText('B'+(b/BEATS_PER_BAR+1),x+3,9);}
-    else if(!ib&&b>0&&midiZoom>=1.5){g.fillStyle='rgba(255,255,255,0.18)';g.font='7px "Public Sans",sans-serif';g.textAlign='left';g.fillText(''+(b%BEATS_PER_BAR+1),x+2,9);}
+    if(ib&&b<tb){g.fillStyle='rgba(255,255,255,0.25)';g.font='8px "Courier New",monospace';g.textAlign='left';g.fillText('B'+(b/BEATS_PER_BAR+1),x+3,9);}
+    else if(!ib&&b>0&&midiZoom>=1.5){g.fillStyle='rgba(255,255,255,0.18)';g.font='7px "Courier New",monospace';g.textAlign='left';g.fillText(''+(b%BEATS_PER_BAR+1),x+2,9);}
   }
   const {w:nW,h:nH}=noteSize();
   midiNotes.forEach((n,ni)=>{
@@ -3183,20 +3183,20 @@ function drawMidi() {
   });
   if (playheadNorm>=0) {
     const px=normToX(playheadNorm,W);
-    g.shadowColor='rgba(126,200,80,0.7)'; g.shadowBlur=6;
+    g.shadowColor='rgba(232,118,26,0.7)'; g.shadowBlur=6;
     g.beginPath();g.moveTo(px,0);g.lineTo(px,H);
-    g.strokeStyle='rgba(126,200,80,0.9)';g.lineWidth=1.5;g.stroke();
+    g.strokeStyle='rgba(232,118,26,0.95)';g.lineWidth=1.5;g.stroke();
     g.shadowBlur=0;
   }
   // ── Sticky label column: redraw pad names at current scroll position ──
   const sx=midiGridWrap.scrollLeft;
   if(sx>0){
-    g.fillStyle='#07111e'; g.fillRect(sx,0,LABEL_W,H);
+    g.fillStyle='#0E0E0E'; g.fillRect(sx,0,LABEL_W,H);
     for(let i=0;i<24;i++){
       const y=i*LANE_H;
-      if(i%2===0){g.fillStyle=i>=16?'rgba(245,158,11,0.025)':'rgba(255,255,255,0.018)';g.fillRect(sx,y,LABEL_W,LANE_H);}
+      if(i%2===0){g.fillStyle=i>=16?'rgba(232,118,26,0.025)':'rgba(255,255,255,0.022)';g.fillRect(sx,y,LABEL_W,LANE_H);}
       const lbl=i>=16?(chopDedMeta[i-16].name||`CP${i-15}`):i<8?DNAMES[i]:PAD_SHORT[i];
-      g.fillStyle=PAD_COL[i]; g.font='8px "Public Sans",sans-serif'; g.textAlign='right';
+      g.fillStyle=PAD_COL[i]; g.font='8px "Courier New",monospace'; g.textAlign='right';
       g.fillText(lbl, sx+LABEL_W-4, y+LANE_H/2+3);
       g.beginPath();g.moveTo(sx,y+LANE_H);g.lineTo(sx+LABEL_W,y+LANE_H);
       g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
