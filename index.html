@@ -18,17 +18,17 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #100A03;
-  --surface: #1C1C1C;
-  --surface2: #141414;
-  --border: rgba(255,255,255,0.12);
-  --text: #E8E0D0;
-  --muted: rgba(232,224,208,0.42);
-  --primary: #E8761A;
-  --accent2: #4AAECC;
+  --bg: #D8D8D8;
+  --surface: #F4F4F4;
+  --surface2: #EBEBEB;
+  --border: #CCCCCC;
+  --text: #1A1A1A;
+  --muted: #888888;
+  --primary: #1A1A1A;
+  --accent2: #0066CC;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
-  --gap: 4px;
+  --gap: 3px;
 }
 
 html {
@@ -40,7 +40,7 @@ html {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
   width: 100vw;
   height: 100vh;
   height: 100dvh;
@@ -63,32 +63,14 @@ body {
   transform-origin: center center;
   display: flex;
   flex-direction: column;
-  padding: max(env(safe-area-inset-top), 12px) 10px max(env(safe-area-inset-bottom), 12px);
-  /* Walnut wood frame */
-  background:
-    repeating-linear-gradient(
-      89deg,
-      transparent 0px, transparent 6px,
-      rgba(0,0,0,0.04) 6px, rgba(0,0,0,0.04) 7px
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent 0px, transparent 22px,
-      rgba(255,255,255,0.015) 22px, rgba(255,255,255,0.015) 23px
-    ),
-    linear-gradient(180deg,
-      #A06838 0%, #7A4C28 10%,
-      #8C5830 22%, #6A3C1C 36%,
-      #7C4A2A 50%, #5E3218 62%,
-      #7A4C28 76%, #9B6238 90%,
-      #A06838 100%
-    );
-  border-radius: 18px;
+  padding: 0;
+  background: #E4E4E4;
+  border-radius: 10px;
   overflow: hidden;
   box-shadow:
-    0 12px 60px rgba(0,0,0,0.9),
-    inset 0 1px 0 rgba(255,255,255,0.12),
-    inset 0 -2px 0 rgba(0,0,0,0.4);
+    0 16px 64px rgba(0,0,0,0.28),
+    0 4px 16px rgba(0,0,0,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.7);
 }
 
 /* ── BCT Navigation Header ── */
@@ -96,18 +78,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px 8px;
+  padding: 0 14px;
   flex-shrink: 0;
   width: 100%;
-  min-height: 52px;
+  height: 46px;
+  background: #2A2A2A;
 }
 .bct-back {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 9px;
   font-weight: 500;
-  letter-spacing: 0.18em;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: rgba(245,230,200,0.5);
+  color: rgba(255,255,255,0.35);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
   flex-shrink: 0;
@@ -119,22 +102,21 @@ body {
   flex: 1;
 }
 .bct-main-title {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  color: #F5E6C8;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: #FFFFFF;
   text-transform: uppercase;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 12px rgba(245,230,200,0.12);
   line-height: 1;
 }
 .bct-sub-title {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 8px;
-  letter-spacing: 3px;
-  color: rgba(245,230,200,0.45);
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.35);
   text-transform: lowercase;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 .bct-reel-logo { display: flex; align-items: center; gap: 4px; }
 .bct-reel-c {
@@ -900,96 +882,129 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MINIMOOG VINTAGE RESKIN
+   MODERN PLUGIN UI
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Wood header title ── */
+/* ── Header reel logo (white on dark bar) ── */
 .bct-reel-logo { flex-shrink: 0; }
-
-/* ── Machine header section ── */
-.header {
-  background: rgba(0,0,0,0.25);
-  border-radius: 6px 6px 0 0;
-  padding: 5px 10px !important;
-  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+.bct-reel-c {
+  border-color: rgba(255,255,255,0.3) !important;
+}
+.bct-reel-c::after {
+  background: rgba(255,255,255,0.3) !important;
+}
+.bct-reel-bar {
+  background: rgba(255,255,255,0.3) !important;
 }
 
-/* ── Metro/transport bar ── */
+/* ── Machine shell ── */
+.machine {
+  background: #E4E4E4 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ── Machine header (brand / display) ── */
+.header {
+  background: #ECECEC !important;
+  border-bottom: 1px solid #D0D0D0 !important;
+  border-radius: 0 !important;
+  padding: 5px 10px !important;
+}
+.brand {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 2px !important;
+  color: #333 !important;
+  text-transform: uppercase !important;
+}
+.model-line {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 8px !important;
+  letter-spacing: 1.5px !important;
+  color: #888 !important;
+  text-transform: uppercase !important;
+}
+.display {
+  font-family: 'Courier New', monospace !important;
+  background: #1A1A1A !important;
+  border: 1px solid #333 !important;
+  color: rgba(180,220,160,0.9) !important;
+  letter-spacing: 2px !important;
+  font-size: 9px !important;
+  border-radius: 3px !important;
+}
+
+/* ── Metro / transport bar ── */
 .metro-bar {
-  background: rgba(0,0,0,0.2);
-  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
-  padding: 4px 6px;
+  background: #ECECEC !important;
+  border-bottom: 1px solid #D0D0D0 !important;
+  padding: 5px 6px !important;
 }
 
 /* ── Controls section ── */
 .controls {
-  background: rgba(0,0,0,0.2);
-  border-top: 1px solid rgba(255,255,255,0.07) !important;
+  background: #ECECEC !important;
+  border-top: 1px solid #D0D0D0 !important;
 }
 
-/* ── Pad rubber texture ── */
+/* ── Pads ── */
 .pad {
-  background: #1A1A1A !important;
-  border: 1px solid rgba(255,255,255,0.07) !important;
-  border-radius: 5px !important;
+  background: #F4F4F4 !important;
+  border: 1px solid #CCCCCC !important;
+  border-radius: 4px !important;
   box-shadow:
-    inset 0 2px 6px rgba(0,0,0,0.65),
-    inset 0 -1px 0 rgba(255,255,255,0.04),
-    0 1px 0 rgba(255,255,255,0.05) !important;
-  transition:
-    transform 0.06s ease,
-    background 0.06s ease,
-    border-color 0.06s ease,
-    box-shadow 0.06s ease !important;
+    0 1px 0 rgba(255,255,255,0.9),
+    inset 0 1px 3px rgba(0,0,0,0.06) !important;
+  transition: background 0.08s, border-color 0.08s, box-shadow 0.08s !important;
 }
+.pad-name { color: #2A2A2A !important; }
+.pad-hint  { color: #999 !important; }
+.pad-vol   { color: #AAA !important; }
 
 .pad.active {
-  background: rgba(232,118,26,0.80) !important;
-  border-color: #E8761A !important;
-  box-shadow:
-    0 0 16px rgba(232,118,26,0.6),
-    0 0 4px rgba(232,118,26,0.9),
-    inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  background: #1A1A1A !important;
+  border-color: #1A1A1A !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 4px rgba(0,0,0,0.5) !important;
   transform: scale(0.93) translateY(1px) !important;
 }
-.pad.active .pad-name { color: #fff !important; }
-.pad.active .pad-hint  { color: rgba(255,255,255,0.6) !important; }
+.pad.active .pad-name { color: #FFFFFF !important; }
+.pad.active .pad-hint  { color: rgba(255,255,255,0.5) !important; }
+.pad.active .pad-vol   { color: rgba(255,255,255,0.45) !important; }
+.pad.chop { border-color: #AAAAAA !important; }
 
 @media (hover: hover) {
-  .pad:hover { border-color: rgba(232,118,26,0.3) !important; }
+  .pad:hover { background: #EAEAEA !important; border-color: #BBBBBB !important; }
 }
 
-/* ── Chop pad accent ── */
-.pad.chop { border-color: rgba(74,174,204,0.45) !important; }
-
-/* ── Vintage knobs ── */
+/* ── Knobs ── */
 .knob {
   width: 32px !important;
   height: 32px !important;
-  background: radial-gradient(circle at 38% 32%, #3C3C3C, #0D0D0D) !important;
-  border: 1.5px solid rgba(255,255,255,0.16) !important;
-  box-shadow:
-    0 4px 10px rgba(0,0,0,0.8),
-    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+  background: #1A1A1A !important;
+  border: 1.5px solid #444 !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.6) !important;
 }
 .knob::after {
   top: 5px !important;
   width: 2px !important;
   height: 9px !important;
-  background: #E8761A !important;
+  background: #FFFFFF !important;
   border-radius: 1px !important;
-  box-shadow: 0 0 4px rgba(232,118,26,0.5);
+  box-shadow: none !important;
 }
-.knob:active { border-color: #E8761A !important; }
+.knob:active { border-color: #666 !important; }
 .knob-label {
-  font-family: 'Courier New', Courier, monospace !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
   font-size: 7px !important;
-  letter-spacing: 2px !important;
-  color: var(--muted) !important;
+  letter-spacing: 1.5px !important;
+  color: #888 !important;
   text-transform: uppercase !important;
 }
 
-/* ── Metallic buttons (universal) ── */
+/* ── Universal font override ── */
 .metro-btn, .view-nav-btn, .preset-btn,
 .bpm-adj, .bar-sel-item,
 .midi-quant-btn, .midi-zoom-btn,
@@ -997,286 +1012,294 @@ body {
 .seq-pg-btn, .seq-kit-btn,
 .chop-src-btn, .chop-btn-action,
 .midi-back-btn, .midi-undo-btn,
-.midi-action-btn,
-.bar-pick-btn,
-.picker-btn,
-.seq-enable-btn,
-.midi-delete-btn {
-  font-family: 'Courier New', Courier, monospace !important;
+.midi-action-btn, .bar-pick-btn,
+.picker-btn, .seq-enable-btn, .midi-delete-btn {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
 }
 
+/* ── Base button style (light) ── */
 .metro-btn, .view-nav-btn, .preset-btn,
 .bpm-adj, .bar-sel-item,
 .midi-quant-btn, .midi-zoom-btn,
 .seq-pg-btn, .seq-kit-btn,
 .chop-src-btn,
 .midi-back-btn, .midi-undo-btn {
-  background: linear-gradient(180deg, #272727, #191919) !important;
-  border: 1px solid rgba(255,255,255,0.15) !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.06), inset 0 1px 3px rgba(0,0,0,0.35) !important;
-  color: rgba(232,224,208,0.6) !important;
+  background: #F0F0F0 !important;
+  border: 1px solid #CCCCCC !important;
+  color: #555 !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.9) !important;
 }
 
-/* Active state — orange */
+/* ── Active state — black ── */
 .metro-btn.active, .view-nav-btn.active,
 .preset-btn.active, .bar-sel-item.active,
-.midi-quant-btn.active, .seq-kit-btn.active,
-.midi-back-btn {
-  color: #E8761A !important;
-  border-color: #E8761A !important;
-  background: rgba(232,118,26,0.12) !important;
-  box-shadow: 0 0 8px rgba(232,118,26,0.25), inset 0 1px 2px rgba(0,0,0,0.2) !important;
+.midi-quant-btn.active, .seq-kit-btn.active {
+  background: #1A1A1A !important;
+  color: #FFFFFF !important;
+  border-color: #1A1A1A !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
 }
+.midi-back-btn { color: #444 !important; }
 
-/* Play button */
+/* ── Play / Rec ── */
 .play-btn {
-  background: linear-gradient(180deg, #272727, #191919) !important;
-  color: #E8761A !important;
-  border: 1px solid rgba(232,118,26,0.45) !important;
-  box-shadow: 0 0 6px rgba(232,118,26,0.1) !important;
+  background: #F0F0F0 !important;
+  color: #333 !important;
+  border: 1px solid #CCCCCC !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.9) !important;
 }
 .play-btn.playing {
-  background: #E8761A !important;
-  color: #0E0800 !important;
-  border-color: #E8761A !important;
-  box-shadow: 0 0 14px rgba(232,118,26,0.5) !important;
+  background: #1A1A1A !important;
+  color: #FFFFFF !important;
+  border-color: #1A1A1A !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
 }
-
-/* Rec button */
 .rec-btn {
-  background: linear-gradient(180deg, #272727, #191919) !important;
+  background: #F0F0F0 !important;
+  border-color: rgba(180,50,50,0.35) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+.rec-btn.recording {
+  background: #CC3333 !important;
+  border-color: #CC3333 !important;
+  box-shadow: none !important;
 }
 
-/* Teal accent — CHOP do, wav export */
-.chop-btn-do {
-  background: #4AAECC !important;
-  color: #060E10 !important;
-  border-color: #4AAECC !important;
-  box-shadow: 0 0 10px rgba(74,174,204,0.35) !important;
-}
-.midi-action-btn.wav {
-  background: #4AAECC !important;
-  color: #060E10 !important;
-  border-color: #4AAECC !important;
+/* ── MIDI action buttons ── */
+.midi-action-btn.play {
+  background: #F0F0F0 !important;
+  border: 1px solid #CCCCCC !important;
+  color: #555 !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.9) !important;
 }
 .midi-action-btn.play.playing {
-  color: #4AAECC !important;
-  border-color: #4AAECC !important;
-  background: rgba(74,174,204,0.1) !important;
+  background: #1A1A1A !important;
+  color: #FFFFFF !important;
+  border-color: #1A1A1A !important;
+  box-shadow: none !important;
 }
 .midi-action-btn.clear {
-  background: linear-gradient(180deg, #272727, #191919) !important;
+  background: #F0F0F0 !important;
+  border: 1px solid rgba(180,50,50,0.3) !important;
+  color: #CC3333 !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.9) !important;
 }
+.midi-action-btn.wav {
+  background: #1A1A1A !important;
+  color: #FFFFFF !important;
+  border-color: #1A1A1A !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+}
+.midi-action-btn:disabled { opacity: 0.35 !important; }
 
-/* Chop preview */
+/* ── Chop buttons ── */
+.chop-btn-do {
+  background: #1A1A1A !important;
+  color: #FFFFFF !important;
+  border-color: #1A1A1A !important;
+  box-shadow: none !important;
+}
 .chop-btn-pre {
-  background: linear-gradient(180deg, #272727, #191919) !important;
-  border: 1px solid rgba(255,255,255,0.14) !important;
-  color: rgba(232,224,208,0.7) !important;
+  background: #F0F0F0 !important;
+  border: 1px solid #CCCCCC !important;
+  color: #555 !important;
 }
 .chop-btn-pre.playing {
-  background: #C04030 !important;
-  border-color: #C04030 !important;
-  color: #fff !important;
+  background: #CC3333 !important;
+  border-color: #CC3333 !important;
+  color: #FFFFFF !important;
 }
 
-/* SEQ enable */
+/* ── SEQ enable ── */
 .seq-enable-btn {
-  border-color: rgba(232,118,26,0.35) !important;
-  color: #E8761A !important;
-  background: rgba(232,118,26,0.06) !important;
+  background: #F0F0F0 !important;
+  border-color: #CCCCCC !important;
+  color: #333 !important;
 }
 .seq-enable-btn.active {
-  background: #E8761A !important;
-  border-color: #E8761A !important;
-  color: #0E0800 !important;
-  box-shadow: 0 0 14px rgba(232,118,26,0.4) !important;
+  background: #1A1A1A !important;
+  border-color: #1A1A1A !important;
+  color: #FFFFFF !important;
 }
 
-/* BPM value display */
+/* ── BPM ── */
 .bpm-val {
-  font-family: 'Courier New', Courier, monospace !important;
+  font-family: 'Courier New', monospace !important;
   font-size: 12px !important;
-  color: #E8E0D0 !important;
+  color: #1A1A1A !important;
 }
+.metro-vol::-webkit-slider-thumb { background: #1A1A1A !important; }
+.metro-vol::-moz-range-thumb     { background: #1A1A1A !important; }
 
-/* Metro vol slider thumb */
-.metro-vol::-webkit-slider-thumb { background: #E8761A !important; }
-.metro-vol::-moz-range-thumb     { background: #E8761A !important; }
-
-/* Display */
-.display {
-  font-family: 'Courier New', Courier, monospace !important;
-  background: #0E0E0E !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
-  color: rgba(232,224,208,0.55) !important;
-  letter-spacing: 3px !important;
-  font-size: 9px !important;
-}
-
-/* LCD screen — keep green feel */
+/* ── LCD Screen ── */
 .bct-screen {
-  background: #0E180E !important;
-  border: 1.5px solid #1E2E1E !important;
-  box-shadow: inset 0 2px 12px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.5) !important;
+  background: #1A1A1A !important;
+  border: 1px solid #333 !important;
+  box-shadow: inset 0 1px 5px rgba(0,0,0,0.6) !important;
 }
 
-/* LED on state */
+/* ── LED ── */
 .led.on {
-  background: #E8761A !important;
-  box-shadow: 0 0 7px rgba(232,118,26,0.75) !important;
+  background: #333 !important;
+  box-shadow: 0 0 4px rgba(0,0,0,0.4) !important;
 }
 
-/* ── Picker / modal overlays ── */
+/* ── Modals & overlays ── */
+.picker-overlay {
+  background: rgba(0,0,0,0.4) !important;
+}
 .picker-modal, .midi-delete-box, .chop-pad-settings-box,
 .seq-lb-modal, .bar-pick-box {
-  background: #1C1C1C !important;
-  border: 1px solid rgba(255,255,255,0.13) !important;
+  background: #F8F8F8 !important;
+  border: 1px solid #D0D0D0 !important;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.18) !important;
 }
-
 .picker-title {
-  font-family: 'Courier New', Courier, monospace !important;
-  color: #E8761A !important;
-  letter-spacing: 3px !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  color: #1A1A1A !important;
+  font-weight: 600 !important;
+  letter-spacing: 2px !important;
 }
 .picker-label {
-  font-family: 'Courier New', Courier, monospace !important;
-  letter-spacing: 2px !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  color: #888 !important;
+  letter-spacing: 1.5px !important;
 }
 .picker-item {
-  font-family: 'Courier New', Courier, monospace !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  color: rgba(30,30,30,0.3) !important;
 }
+.picker-item.pi-near { color: rgba(30,30,30,0.6) !important; }
+.picker-item.pi-sel  { color: #1A1A1A !important; }
 .picker-sel-bar {
-  border-top-color: rgba(232,118,26,0.45) !important;
-  border-bottom-color: rgba(232,118,26,0.45) !important;
+  border-top-color: rgba(0,0,0,0.18) !important;
+  border-bottom-color: rgba(0,0,0,0.18) !important;
 }
 .picker-btn.confirm {
-  background: #E8761A !important;
-  color: #0E0800 !important;
+  background: #1A1A1A !important;
+  color: #FFFFFF !important;
 }
 .picker-btn.cancel {
-  background: #1A1A1A !important;
-  border-color: rgba(255,255,255,0.12) !important;
+  background: #F0F0F0 !important;
+  border-color: #CCCCCC !important;
+  color: #555 !important;
 }
 
-/* Bar-pick startup modal */
+/* ── Bar-pick startup modal ── */
+#barPickModal { background: rgba(0,0,0,0.5) !important; }
 .bar-pick-title {
-  font-family: 'Courier New', Courier, monospace !important;
-  color: #E8761A !important;
-  letter-spacing: 3px !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  color: #1A1A1A !important;
+  font-weight: 600 !important;
+  letter-spacing: 2px !important;
+}
+.bar-pick-sub {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  color: #888 !important;
 }
 .bar-pick-btn {
-  font-family: 'Courier New', Courier, monospace !important;
-  background: #1A1A1A !important;
-  border-color: rgba(255,255,255,0.12) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  background: #F0F0F0 !important;
+  border-color: #CCCCCC !important;
+  color: #333 !important;
 }
 .bar-pick-btn:hover {
-  background: rgba(232,118,26,0.15) !important;
-  border-color: #E8761A !important;
-  color: #E8761A !important;
+  background: #1A1A1A !important;
+  border-color: #1A1A1A !important;
+  color: #FFFFFF !important;
 }
 
-/* MIDI view */
+/* ── SHEET / MIDI view ── */
 .midi-title, .chop-title, .seq-title {
-  font-family: 'Courier New', Courier, monospace !important;
-  letter-spacing: 3px !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  color: #1A1A1A !important;
+  font-weight: 600 !important;
+  letter-spacing: 2px !important;
+}
+.midi-top {
+  border-bottom: 1px solid #D0D0D0 !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 4px !important;
 }
 .midi-grid-wrap {
-  border-color: rgba(255,255,255,0.08) !important;
-  background: #141414 !important;
+  background: #F8F8F8 !important;
+  border: 1px solid #D0D0D0 !important;
 }
-
-/* Seq */
-.seq-lb-title { color: #E8761A !important; }
-.seq-lb-pct   { font-family: 'Courier New', Courier, monospace !important; }
-.seq-lb-modal input[type=range] {
-  background: linear-gradient(to right, #E8761A 0%, #E8761A var(--pct,0%), rgba(255,255,255,0.1) var(--pct,0%), rgba(255,255,255,0.1) 100%) !important;
-}
-.seq-lb-modal input[type=range]::-webkit-slider-thumb { background: #E8761A !important; }
-.seq-lb-modal input[type=range]::-moz-range-thumb     { background: #E8761A !important; }
-
-/* Chop wave */
-.chop-hint { font-family: 'Courier New', Courier, monospace !important; }
-.chop-sel-info { color: #E8761A !important; }
-
-/* Preset row label */
-.preset-label {
-  font-family: 'Courier New', Courier, monospace !important;
-  letter-spacing: 2px !important;
-}
-
-/* Footer */
-.footer {
-  display: block !important;
-  font-family: 'Courier New', Courier, monospace !important;
-  font-size: 7px !important;
-  letter-spacing: 3px !important;
-  color: rgba(245,230,200,0.2) !important;
-  text-align: center !important;
-  padding: 5px 0 2px !important;
-  text-transform: uppercase !important;
-  background: transparent !important;
-  border: none !important;
-}
-
-/* ── SHEET view design (midi-overlay) ── */
-
-/* Action buttons in sheet view */
-.midi-action-btn.play {
-  background: linear-gradient(180deg, #272727, #191919) !important;
-  border: 1px solid rgba(255,255,255,0.14) !important;
-  color: rgba(232,224,208,0.75) !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.05), inset 0 1px 3px rgba(0,0,0,0.3) !important;
-}
-.midi-action-btn.clear {
-  background: linear-gradient(180deg, #272727, #191919) !important;
-  border: 1px solid rgba(224,80,80,0.3) !important;
-  color: #e05050 !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.04) !important;
-}
-
-/* Snap / Zoom label font */
 .midi-quant-label {
-  font-family: 'Courier New', Courier, monospace !important;
-  letter-spacing: 2px !important;
-  color: var(--muted) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  letter-spacing: 1.5px !important;
+  color: #888 !important;
 }
-
-/* Delete confirm overlay background */
 .midi-delete-confirm {
-  background: rgba(4,3,1,0.85) !important;
+  background: rgba(0,0,0,0.45) !important;
 }
 .midi-delete-msg {
-  font-family: 'Courier New', Courier, monospace !important;
-  color: #E8E0D0 !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  color: #333 !important;
+  letter-spacing: 1px !important;
+}
+.midi-delete-btn.cancel {
+  background: #F0F0F0 !important;
+  border: 1px solid #CCC !important;
+  color: #555 !important;
+}
+.midi-delete-btn.ok {
+  background: #CC3333 !important;
+  color: #FFFFFF !important;
+}
+
+/* ── SEQ lb modal ── */
+.seq-lb-title { color: #1A1A1A !important; font-weight: 600 !important; }
+.seq-lb-pct   { font-family: 'Courier New', monospace !important; color: #1A1A1A !important; }
+.seq-lb-hint  { color: #888 !important; }
+.seq-lb-modal input[type=range] {
+  background: linear-gradient(to right, #1A1A1A 0%, #1A1A1A var(--pct,0%), rgba(0,0,0,0.12) var(--pct,0%), rgba(0,0,0,0.12) 100%) !important;
+}
+.seq-lb-modal input[type=range]::-webkit-slider-thumb { background: #1A1A1A !important; }
+.seq-lb-modal input[type=range]::-moz-range-thumb     { background: #1A1A1A !important; }
+.seq-lb-reset { background: #F0F0F0 !important; border: 1px solid #CCC !important; color: #555 !important; }
+.seq-lb-done  { background: #1A1A1A !important; color: #FFF !important; }
+
+/* ── SEQ step grid ── */
+.seq-step-pad { border-color: #CCCCCC !important; background: #F0F0F0 !important; }
+.seq-step-pad.beat1 { border-color: #BBBBBB !important; }
+.seq-step-pad.now { border-color: #1A1A1A !important; box-shadow: 0 0 0 1px rgba(0,0,0,0.3) !important; }
+.seq-qk { background: rgba(180,50,40,0.08) !important; }
+.seq-qs { background: rgba(40,160,80,0.08) !important; }
+.seq-qh { background: rgba(160,130,20,0.08) !important; }
+.seq-qo { background: rgba(80,60,160,0.08) !important; }
+
+/* ── Chop view ── */
+.chop-wave-wrap { background: #1A1A1A !important; border-color: #333 !important; }
+.chop-hint { color: #888 !important; }
+.chop-sel-info { color: #333 !important; }
+
+/* ── Misc text labels ── */
+.preset-label { color: #888 !important; letter-spacing: 1.5px !important; }
+.scr-loop-tag { font-family: 'Courier New', monospace !important; }
+.midi-zoom-val { font-family: 'Inter', system-ui, sans-serif !important; }
+
+/* ── CPS (chop pad settings) ── */
+.cps-title { color: #333 !important; font-weight: 600 !important; }
+.cps-adj:active { background: #1A1A1A !important; border-color: #1A1A1A !important; color: #fff !important; }
+.cps-btns .ok { background: #1A1A1A !important; }
+.cps-pitch-val { color: #1A1A1A !important; }
+
+/* ── Footer ── */
+.footer {
+  display: block !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 7px !important;
   letter-spacing: 2px !important;
+  color: rgba(0,0,0,0.25) !important;
+  text-align: center !important;
+  padding: 5px 0 3px !important;
+  text-transform: uppercase !important;
+  background: #E4E4E4 !important;
+  border: none !important;
 }
-
-/* Sheet top row — title & undo/redo */
-.midi-top {
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  padding-bottom: 8px !important;
-  margin-bottom: 4px;
-}
-
-/* Grid wrap — dark metal */
-.midi-grid-wrap {
-  background: #111 !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
-}
-
-/* ── Hardcoded legacy color overrides ── */
-/* Blue glow references → orange */
-.midi-delete-btn.ok, .midi-delete-btn.ok,
-.cps-adj:active { background: #E8761A !important; border-color: #E8761A !important; }
-.cps-btns .ok { background: #E8761A !important; }
-
-/* scr-loop-tag */
-.scr-loop-tag { font-family: 'Courier New', Courier, monospace !important; }
-
-/* Bar select modal bg */
-#barPickModal { background: rgba(6,4,2,0.94) !important; }
-.bar-pick-sub { font-family: 'Courier New', Courier, monospace !important; color: var(--muted) !important; }
 
 </style>
 </head>
@@ -3085,7 +3108,7 @@ function noteSize() {
   return { w: Math.round(Math.max(8, 8*s)), h: Math.round(Math.min(LANE_H-2, Math.max(14, 14*s))) };
 }
 const PAD_SHORT = ['Dmaj7','Am7','Gmaj7','Bbmaj7','Em9','Bm7','A13','Cmaj7','FX 1','FX 2','FX 3','FX 4','KICK','SNARE','HH-C','HH-O','CP1','CP2','CP3','CP4','CP5','CP6','CP7','CP8','CP9','CP10','CP11','CP12','CP13','CP14','CP15','CP16'];
-const PAD_COL   = ['#E8761A','#E8761A','#E8761A','#E8761A','#E8761A','#E8761A','#E8761A','#E8761A','#4AAECC','#4AAECC','#4AAECC','#4AAECC','#e05050','#e05050','#5ecf7a','#5ecf7a','#e87040','#5080d0','#50b080','#d0a020','#d05080','#8060c0','#40a0b0','#c06030','#c04060','#3090b0','#70b040','#b07030','#5040c0','#30c080','#c09020','#d05070'];
+const PAD_COL   = ['#C05A10','#C05A10','#C05A10','#C05A10','#C05A10','#C05A10','#C05A10','#C05A10','#0A7A9A','#0A7A9A','#0A7A9A','#0A7A9A','#BB2222','#BB2222','#1A8A48','#1A8A48','#C05A10','#3060B0','#2A8A60','#A07810','#A03060','#6040A0','#2080A0','#904020','#902050','#1870A0','#508030','#906020','#3020A0','#1A9060','#907010','#A03050'];
 
 let midiNotes = [], midiDur = 1, midiLoopBars = 1, midiQuantize = 16;
 let midiDragging = null, midiDragTapX = 0;
@@ -3133,13 +3156,13 @@ function drawMidi() {
   const g = midiCtx2d;
   g.clearRect(0,0,midiCanvas.width,midiCanvas.height);
   g.save(); g.scale(dpr,dpr);
-  g.fillStyle='#0E0E0E'; g.fillRect(0,0,W,H);
+  g.fillStyle='#F8F8F8'; g.fillRect(0,0,W,H);
   for (let i=0;i<32;i++) {
     const y=i*LANE_H;
-    if (i===16){g.strokeStyle='rgba(232,118,26,0.22)';g.lineWidth=1;g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
-    if (i%2===0){g.fillStyle=i>=16?'rgba(232,118,26,0.025)':'rgba(255,255,255,0.022)';g.fillRect(LABEL_W,y,gW,LANE_H);}
+    if (i===16){g.strokeStyle='rgba(0,0,0,0.18)';g.lineWidth=1;g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+    if (i%2===0){g.fillStyle=i>=16?'rgba(0,0,0,0.03)':'rgba(0,0,0,0.025)';g.fillRect(LABEL_W,y,gW,LANE_H);}
     const lbl=i>=16?(chopDedMeta[i-16].name||`CP${i-15}`):i<8?DNAMES[i]:PAD_SHORT[i];
-    g.fillStyle=PAD_COL[i]; g.font='8px "Courier New",monospace'; g.textAlign='right';
+    g.fillStyle=PAD_COL[i]; g.font='8px "Inter",system-ui,sans-serif'; g.textAlign='right';
     g.fillText(lbl, LABEL_W-4, y+LANE_H/2+3);
     g.beginPath();g.moveTo(0,y+LANE_H);g.lineTo(W,y+LANE_H);
     g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
@@ -3157,7 +3180,7 @@ function drawMidi() {
       g.strokeStyle=isMid?'rgba(255,255,255,0.10)':'rgba(255,255,255,0.05)';
       g.lineWidth=0.5;g.stroke();
       if (isMid&&midiZoom>=2.5) {
-        g.fillStyle='rgba(255,255,255,0.22)';g.font='7px "Courier New",monospace';g.textAlign='left';
+        g.fillStyle='rgba(0,0,0,0.25)';g.font='7px "Inter",system-ui,sans-serif';g.textAlign='left';
         g.fillText('+',x+2,9);
       }
     }
@@ -3165,10 +3188,10 @@ function drawMidi() {
   for (let b=0;b<=tb;b++) {
     const x=LABEL_W+(b/tb)*gW, ib=b%BEATS_PER_BAR===0;
     g.beginPath();g.moveTo(x,0);g.lineTo(x,H);
-    g.strokeStyle=ib?'rgba(255,255,255,0.18)':'rgba(255,255,255,0.08)';
+    g.strokeStyle=ib?'rgba(0,0,0,0.2)':'rgba(0,0,0,0.08)';
     g.lineWidth=ib?1.2:0.6;g.stroke();
-    if(ib&&b<tb){g.fillStyle='rgba(255,255,255,0.25)';g.font='8px "Courier New",monospace';g.textAlign='left';g.fillText('B'+(b/BEATS_PER_BAR+1),x+3,9);}
-    else if(!ib&&b>0&&midiZoom>=1.5){g.fillStyle='rgba(255,255,255,0.18)';g.font='7px "Courier New",monospace';g.textAlign='left';g.fillText(''+(b%BEATS_PER_BAR+1),x+2,9);}
+    if(ib&&b<tb){g.fillStyle='rgba(0,0,0,0.35)';g.font='8px "Inter",system-ui,sans-serif';g.textAlign='left';g.fillText('B'+(b/BEATS_PER_BAR+1),x+3,9);}
+    else if(!ib&&b>0&&midiZoom>=1.5){g.fillStyle='rgba(0,0,0,0.25)';g.font='7px "Inter",system-ui,sans-serif';g.textAlign='left';g.fillText(''+(b%BEATS_PER_BAR+1),x+2,9);}
   }
   const {w:nW,h:nH}=noteSize();
   midiNotes.forEach((n,ni)=>{
@@ -3183,20 +3206,20 @@ function drawMidi() {
   });
   if (playheadNorm>=0) {
     const px=normToX(playheadNorm,W);
-    g.shadowColor='rgba(232,118,26,0.7)'; g.shadowBlur=6;
+    g.shadowColor='rgba(0,0,0,0.25)'; g.shadowBlur=4;
     g.beginPath();g.moveTo(px,0);g.lineTo(px,H);
-    g.strokeStyle='rgba(232,118,26,0.95)';g.lineWidth=1.5;g.stroke();
+    g.strokeStyle='rgba(30,30,30,0.85)';g.lineWidth=1.5;g.stroke();
     g.shadowBlur=0;
   }
   // ── Sticky label column: redraw pad names at current scroll position ──
   const sx=midiGridWrap.scrollLeft;
   if(sx>0){
-    g.fillStyle='#0E0E0E'; g.fillRect(sx,0,LABEL_W,H);
+    g.fillStyle='#F8F8F8'; g.fillRect(sx,0,LABEL_W,H);
     for(let i=0;i<24;i++){
       const y=i*LANE_H;
-      if(i%2===0){g.fillStyle=i>=16?'rgba(232,118,26,0.025)':'rgba(255,255,255,0.022)';g.fillRect(sx,y,LABEL_W,LANE_H);}
+      if(i%2===0){g.fillStyle='rgba(0,0,0,0.025)';g.fillRect(sx,y,LABEL_W,LANE_H);}
       const lbl=i>=16?(chopDedMeta[i-16].name||`CP${i-15}`):i<8?DNAMES[i]:PAD_SHORT[i];
-      g.fillStyle=PAD_COL[i]; g.font='8px "Courier New",monospace'; g.textAlign='right';
+      g.fillStyle=PAD_COL[i]; g.font='8px "Inter",system-ui,sans-serif'; g.textAlign='right';
       g.fillText(lbl, sx+LABEL_W-4, y+LANE_H/2+3);
       g.beginPath();g.moveTo(sx,y+LANE_H);g.lineTo(sx+LABEL_W,y+LANE_H);
       g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
@@ -3471,9 +3494,9 @@ function drawWave() {
   chopCanvas.width = W * dpr; chopCanvas.height = H * dpr;
   const g = chopCtx2d;
   g.save(); g.scale(dpr, dpr);
-  g.fillStyle = '#050d18'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#1A1A1A'; g.fillRect(0, 0, W, H);
   if (!waveBuffer) {
-    g.fillStyle = 'rgba(221,216,208,0.28)'; g.font = '10px "Public Sans",sans-serif';
+    g.fillStyle = 'rgba(255,255,255,0.3)'; g.font = '10px "Inter",system-ui,sans-serif';
     g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillText('Load a file or record audio', W / 2, H / 2);
     g.restore(); return;
@@ -3496,25 +3519,25 @@ function drawWave() {
   }
   g.closePath();
   const grad = g.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0, '#c07a0a'); grad.addColorStop(0.5, '#f59e0b'); grad.addColorStop(1, '#c07a0a');
+  grad.addColorStop(0, 'rgba(255,255,255,0.55)'); grad.addColorStop(0.5, 'rgba(255,255,255,0.8)'); grad.addColorStop(1, 'rgba(255,255,255,0.55)');
   g.fillStyle = grad; g.fill();
-  g.strokeStyle = 'rgba(255,255,255,0.1)'; g.lineWidth = 0.5;
+  g.strokeStyle = 'rgba(255,255,255,0.15)'; g.lineWidth = 0.5;
   g.beginPath(); g.moveTo(0, mid); g.lineTo(W, mid); g.stroke();
   // Selection overlay
   if (selA >= 0 && selB >= 0 && Math.abs(selB - selA) > 0.001) {
     const px1 = Math.max(0, Math.min(W, chopBufToCanvas(Math.min(selA, selB), W)));
     const px2 = Math.max(0, Math.min(W, chopBufToCanvas(Math.max(selA, selB), W)));
     if (px2 > px1) {
-      g.fillStyle = 'rgba(245,158,11,0.18)'; g.fillRect(px1, 0, px2 - px1, H);
-      g.strokeStyle = 'rgba(255,255,255,0.75)'; g.lineWidth = 1.5;
+      g.fillStyle = 'rgba(255,255,255,0.2)'; g.fillRect(px1, 0, px2 - px1, H);
+      g.strokeStyle = 'rgba(255,255,255,0.9)'; g.lineWidth = 1.5;
       g.beginPath(); g.moveTo(px1, 0); g.lineTo(px1, H); g.moveTo(px2, 0); g.lineTo(px2, H); g.stroke();
     }
   }
   // Zoom scrollbar
   if (viewStart > 0.001 || viewEnd < 0.999) {
     const bH = 3, bY = H - bH - 2;
-    g.fillStyle = 'rgba(255,255,255,0.06)'; g.fillRect(0, bY, W, bH);
-    g.fillStyle = 'rgba(245,158,11,0.55)'; g.fillRect(viewStart * W, bY, (viewEnd - viewStart) * W, bH);
+    g.fillStyle = 'rgba(255,255,255,0.08)'; g.fillRect(0, bY, W, bH);
+    g.fillStyle = 'rgba(255,255,255,0.5)'; g.fillRect(viewStart * W, bY, (viewEnd - viewStart) * W, bH);
   }
   // PRE playhead (yellow)
   if (previewSrc && ctx && previewStartRatio >= 0) {
