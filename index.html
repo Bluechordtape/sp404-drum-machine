@@ -1301,6 +1301,75 @@ body {
   border: none !important;
 }
 
+/* ── Cross-view consistency ── */
+
+/* All view header rows: unified separator + spacing */
+.chop-top {
+  border-bottom: 1px solid #D0D0D0 !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 6px !important;
+}
+.seq-top {
+  border-bottom: 1px solid #D0D0D0 !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 4px !important;
+}
+
+/* Unified overlay inner padding */
+.midi-modal, .chop-modal {
+  padding: 8px 8px 6px !important;
+}
+.seq-modal {
+  padding: 8px 8px 6px !important;
+  gap: 6px !important;
+}
+
+/* Normalize all label/hint text */
+.chop-hint, .seq-pg-lbl, .midi-quant-label,
+.chop-sel-info, .seq-leg, .knob-label,
+.preset-label, .midi-zoom-val {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 8px !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+}
+.chop-hint    { color: #888 !important; }
+.seq-pg-lbl   { color: #888 !important; font-weight: 400 !important; }
+.chop-sel-info { color: #444 !important; text-transform: none !important; }
+.midi-zoom-val { color: #444 !important; font-weight: 500 !important; }
+.seq-leg       { color: #888 !important; text-transform: none !important; }
+.knob-label    { color: #888 !important; letter-spacing: 1px !important; }
+
+/* Normalize all button text */
+.midi-action-btn, .chop-btn-action,
+.seq-pg-btn, .seq-kit-btn,
+.midi-quant-btn, .midi-zoom-btn,
+.midi-undo-btn {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 9px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+.midi-quant-btn { font-size: 8px !important; }
+.midi-zoom-btn  { font-size: 11px !important; letter-spacing: 0 !important; }
+.seq-pg-btn     { font-size: 10px !important; letter-spacing: 0 !important; }
+
+/* Confirm dialogs: unified dark overlay */
+.chop-clear-confirm {
+  background: rgba(0,0,0,0.45) !important;
+}
+.chop-pad-settings-box {
+  border-radius: 8px !important;
+}
+
+/* All view titles: same weight & spacing */
+.midi-title, .chop-title, .seq-title {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 2px !important;
+  color: #1A1A1A !important;
+}
+
 </style>
 </head>
 <body>
@@ -3165,7 +3234,7 @@ function drawMidi() {
     g.fillStyle=PAD_COL[i]; g.font='8px "Inter",system-ui,sans-serif'; g.textAlign='right';
     g.fillText(lbl, LABEL_W-4, y+LANE_H/2+3);
     g.beginPath();g.moveTo(0,y+LANE_H);g.lineTo(W,y+LANE_H);
-    g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
+    g.strokeStyle='rgba(0,0,0,0.08)';g.lineWidth=0.5;g.stroke();
   }
   const tb=midiLoopBars*BEATS_PER_BAR;
   // Sub-beat lines based on zoom (8th notes at 2×, 16th notes at 4×)
@@ -3177,7 +3246,7 @@ function drawMidi() {
       const x=LABEL_W+(s/totalSubs)*gW;
       const isMid=(s%subPerBeat===subPerBeat/2);
       g.beginPath();g.moveTo(x,0);g.lineTo(x,H);
-      g.strokeStyle=isMid?'rgba(255,255,255,0.10)':'rgba(255,255,255,0.05)';
+      g.strokeStyle=isMid?'rgba(0,0,0,0.10)':'rgba(0,0,0,0.05)';
       g.lineWidth=0.5;g.stroke();
       if (isMid&&midiZoom>=2.5) {
         g.fillStyle='rgba(0,0,0,0.25)';g.font='7px "Inter",system-ui,sans-serif';g.textAlign='left';
@@ -3201,7 +3270,7 @@ function drawMidi() {
     g.fillStyle=PAD_COL[n.padIdx];
     g.beginPath(); if(g.roundRect) g.roundRect(x,y,nW,nH,3); else g.rect(x,y,nW,nH);
     g.fill();
-    if(isDragging){ g.strokeStyle='rgba(255,255,255,0.6)'; g.lineWidth=1.5; g.stroke(); }
+    if(isDragging){ g.strokeStyle='rgba(0,0,0,0.5)'; g.lineWidth=1.5; g.stroke(); }
     g.globalAlpha=1;
   });
   if (playheadNorm>=0) {
@@ -3222,10 +3291,10 @@ function drawMidi() {
       g.fillStyle=PAD_COL[i]; g.font='8px "Inter",system-ui,sans-serif'; g.textAlign='right';
       g.fillText(lbl, sx+LABEL_W-4, y+LANE_H/2+3);
       g.beginPath();g.moveTo(sx,y+LANE_H);g.lineTo(sx+LABEL_W,y+LANE_H);
-      g.strokeStyle='rgba(255,255,255,0.05)';g.lineWidth=0.5;g.stroke();
+      g.strokeStyle='rgba(0,0,0,0.08)';g.lineWidth=0.5;g.stroke();
     }
     g.beginPath();g.moveTo(sx+LABEL_W,0);g.lineTo(sx+LABEL_W,H);
-    g.strokeStyle='rgba(255,255,255,0.15)';g.lineWidth=1;g.stroke();
+    g.strokeStyle='rgba(0,0,0,0.12)';g.lineWidth=1;g.stroke();
   }
   g.restore();
 }
@@ -3323,7 +3392,12 @@ function hitNote(cx, cy) {
   }
   return -1;
 }
-function cpos(e){ const r=midiCanvas.getBoundingClientRect(),s=e.touches?e.touches[0]:e; return{x:s.clientX-r.left,y:s.clientY-r.top}; }
+function cpos(e){
+  const r=midiCanvas.getBoundingClientRect(), s=e.touches?e.touches[0]:e;
+  const dpr=window.devicePixelRatio||1, W=midiCanvas.width/dpr;
+  const sc = W > 0 ? r.width / W : 1; // appScaler transform correction
+  return {x:(s.clientX-r.left)/sc, y:(s.clientY-r.top)/sc};
+}
 midiCanvas.addEventListener('mousedown',e=>{
   const{x,y}=cpos(e),ni=hitNote(x,y);
   if(ni>=0){
