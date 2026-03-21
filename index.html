@@ -9,22 +9,23 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#07111e">
+<meta name="theme-color" content="#100A03">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
-<title>BCT-404</title>
+<title>Blue Tape Sampler</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #07111e;
-  --surface: #0d1b2a;
-  --surface2: #091522;
-  --border: rgba(255,255,255,0.07);
-  --text: #ddd8d0;
-  --muted: rgba(221,216,208,0.4);
-  --primary: #1a3aff;
+  --bg: #100A03;
+  --surface: #1C1C1C;
+  --surface2: #141414;
+  --border: rgba(255,255,255,0.12);
+  --text: #E8E0D0;
+  --muted: rgba(232,224,208,0.42);
+  --primary: #E8761A;
+  --accent2: #4AAECC;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
   --gap: 4px;
@@ -39,7 +40,7 @@ html {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Public Sans', sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   width: 100vw;
   height: 100vh;
   height: 100dvh;
@@ -62,7 +63,32 @@ body {
   transform-origin: center center;
   display: flex;
   flex-direction: column;
-  padding: max(env(safe-area-inset-top), 6px) 4px max(env(safe-area-inset-bottom), 4px);
+  padding: max(env(safe-area-inset-top), 12px) 10px max(env(safe-area-inset-bottom), 12px);
+  /* Walnut wood frame */
+  background:
+    repeating-linear-gradient(
+      89deg,
+      transparent 0px, transparent 6px,
+      rgba(0,0,0,0.04) 6px, rgba(0,0,0,0.04) 7px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 22px,
+      rgba(255,255,255,0.015) 22px, rgba(255,255,255,0.015) 23px
+    ),
+    linear-gradient(180deg,
+      #A06838 0%, #7A4C28 10%,
+      #8C5830 22%, #6A3C1C 36%,
+      #7C4A2A 50%, #5E3218 62%,
+      #7A4C28 76%, #9B6238 90%,
+      #A06838 100%
+    );
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow:
+    0 12px 60px rgba(0,0,0,0.9),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    inset 0 -2px 0 rgba(0,0,0,0.4);
 }
 
 /* ── BCT Navigation Header ── */
@@ -70,19 +96,45 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px 6px;
+  padding: 6px 12px 8px;
   flex-shrink: 0;
   width: 100%;
+  min-height: 52px;
 }
 .bct-back {
-  font-family: 'Public Sans', sans-serif;
-  font-size: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 9px;
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: rgba(245,230,200,0.5);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+.bct-title-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+.bct-main-title {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #F5E6C8;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 12px rgba(245,230,200,0.12);
+  line-height: 1;
+}
+.bct-sub-title {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: rgba(245,230,200,0.45);
+  text-transform: lowercase;
+  margin-top: 4px;
 }
 .bct-reel-logo { display: flex; align-items: center; gap: 4px; }
 .bct-reel-c {
@@ -102,14 +154,18 @@ body {
 /* ── Machine shell ── */
 .machine {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
   padding: 6px 6px 0;
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    inset 0 -1px 0 rgba(0,0,0,0.4),
+    0 4px 16px rgba(0,0,0,0.6);
 }
 /* MIDI sheet mode: hide pad controls, show only canvas area */
 .machine.sheet-mode .controls { display: none; }
@@ -130,15 +186,18 @@ body {
   flex-shrink: 0;
 }
 .brand {
-  font-size: 20px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 4px;
+  letter-spacing: 3px;
   color: var(--text);
   line-height: 1;
+  text-transform: uppercase;
 }
 .model-line {
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 8px;
+  letter-spacing: 3px;
   color: var(--muted);
   margin-top: 3px;
   text-transform: uppercase;
@@ -827,7 +886,7 @@ body {
 /* ── MIDI zoom controls ── */
 .midi-quant-sep { flex: 1; }
 .midi-zoom-btn {
-  font-family: 'Public Sans', sans-serif; font-size: 13px; color: var(--muted);
+  font-family: 'Courier New', Courier, monospace; font-size: 13px; color: var(--muted);
   background: var(--surface2); border: 1px solid var(--border); border-radius: 3px;
   width: 20px; height: 20px; cursor: pointer; display: flex;
   align-items: center; justify-content: center; line-height: 1;
@@ -835,16 +894,354 @@ body {
 }
 .midi-zoom-btn:active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .midi-zoom-val {
+  font-family: 'Courier New', Courier, monospace;
   font-size: 9px; font-weight: 500; color: var(--text);
   min-width: 26px; text-align: center; letter-spacing: 0.04em; flex-shrink: 0;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   MINIMOOG VINTAGE RESKIN
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Wood header title ── */
+.bct-reel-logo { flex-shrink: 0; }
+
+/* ── Machine header section ── */
+.header {
+  background: rgba(0,0,0,0.25);
+  border-radius: 6px 6px 0 0;
+  padding: 5px 10px !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+/* ── Metro/transport bar ── */
+.metro-bar {
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  padding: 4px 6px;
+}
+
+/* ── Controls section ── */
+.controls {
+  background: rgba(0,0,0,0.2);
+  border-top: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+/* ── Pad rubber texture ── */
+.pad {
+  background: #1A1A1A !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 5px !important;
+  box-shadow:
+    inset 0 2px 6px rgba(0,0,0,0.65),
+    inset 0 -1px 0 rgba(255,255,255,0.04),
+    0 1px 0 rgba(255,255,255,0.05) !important;
+  transition:
+    transform 0.06s ease,
+    background 0.06s ease,
+    border-color 0.06s ease,
+    box-shadow 0.06s ease !important;
+}
+
+.pad.active {
+  background: rgba(232,118,26,0.80) !important;
+  border-color: #E8761A !important;
+  box-shadow:
+    0 0 16px rgba(232,118,26,0.6),
+    0 0 4px rgba(232,118,26,0.9),
+    inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  transform: scale(0.93) translateY(1px) !important;
+}
+.pad.active .pad-name { color: #fff !important; }
+.pad.active .pad-hint  { color: rgba(255,255,255,0.6) !important; }
+
+@media (hover: hover) {
+  .pad:hover { border-color: rgba(232,118,26,0.3) !important; }
+}
+
+/* ── Chop pad accent ── */
+.pad.chop { border-color: rgba(74,174,204,0.45) !important; }
+
+/* ── Vintage knobs ── */
+.knob {
+  width: 32px !important;
+  height: 32px !important;
+  background: radial-gradient(circle at 38% 32%, #3C3C3C, #0D0D0D) !important;
+  border: 1.5px solid rgba(255,255,255,0.16) !important;
+  box-shadow:
+    0 4px 10px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+.knob::after {
+  top: 5px !important;
+  width: 2px !important;
+  height: 9px !important;
+  background: #E8761A !important;
+  border-radius: 1px !important;
+  box-shadow: 0 0 4px rgba(232,118,26,0.5);
+}
+.knob:active { border-color: #E8761A !important; }
+.knob-label {
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 7px !important;
+  letter-spacing: 2px !important;
+  color: var(--muted) !important;
+  text-transform: uppercase !important;
+}
+
+/* ── Metallic buttons (universal) ── */
+.metro-btn, .view-nav-btn, .preset-btn,
+.bpm-adj, .bar-sel-item,
+.midi-quant-btn, .midi-zoom-btn,
+.play-btn, .rec-btn,
+.seq-pg-btn, .seq-kit-btn,
+.chop-src-btn, .chop-btn-action,
+.midi-back-btn, .midi-undo-btn,
+.midi-action-btn,
+.bar-pick-btn,
+.picker-btn,
+.seq-enable-btn,
+.midi-delete-btn {
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+.metro-btn, .view-nav-btn, .preset-btn,
+.bpm-adj, .bar-sel-item,
+.midi-quant-btn, .midi-zoom-btn,
+.seq-pg-btn, .seq-kit-btn,
+.chop-src-btn,
+.midi-back-btn, .midi-undo-btn {
+  background: linear-gradient(180deg, #272727, #191919) !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06), inset 0 1px 3px rgba(0,0,0,0.35) !important;
+  color: rgba(232,224,208,0.6) !important;
+}
+
+/* Active state — orange */
+.metro-btn.active, .view-nav-btn.active,
+.preset-btn.active, .bar-sel-item.active,
+.midi-quant-btn.active, .seq-kit-btn.active,
+.midi-back-btn {
+  color: #E8761A !important;
+  border-color: #E8761A !important;
+  background: rgba(232,118,26,0.12) !important;
+  box-shadow: 0 0 8px rgba(232,118,26,0.25), inset 0 1px 2px rgba(0,0,0,0.2) !important;
+}
+
+/* Play button */
+.play-btn {
+  background: linear-gradient(180deg, #272727, #191919) !important;
+  color: #E8761A !important;
+  border: 1px solid rgba(232,118,26,0.45) !important;
+  box-shadow: 0 0 6px rgba(232,118,26,0.1) !important;
+}
+.play-btn.playing {
+  background: #E8761A !important;
+  color: #0E0800 !important;
+  border-color: #E8761A !important;
+  box-shadow: 0 0 14px rgba(232,118,26,0.5) !important;
+}
+
+/* Rec button */
+.rec-btn {
+  background: linear-gradient(180deg, #272727, #191919) !important;
+}
+
+/* Teal accent — CHOP do, wav export */
+.chop-btn-do {
+  background: #4AAECC !important;
+  color: #060E10 !important;
+  border-color: #4AAECC !important;
+  box-shadow: 0 0 10px rgba(74,174,204,0.35) !important;
+}
+.midi-action-btn.wav {
+  background: #4AAECC !important;
+  color: #060E10 !important;
+  border-color: #4AAECC !important;
+}
+.midi-action-btn.play.playing {
+  color: #4AAECC !important;
+  border-color: #4AAECC !important;
+  background: rgba(74,174,204,0.1) !important;
+}
+.midi-action-btn.clear {
+  background: linear-gradient(180deg, #272727, #191919) !important;
+}
+
+/* Chop preview */
+.chop-btn-pre {
+  background: linear-gradient(180deg, #272727, #191919) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  color: rgba(232,224,208,0.7) !important;
+}
+.chop-btn-pre.playing {
+  background: #C04030 !important;
+  border-color: #C04030 !important;
+  color: #fff !important;
+}
+
+/* SEQ enable */
+.seq-enable-btn {
+  border-color: rgba(232,118,26,0.35) !important;
+  color: #E8761A !important;
+  background: rgba(232,118,26,0.06) !important;
+}
+.seq-enable-btn.active {
+  background: #E8761A !important;
+  border-color: #E8761A !important;
+  color: #0E0800 !important;
+  box-shadow: 0 0 14px rgba(232,118,26,0.4) !important;
+}
+
+/* BPM value display */
+.bpm-val {
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 12px !important;
+  color: #E8E0D0 !important;
+}
+
+/* Metro vol slider thumb */
+.metro-vol::-webkit-slider-thumb { background: #E8761A !important; }
+.metro-vol::-moz-range-thumb     { background: #E8761A !important; }
+
+/* Display */
+.display {
+  font-family: 'Courier New', Courier, monospace !important;
+  background: #0E0E0E !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: rgba(232,224,208,0.55) !important;
+  letter-spacing: 3px !important;
+  font-size: 9px !important;
+}
+
+/* LCD screen — keep green feel */
+.bct-screen {
+  background: #0E180E !important;
+  border: 1.5px solid #1E2E1E !important;
+  box-shadow: inset 0 2px 12px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.5) !important;
+}
+
+/* LED on state */
+.led.on {
+  background: #E8761A !important;
+  box-shadow: 0 0 7px rgba(232,118,26,0.75) !important;
+}
+
+/* ── Picker / modal overlays ── */
+.picker-modal, .midi-delete-box, .chop-pad-settings-box,
+.seq-lb-modal, .bar-pick-box {
+  background: #1C1C1C !important;
+  border: 1px solid rgba(255,255,255,0.13) !important;
+}
+
+.picker-title {
+  font-family: 'Courier New', Courier, monospace !important;
+  color: #E8761A !important;
+  letter-spacing: 3px !important;
+}
+.picker-label {
+  font-family: 'Courier New', Courier, monospace !important;
+  letter-spacing: 2px !important;
+}
+.picker-item {
+  font-family: 'Courier New', Courier, monospace !important;
+}
+.picker-sel-bar {
+  border-top-color: rgba(232,118,26,0.45) !important;
+  border-bottom-color: rgba(232,118,26,0.45) !important;
+}
+.picker-btn.confirm {
+  background: #E8761A !important;
+  color: #0E0800 !important;
+}
+.picker-btn.cancel {
+  background: #1A1A1A !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+
+/* Bar-pick startup modal */
+.bar-pick-title {
+  font-family: 'Courier New', Courier, monospace !important;
+  color: #E8761A !important;
+  letter-spacing: 3px !important;
+}
+.bar-pick-btn {
+  font-family: 'Courier New', Courier, monospace !important;
+  background: #1A1A1A !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+.bar-pick-btn:hover {
+  background: rgba(232,118,26,0.15) !important;
+  border-color: #E8761A !important;
+  color: #E8761A !important;
+}
+
+/* MIDI view */
+.midi-title, .chop-title, .seq-title {
+  font-family: 'Courier New', Courier, monospace !important;
+  letter-spacing: 3px !important;
+}
+.midi-grid-wrap {
+  border-color: rgba(255,255,255,0.08) !important;
+  background: #141414 !important;
+}
+
+/* Seq */
+.seq-lb-title { color: #E8761A !important; }
+.seq-lb-pct   { font-family: 'Courier New', Courier, monospace !important; }
+.seq-lb-modal input[type=range] {
+  background: linear-gradient(to right, #E8761A 0%, #E8761A var(--pct,0%), rgba(255,255,255,0.1) var(--pct,0%), rgba(255,255,255,0.1) 100%) !important;
+}
+.seq-lb-modal input[type=range]::-webkit-slider-thumb { background: #E8761A !important; }
+.seq-lb-modal input[type=range]::-moz-range-thumb     { background: #E8761A !important; }
+
+/* Chop wave */
+.chop-hint { font-family: 'Courier New', Courier, monospace !important; }
+.chop-sel-info { color: #E8761A !important; }
+
+/* Preset row label */
+.preset-label {
+  font-family: 'Courier New', Courier, monospace !important;
+  letter-spacing: 2px !important;
+}
+
+/* Footer */
+.footer {
+  display: block !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 7px !important;
+  letter-spacing: 3px !important;
+  color: rgba(245,230,200,0.2) !important;
+  text-align: center !important;
+  padding: 5px 0 2px !important;
+  text-transform: uppercase !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* ── Hardcoded legacy color overrides ── */
+/* Blue glow references → orange */
+.midi-delete-btn.ok, .midi-delete-btn.ok,
+.cps-adj:active { background: #E8761A !important; border-color: #E8761A !important; }
+.cps-btns .ok { background: #E8761A !important; }
+
+/* scr-loop-tag */
+.scr-loop-tag { font-family: 'Courier New', Courier, monospace !important; }
+
+/* Bar select modal bg */
+#barPickModal { background: rgba(6,4,2,0.94) !important; }
+.bar-pick-sub { font-family: 'Courier New', Courier, monospace !important; color: var(--muted) !important; }
 
 </style>
 </head>
 <body>
 <div id="appScaler">
 <header class="bct-nav">
-  <a class="bct-back" href="https://bluechordtape-hub.vercel.app">← BLUE CHORD TAPE</a>
+  <a class="bct-back" href="https://bluechordtape-hub.vercel.app">← BCT</a>
+  <div class="bct-title-block">
+    <div class="bct-main-title">Blue Tape Sampler</div>
+    <div class="bct-sub-title">by bluechordtape</div>
+  </div>
   <div class="bct-reel-logo">
     <div class="bct-reel-c"></div>
     <div class="bct-reel-bar"></div>
@@ -854,7 +1251,7 @@ body {
 <div class="machine">
   <div class="header">
     <div>
-      <div class="brand">BCT-404 <span style="font-size:9px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.7</span></div>
+      <div class="brand">SAMPLER <span style="font-size:8px;font-weight:400;letter-spacing:0.1em;color:var(--muted);vertical-align:middle;">v3.7</span></div>
       <div class="model-line">Jazz Hip-Hop · Web Audio</div>
     </div>
     <div class="display" id="display">[ READY ]</div>
@@ -1067,7 +1464,7 @@ body {
       <button class="preset-btn" data-preset="5">VINYL</button>
     </div>
   </div>
-  <div class="footer">BCT-404 · Jazz Hip-Hop · Web Audio API</div>
+  <div class="footer">Blue Tape Sampler · by bluechordtape</div>
 </div>
 
 
@@ -2826,7 +3223,7 @@ midiWavBtn.addEventListener('click',()=>{
   if(!lastWavBlob) return;
   const ext=lastWavBlob.type.includes('wav')?'wav':'webm';
   const url=URL.createObjectURL(lastWavBlob);
-  const a=document.createElement('a'); a.href=url; a.download='bct-404-take.'+ext; a.click();
+  const a=document.createElement('a'); a.href=url; a.download='bts-take.'+ext; a.click();
   setTimeout(()=>URL.revokeObjectURL(url),3000);
 });
 

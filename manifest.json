@@ -1,13 +1,13 @@
 {
-  "name": "BCT-404 Drum Machine",
-  "short_name": "BCT-404",
-  "description": "SP-404 style drum machine with reverb, chorus and layback",
+  "name": "Blue Tape Sampler",
+  "short_name": "BTS",
+  "description": "Vintage-style sampler by bluechordtape",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ede7db",
-  "theme_color": "#ede7db",
+  "background_color": "#100A03",
+  "theme_color": "#100A03",
   "icons": [
     {
       "src": "icon.svg",
